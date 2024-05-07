@@ -1,1 +1,1 @@
-# eternal-infer-worker
+# miner-node

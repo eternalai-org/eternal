@@ -77,6 +77,8 @@ jobs:
         with:
           body_path: ".github/RELEASE-TEMPLATE.md"
           draft: false
-          files: ${{env.BINARY_NAME}}
+          files: | 
+            ${{env.BINARY_NAME}}
+            mining-setup.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
