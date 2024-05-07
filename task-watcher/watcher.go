@@ -354,6 +354,37 @@ func (tskw *TaskWatcher) AssignTask(task *types.TaskInfo) error {
 	return nil
 }
 
+func (tskw *TaskWatcher) CheckTaskCompleted(taskID string) (bool, error) {
+
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return false, err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return false, err
+	}
+
+	requestId, ok := new(big.Int).SetString(taskID, 10)
+	if !ok {
+		return false, errors.New("invalid task id")
+	}
+
+	requestInfo, err := workerHub.WorkerHubCaller.MintingAssignments(nil, requestId)
+	if err != nil {
+		return false, err
+	}
+
+	if !requestInfo.Accomplished {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (tskw *TaskWatcher) executeTasks() {
 	for {
 		task := <-tskw.taskQueue
@@ -366,8 +397,20 @@ func (tskw *TaskWatcher) executeTasks() {
 		}
 
 		if tskw.mode == "worker" {
+			isCompleted, err := tskw.CheckTaskCompleted(task.TaskID)
+			if err != nil {
+				log.Println("check task completed error: ", err)
+				time.Sleep(1 * time.Second)
+				continue
+			}
+
+			if isCompleted {
+				log.Println("task already completed: ", task.TaskID)
+				tskw.RemoveRunner(task.TaskID)
+				continue
+			}
 			// assign task to worker
-			err := tskw.executeWorkerTask(task)
+			err = tskw.executeWorkerTask(task)
 			if err != nil {
 				log.Println("execute worker task error: ", err)
 				time.Sleep(10 * time.Second)
