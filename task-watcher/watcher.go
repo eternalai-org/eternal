@@ -241,20 +241,25 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 			return []types.TaskInfo{}, err
 		}
 
+		inferenceInfo, err := workerHub.WorkerHubCaller.Inferences(nil, requestInfo.InferenceId)
+		if err != nil {
+			return []types.TaskInfo{}, err
+		}
+
 		requestInput, err := workerHub.WorkerHubCaller.GetInferenceInput(nil, requestInfo.InferenceId)
 		if err != nil {
 			return []types.TaskInfo{}, err
 		}
+		modelAddr := strings.ToLower(inferenceInfo.ModelAddress.Hex())
+		if !strings.EqualFold(modelAddr, "0x839dAf171eCF605b9aB8A2C13ae879c817173806") {
+			modelAddr = "0x839daf171ecf605b9ab8a2c13ae879c817173806"
+		}
 		task := types.TaskInfo{
 			TaskID:        request.String(),
-			ModelContract: strings.ToLower("0x839dAf171eCF605b9aB8A2C13ae879c817173806"),
+			ModelContract: strings.ToLower(modelAddr),
 			Params:        string(requestInput),
-			Requestor:     strings.ToLower(workerAddress.Hex()),
-			Value:         "0",
-			// Value:         requestInfo.Value.String(),
-			// ModelContract: strings.ToLower(requestInfo.ModelAddress.Hex()),
-			// Params:        string(requestInfo.Input),
-			// Requestor:     strings.ToLower(requestInfo.Creator.Hex()),
+			Requestor:     strings.ToLower(inferenceInfo.Creator.Hex()),
+			Value:         inferenceInfo.Value.String(),
 		}
 
 		log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
@@ -365,7 +370,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			err := tskw.executeWorkerTask(task)
 			if err != nil {
 				log.Println("execute worker task error: ", err)
-				time.Sleep(60 * time.Second)
+				time.Sleep(10 * time.Second)
 			}
 		}
 		if tskw.mode == "verifier" {
@@ -373,15 +378,15 @@ func (tskw *TaskWatcher) executeTasks() {
 			err := tskw.executeVerifierTask(task)
 			if err != nil {
 				log.Println("execute verifier task error: ", err)
-				time.Sleep(1 * time.Second)
+				time.Sleep(10 * time.Second)
 			}
 		}
 
-		err = tskw.modelManager.PauseInstance(task.ModelContract)
-		if err != nil {
-			log.Println("pause instance error: ", err)
-			time.Sleep(1 * time.Second)
-		}
+		// err = tskw.modelManager.PauseInstance(task.ModelContract)
+		// if err != nil {
+		// 	log.Println("pause instance error: ", err)
+		// 	time.Sleep(1 * time.Second)
+		// }
 
 		log.Println("task done: ", task.TaskID)
 		// tskw.RemoveRunner(task.TaskID)

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker build -f build.Dockerfile --no-cache --output build .
+docker build -f build.Dockerfile --output build .
 chmod +x ./build/workersv

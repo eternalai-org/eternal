@@ -2,7 +2,6 @@ package dockercmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -162,17 +161,28 @@ func loadLocalImage(imagePath string) (string, error) {
 	type ImageLoadResponse struct {
 		Stream string `json:"stream"`
 	}
-	var imageLoadResponse ImageLoadResponse
-	err = json.Unmarshal(body, &imageLoadResponse)
-	if err != nil {
-		log.Println(string(body))
-		return "", err
+	// var imageLoadResponse ImageLoadResponse
+	// err = json.Unmarshal(body, &imageLoadResponse)
+	// if err != nil {
+	log.Println(string(body))
+	// 	return "", err
+	// }
+
+	// 	{"status":"Loading layer","progressDetail":{"current":8192,"total":8192},"progress":"[==================================================\u003e]  8.192kB/8.192kB","id":"f460e43f2ce4"}
+	// {"status":"Loading layer","progressDetail":{"current":8192,"total":8192},"progress":"[==================================================\u003e]  8.192kB/8.192kB","id":"f460e43f2ce4"}
+	// {"stream":"Loaded image: prompt_generator:latest\n"}
+
+	parts := strings.Split(string(body), "Loaded image: ")
+	if len(parts) < 2 {
+		return "", errors.New("Failed to load image")
 	}
 
-	imageName = imageLoadResponse.Stream
+	part2 := parts[1]
+	part2 = strings.TrimSpace(part2)
 
-	imageName = strings.Trim(imageName, "\n")
-	imageName = strings.Trim(imageName, "Loaded image: ")
+	imageName = part2[:len(part2)-4]
+
+	log.Println("Loaded image: ", imageName)
 
 	return imageName, nil
 }
@@ -336,10 +346,14 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 		return nil, err
 	}
 	if existedContainer != nil {
-		err = RemoveContainer(existedContainer.ID)
-		if err != nil {
-			return nil, errors.Join(fmt.Errorf("Failed to remove existed container %s", containerName), err)
+		// err = RemoveContainer(existedContainer.ID)
+		// if err != nil {
+		// 	return nil, errors.Join(fmt.Errorf("Failed to remove existed container %s", containerName), err)
+		// }
+		a := container.ContainerCreateCreatedBody{
+			ID: existedContainer.ID,
 		}
+		return &a, nil
 	}
 	apiClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {

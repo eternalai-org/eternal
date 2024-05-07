@@ -202,8 +202,11 @@ func (m *ModelManager) IsModelReady(modelAddress string) (bool, bool) {
 	return false, false
 }
 
-func (m *ModelManager) pauseAllInstances() error {
+func (m *ModelManager) pauseAllInstances(exception string) error {
 	for _, modelInst := range m.currentModels {
+		if strings.EqualFold(modelInst.ModelInfo.ModelAddr, exception) {
+			continue
+		}
 		err := modelInst.PauseDocker()
 		if err != nil {
 			log.Println("Pause model error: ", err)
@@ -270,7 +273,7 @@ func (m *ModelManager) MakeReady(modelAddress string) error {
 	m.lck.Lock()
 	defer m.lck.Unlock()
 
-	err := m.pauseAllInstances()
+	err := m.pauseAllInstances(strings.ToLower(modelAddress))
 	if err != nil {
 		return err
 	}
