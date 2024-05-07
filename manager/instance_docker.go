@@ -167,19 +167,19 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 				return err
 			}
 		}
+
+		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.VerifierFileHash, filePath)
+		if err != nil {
+			log.Println("Check model file hash got error", err)
+			return err
+		}
+
+		if !match {
+			log.Println("Model file hash not match")
+			return err
+		}
 	} else {
 		log.Println("Model file already exist")
-	}
-
-	match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.VerifierFileHash, filePath)
-	if err != nil {
-		log.Println("Check model file hash got error", err)
-		return err
-	}
-
-	if !match {
-		log.Println("Model file hash not match")
-		return err
 	}
 
 	err = dockercmd.LoadLocalImageWithCustomName(filePath, m.ModelInfo.ModelAddr+"_verifier")

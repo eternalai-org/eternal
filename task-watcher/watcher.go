@@ -247,7 +247,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 		}
 		task := types.TaskInfo{
 			TaskID:        request.String(),
-			ModelContract: strings.ToLower("0xf169f0c37758112b0700d2D44A7bada75Bb1c3ba"),
+			ModelContract: strings.ToLower("0x839dAf171eCF605b9aB8A2C13ae879c817173806"),
 			Params:        string(requestInput),
 			Requestor:     strings.ToLower(workerAddress.Hex()),
 			Value:         "0",

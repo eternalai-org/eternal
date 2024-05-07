@@ -7,7 +7,7 @@ rm -f run-miner-node.sh
 
 echo "> Downloading miner-node"
 echo
-curl -LJ -o miner-node https://github.com/eternalai-org/miner-node/releases/download/v0.5.3/miner-node-linux-amd64 
+curl -LJ -o miner-node https://github.com/eternalai-org/miner-node/releases/download/v0.5.4/miner-node-linux-amd64 
 
 echo "> Enter your account private key:"
 read ACCOUNT

@@ -17,7 +17,8 @@ type UIinstance struct {
 
 	loadedModel string
 
-	taskManager TaskManagerI
+	taskManager  TaskManagerI
+	modelManager ModelManagerI
 
 	sub    chan UIMessageData
 	sublog chan UILogText
@@ -28,15 +29,16 @@ type UIinstance struct {
 
 var UI *UIinstance
 
-func InitialModel(version, nodeMode string, stopChn chan struct{}, taskMng TaskManagerI) UIinstance {
+func InitialModel(version, nodeMode string, stopChn chan struct{}, taskMng TaskManagerI, modelMng ModelManagerI) UIinstance {
 	m := UIinstance{
-		sub:         make(chan UIMessageData, 1),
-		version:     version,
-		sublog:      make(chan UILogText),
-		logLines:    make([]string, 8),
-		nodeMode:    nodeMode,
-		stopChn:     stopChn,
-		taskManager: taskMng,
+		sub:          make(chan UIMessageData, 1),
+		version:      version,
+		sublog:       make(chan UILogText),
+		logLines:     make([]string, 8),
+		nodeMode:     nodeMode,
+		stopChn:      stopChn,
+		taskManager:  taskMng,
+		modelManager: modelMng,
 	}
 	return m
 }
@@ -132,6 +134,9 @@ func (m UIinstance) View() string {
 	//status line
 	s += fmt.Sprintf("\n %s Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.statusText))
 
+	if m.modelManager != nil {
+		s += fmt.Sprintf("\n %s ModelManager Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.modelManager.GetStatus()))
+	}
 	// s += fmt.Sprintf("\n %s Loaded Model:%s%s\n\n", ">", " ", textStyle(m.loadedModel))
 
 	if m.taskManager != nil {

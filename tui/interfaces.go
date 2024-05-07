@@ -7,3 +7,7 @@ type TaskManagerI interface {
 	GetWorkerAddress() string
 	GetWorkerBalance() string
 }
+
+type ModelManagerI interface {
+	GetStatus() string
+}

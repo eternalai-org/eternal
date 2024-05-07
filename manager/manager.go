@@ -2,8 +2,8 @@ package manager
 
 import (
 	"errors"
+	"eternal-infer-worker/libs/abi"
 	"eternal-infer-worker/libs/eaimodel"
-	"eternal-infer-worker/tui"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -20,15 +21,27 @@ type ModelManager struct {
 	currentModels map[string]*ModelInstance
 	rpc           string
 	nodeMode      string
+	workerHub     string
+	status        string
 }
 
-func NewModelManager(modelsDir, rpcEndpoint, nodeMode string) *ModelManager {
+func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string) *ModelManager {
 	return &ModelManager{
 		modelsDir:     modelsDir,
 		rpc:           rpcEndpoint,
 		currentModels: make(map[string]*ModelInstance),
 		nodeMode:      nodeMode,
+		workerHub:     workerHub,
+		status:        "initializing",
 	}
+}
+
+func (m *ModelManager) GetStatus() string {
+	return m.status
+}
+
+func (m *ModelManager) setStatus(text string) {
+	m.status = text
 }
 
 func (m *ModelManager) GetLoadeModels() []string {
@@ -42,19 +55,66 @@ func (m *ModelManager) GetLoadeModels() []string {
 }
 
 func (m *ModelManager) WatchAndPreloadModels() {
-	// TODO: @liam watch for new model and load
+	for {
+		time.Sleep(5 * time.Second)
+		modelsList, err := m.getHubModels()
+		if err != nil {
+			log.Println("Get models error: ", err)
+			continue
+		}
+
+		loadedModels := m.GetLoadeModels()
+		loadedModelsMap := make(map[string]bool)
+
+		for _, modelAddr := range loadedModels {
+			loadedModelsMap[modelAddr] = true
+		}
+
+		modelToPreload := []string{}
+		for _, modelAddr := range modelsList {
+			if _, ok := loadedModelsMap[strings.ToLower(modelAddr.String())]; !ok {
+				modelToPreload = append(modelToPreload, modelAddr.String())
+			}
+		}
+
+		if len(modelToPreload) > 0 {
+			m.setStatus("preloading new models")
+			log.Println("Preload models: ", modelToPreload)
+			err := m.PreloadModels(modelToPreload)
+			if err != nil {
+				log.Println("Preload models error: ", err)
+			}
+		} else {
+			log.Println("No new models to preload")
+			m.setStatus("all model preloaded")
+		}
+	}
+}
+
+func (m *ModelManager) getHubModels() ([]common.Address, error) {
+	client, err := ethclient.Dial(m.rpc)
+	if err != nil {
+		return nil, err
+	}
+
+	hubAddress := common.HexToAddress(m.workerHub)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, client)
+	if err != nil {
+		return nil, err
+	}
+
+	models, err := workerHub.WorkerHubCaller.GetModelAddresses(nil)
+	if err != nil {
+		return nil, err
+	}
+	return models, nil
 }
 
 func (m *ModelManager) PreloadModels(list []string) error {
 	m.lck.Lock()
 	defer m.lck.Unlock()
 	log.Println("Preloading models")
-
-	tui.UI.UpdateSectionText(tui.UIMessageData{
-		Section: tui.UISectionStatusText,
-		Color:   "waiting",
-		Text:    "Preloading models",
-	})
 
 	for _, modelAddress := range list {
 		if modelAddress == "" {

@@ -39,10 +39,10 @@ func main() {
 	}
 	rpc := flag.String("rpc", "https://eternal-ai3.tc.l2aas.com/rpc", "rpc url of the network")
 	// ws := flag.String("ws", "", "ws url of the network")
-	taskContract := flag.String("task-contract", "0x8266F7DE3a717D846ffCAcaC32a5C981a9EB9632", "task contract address")
+	taskContract := flag.String("task-contract", "0x00D5F8ae3B8AFD2d9E815CdD03CACbc91563A44F", "task contract address")
 	account := flag.String("account", "", "account private key")
 	modelsDir := flag.String("models-dir", "./models", "models dir")
-	preloadModelStr := flag.String("model", "0xf169f0c37758112b0700d2D44A7bada75Bb1c3ba", "model")
+	preloadModelStr := flag.String("model", "0x839dAf171eCF605b9aB8A2C13ae879c817173806", "model")
 	lighthouseAPI := flag.String("lighthouse-api", "", "lighthouse api")
 	port := flag.Int("port", 5656, "port of the server")
 	mode := flag.String("mode", "worker", "mode of the server, worker or verifier")
@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 
-	modelManager := manager.NewModelManager(*modelsDir, *rpc, *mode)
+	modelManager := manager.NewModelManager(*modelsDir, *rpc, *mode, *taskContract)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: *rpc,
@@ -68,7 +68,7 @@ func main() {
 
 	stopChn := make(chan struct{}, 1)
 
-	ui := tui.InitialModel("0.5.3", *mode, stopChn, newTaskWatcher)
+	ui := tui.InitialModel("0.5.4", *mode, stopChn, newTaskWatcher, modelManager)
 	tui.UI = &ui
 
 	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
@@ -124,10 +124,12 @@ func main() {
 		}
 	}()
 
-	err = modelManager.PreloadModels([]string{*preloadModelStr})
-	if err != nil {
-		panic(err)
-	}
+	// err = modelManager.PreloadModels([]string{*preloadModelStr})
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	go modelManager.WatchAndPreloadModels()
 
 	go newTaskWatcher.Start()
 
