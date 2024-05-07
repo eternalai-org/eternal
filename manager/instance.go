@@ -151,12 +151,17 @@ func (m *ModelInstance) Infer(prompt, outputPath string, seed uint64) (string, e
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
 
 	var inferResp InferResponse
 	err = json.Unmarshal(body, &inferResp)
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("inferResp", string(body))
 
 	return inferResp.Output.OutputPath, nil
 }

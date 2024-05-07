@@ -39,10 +39,10 @@ func main() {
 	}
 	rpc := flag.String("rpc", "https://eternal-ai3.tc.l2aas.com/rpc", "rpc url of the network")
 	// ws := flag.String("ws", "", "ws url of the network")
-	taskContract := flag.String("task-contract", "0x5E077E883b9b44CC5213140c87d98DAB35E6390e", "task contract address")
+	taskContract := flag.String("task-contract", "0x8266F7DE3a717D846ffCAcaC32a5C981a9EB9632", "task contract address")
 	account := flag.String("account", "", "account private key")
 	modelsDir := flag.String("models-dir", "./models", "models dir")
-	preloadModelStr := flag.String("model", "", "model")
+	preloadModelStr := flag.String("model", "0xf169f0c37758112b0700d2D44A7bada75Bb1c3ba", "model")
 	lighthouseAPI := flag.String("lighthouse-api", "", "lighthouse api")
 	port := flag.Int("port", 5656, "port of the server")
 	mode := flag.String("mode", "worker", "mode of the server, worker or verifier")
@@ -68,7 +68,7 @@ func main() {
 
 	stopChn := make(chan struct{}, 1)
 
-	ui := tui.InitialModel("0.5.0", *mode, stopChn, newTaskWatcher)
+	ui := tui.InitialModel("0.5.3", *mode, stopChn, newTaskWatcher)
 	tui.UI = &ui
 
 	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
@@ -86,6 +86,44 @@ func main() {
 	})
 	time.Sleep(1 * time.Second)
 
+	shutdownEmitted := false
+	go func() {
+		for {
+			select {
+			case <-stopChn:
+				shutdownEmitted = true
+				tui.UI.UpdateSectionText(tui.UIMessageData{
+					Section: tui.UISectionStatusText,
+					Color:   "danger",
+					Text:    "Shutting down..."})
+				err = modelManager.RemoveAllInstanceDocker()
+				if err != nil {
+					panic(err)
+				}
+				time.Sleep(1 * time.Second)
+				os.Exit(0)
+			case <-time.After(1 * time.Second):
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-stopChn:
+				if shutdownEmitted {
+					tui.UI.UpdateSectionText(tui.UIMessageData{
+						Section: tui.UISectionStatusText,
+						Color:   "danger",
+						Text:    "Force shutting down..."})
+					time.Sleep(1 * time.Second)
+					os.Exit(0)
+				}
+			case <-time.After(1 * time.Second):
+			}
+		}
+	}()
+
 	err = modelManager.PreloadModels([]string{*preloadModelStr})
 	if err != nil {
 		panic(err)
@@ -99,23 +137,7 @@ func main() {
 			panic(err)
 		}
 	}()
-
-	for {
-		select {
-		case <-stopChn:
-			tui.UI.UpdateSectionText(tui.UIMessageData{
-				Section: tui.UISectionStatusText,
-				Color:   "danger",
-				Text:    "Shutting down..."})
-			err = modelManager.RemoveAllInstanceDocker()
-			if err != nil {
-				panic(err)
-			}
-			time.Sleep(1 * time.Second)
-			os.Exit(0)
-		case <-time.After(1 * time.Second):
-		}
-	}
+	select {}
 }
 
 func checkRequirement() error {
