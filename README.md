@@ -1,3 +1,5 @@
-# miner-node
+# EtenalNode
 
-curl -s -LJO https://github.com/eternalai-org/miner-node/releases/download/v0.5.6/mining-setup.sh && chmod +x mining-setup.sh && ./mining-setup.sh
+This repository contains the source code for the Eternal Node.
+
+curl https://github.com/eternalai-org/eternal/releases/latest/download/mining-setup.sh | sh

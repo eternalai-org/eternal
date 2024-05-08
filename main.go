@@ -68,7 +68,7 @@ func main() {
 
 	stopChn := make(chan struct{}, 1)
 
-	ui := tui.InitialModel("0.5.4", *mode, stopChn, newTaskWatcher, modelManager)
+	ui := tui.InitialModel("0.5.7", *mode, stopChn, newTaskWatcher, modelManager)
 	tui.UI = &ui
 
 	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
