@@ -182,7 +182,7 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 		log.Println("Model file already exist")
 	}
 
-	err = dockercmd.LoadLocalImageWithCustomName(filePath, m.ModelInfo.ModelAddr+"_verifier")
+	err = dockercmd.LoadLocalImageWithCustomName(filePath, m.ModelInfo.ModelAddr+"_validator")
 	if err != nil {
 		log.Println("Load local image got error", err)
 		return err
@@ -240,7 +240,7 @@ func (m *ModelInstance) StartDockerVerifier() error {
 		log.Println("Create model mount dir got error", err)
 		return err
 	}
-	containerName := m.ModelInfo.ModelAddr + "_verifier"
+	containerName := m.ModelInfo.ModelAddr + "_validator"
 
 	ctnInfo, err := dockercmd.CreateAndStartContainer(containerName, containerName, m.Port, resultMountDir, true)
 	if err != nil {
@@ -287,7 +287,7 @@ func (m *ModelInstance) PauseVerifierDocker() error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 
-	ctnInfo, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr + "_verifier")
+	ctnInfo, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr + "_validator")
 	if err != nil {
 		if client.IsErrNotFound(err) {
 			return nil

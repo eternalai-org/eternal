@@ -62,13 +62,14 @@ jobs:
           GOOSARCH=${{matrix.goosarch}}
           GOOS=${GOOSARCH%/*}
           GOARCH=${GOOSARCH#*/}
+          VERSION_TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
           BINARY_NAME=eternal-$GOOS-$GOARCH
           echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
           echo "GOOS=$GOOS" >> $GITHUB_ENV
           echo "GOARCH=$GOARCH" >> $GITHUB_ENV
       - name: Build
         run: |
-          go build -o "$BINARY_NAME" -v
+          go build -ldflags "-X main.VersionTag=$VERSION_TAG" -o "$BINARY_NAME" -v
       - name: Release Notes
         run:
           git log $(git describe HEAD~ --tags --abbrev=0)..HEAD --pretty='format:* %h %s%n  * %an <%ae>' --no-merges >> ".github/RELEASE-TEMPLATE.md"
@@ -79,6 +80,5 @@ jobs:
           draft: false
           files: | 
             ${{env.BINARY_NAME}}
-            eternal-setup.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

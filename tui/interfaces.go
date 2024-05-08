@@ -6,6 +6,7 @@ type TaskManagerI interface {
 	GetCurrentRunningTasks() []types.TaskRunnerInfo
 	GetWorkerAddress() string
 	GetWorkerBalance() string
+	UnstakeAndQuit() error
 }
 
 type ModelManagerI interface {

@@ -12,12 +12,15 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"eternal-infer-worker/tui"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+var VersionTag string
 
 func main() {
 	defer func() {
@@ -45,7 +48,14 @@ func main() {
 	preloadModelStr := flag.String("model", "0x839dAf171eCF605b9aB8A2C13ae879c817173806", "model")
 	lighthouseAPI := flag.String("lighthouse-api", "", "lighthouse api")
 	port := flag.Int("port", 5656, "port of the server")
-	mode := flag.String("mode", "worker", "mode of the server, worker or verifier")
+	// mode := flag.String("mode", "miner", "mode of the server, worker or validator")
+	mode := "miner"
+	argsWithProg := os.Args
+	if len(argsWithProg) > 0 {
+		if strings.EqualFold(argsWithProg[0], "validator") {
+			mode = "validator"
+		}
+	}
 
 	flag.Parse()
 
@@ -56,19 +66,19 @@ func main() {
 		return
 	}
 
-	modelManager := manager.NewModelManager(*modelsDir, *rpc, *mode, *taskContract)
+	modelManager := manager.NewModelManager(*modelsDir, *rpc, mode, *taskContract)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: *rpc,
 		// WS:  *ws,
-	}, *taskContract, *account, *modelsDir, *lighthouseAPI, *mode, 1, 1, modelManager, nil)
+	}, *taskContract, *account, *modelsDir, *lighthouseAPI, mode, 1, 1, modelManager, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	stopChn := make(chan struct{}, 1)
 
-	ui := tui.InitialModel("0.5.7", *mode, stopChn, newTaskWatcher, modelManager)
+	ui := tui.InitialModel(VersionTag, mode, stopChn, newTaskWatcher, modelManager)
 	tui.UI = &ui
 
 	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)

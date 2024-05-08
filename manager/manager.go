@@ -167,7 +167,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	// 	return err
 	// }
 
-	if m.nodeMode == "verifier" {
+	if m.nodeMode == "validator" {
 		err = inst.SetupDockerVerifier()
 		if err != nil {
 			return err
@@ -212,7 +212,7 @@ func (m *ModelManager) pauseAllInstances(exception string) error {
 			log.Println("Pause model error: ", err)
 			return err
 		}
-		if m.nodeMode == "verifier" {
+		if m.nodeMode == "validator" {
 			err := modelInst.PauseVerifierDocker()
 			if err != nil {
 				log.Println("Pause model verifier error: ", err)
@@ -239,7 +239,7 @@ func (m *ModelManager) PauseInstance(modelAddress string) error {
 		log.Println("Pause model error: ", err)
 		return err
 	}
-	if m.nodeMode == "verifier" {
+	if m.nodeMode == "validator" {
 		err := modelInst.PauseVerifierDocker()
 		if err != nil {
 			log.Println("Pause model verifier error: ", err)
@@ -259,7 +259,7 @@ func (m *ModelManager) RemoveAllInstanceDocker() error {
 		if err != nil {
 			return err
 		}
-		if m.nodeMode == "verifier" {
+		if m.nodeMode == "validator" {
 			err := modelInst.RemoveVerifierDocker()
 			if err != nil {
 				return err
@@ -312,7 +312,7 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 		return err
 	}
 
-	if m.nodeMode == "verifier" {
+	if m.nodeMode == "validator" {
 		err := modelInst.StartDockerVerifier()
 		if err != nil {
 			log.Println("Start model verifier error: ", err)

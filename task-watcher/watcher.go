@@ -46,6 +46,8 @@ type TaskWatcher struct {
 	currentRunner map[string]*runner.RunnerInstance
 	lighthouseAPI string
 	mode          string
+
+	unstakeLock sync.Mutex
 }
 
 func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, lighthouseAPI, mode string, id, numOfWorker int, modelManager *manager.ModelManager, coordinator *coordinator.Coordinator) (*TaskWatcher, error) {
@@ -72,8 +74,6 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 	}, nil
 }
 
-// func (tskw *TaskWatcher) GetRu
-
 func (tskw *TaskWatcher) Start() {
 
 	log.Println("start task watcher")
@@ -90,7 +90,7 @@ func (tskw *TaskWatcher) Start() {
 		return
 	}
 
-	tskw.watchAndAssignTask()
+	// tskw.watchAndAssignTask()
 }
 
 func (tskw *TaskWatcher) GetCurrentRunningTasks() []types.TaskRunnerInfo {
@@ -208,7 +208,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 
 	tasks := make([]types.TaskInfo, 0)
 	// TODO @liam get verifier task to
-	if tskw.mode == "verifier" {
+	if tskw.mode == "validator" {
 		// requests, err := workerHub.WorkerHubCaller.GetModelUnresolvedInferences(nil, modelAddress)
 		// if err != nil {
 		// 	return []types.TaskInfo{}, err
@@ -396,7 +396,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			continue
 		}
 
-		if tskw.mode == "worker" {
+		if tskw.mode == "miner" {
 			isCompleted, err := tskw.CheckTaskCompleted(task.TaskID)
 			if err != nil {
 				log.Println("check task completed error: ", err)
@@ -416,11 +416,11 @@ func (tskw *TaskWatcher) executeTasks() {
 				time.Sleep(10 * time.Second)
 			}
 		}
-		if tskw.mode == "verifier" {
-			// assign task to verifier
+		if tskw.mode == "validator" {
+			// assign task to validator
 			err := tskw.executeVerifierTask(task)
 			if err != nil {
-				log.Println("execute verifier task error: ", err)
+				log.Println("execute validator task error: ", err)
 				time.Sleep(10 * time.Second)
 			}
 		}
@@ -780,4 +780,73 @@ func (tskw *TaskWatcher) GetWorkerBalance() string {
 	balFloat = new(big.Float).Quo(balFloat, big.NewFloat(1e18))
 
 	return balFloat.String()
+}
+
+func (tskw *TaskWatcher) Unstaked() error {
+	ctx := context.Background()
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
+
+	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	nonce, err := ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := ethClient.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = uint64(0)  // in units
+	auth.GasPrice = gasPrice
+
+	tx, err := workerHub.WorkerHubTransactor.UnregisterMinter(auth)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while staking"))
+	}
+
+	log.Println("stake tx: ", tx.Hash().Hex())
+
+	err = eth.WaitForTx(ethClient, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+
+	return nil
+}
+
+func (tskw *TaskWatcher) UnstakeAndQuit() error {
+	tskw.unstakeLock.Lock()
+	defer tskw.unstakeLock.Unlock()
+	// err := tskw.Unstaked()
+	// if err != nil {
+	// 	return err
+	// }
+	time.Sleep(5 * time.Second)
+
+	return nil
 }

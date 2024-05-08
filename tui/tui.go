@@ -105,6 +105,23 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				waitForActivity(m.sub),
 				waitForActivityLog(m.sublog),
 			)
+		case "ctrl+s":
+			m.SetStatusText("Unstaking and quitting")
+			m.setSpinnerStyle(colorToStyle("danger"))
+			go func() {
+				//TODO: next
+				err := m.taskManager.UnstakeAndQuit()
+				if err != nil {
+					m.Print("Error: " + err.Error())
+					return
+				}
+				m.stopChn <- struct{}{}
+			}()
+
+			return m, tea.Batch(
+				waitForActivity(m.sub),
+				waitForActivityLog(m.sublog),
+			)
 		}
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -119,6 +136,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Note that we're not returning a command.
 	return m, nil
 }
+
 func (m UIinstance) View() string {
 	var s string
 	s = fmt.Sprintf("[Eternal Infer Worker] [v%v] [%v]\n\n", m.version, m.nodeMode)
