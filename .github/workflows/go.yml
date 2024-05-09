@@ -65,6 +65,7 @@ jobs:
           VERSION_TAG=${{github.ref_name}}
           BINARY_NAME=eternal-$GOOS-$GOARCH
           echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
           echo "GOOS=$GOOS" >> $GITHUB_ENV
           echo "GOARCH=$GOARCH" >> $GITHUB_ENV
       - name: Build
