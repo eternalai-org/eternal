@@ -62,7 +62,7 @@ jobs:
           GOOSARCH=${{matrix.goosarch}}
           GOOS=${GOOSARCH%/*}
           GOARCH=${GOOSARCH#*/}
-          VERSION_TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
+          VERSION_TAG=${{github.ref_name}}
           BINARY_NAME=eternal-$GOOS-$GOARCH
           echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
           echo "GOOS=$GOOS" >> $GITHUB_ENV
