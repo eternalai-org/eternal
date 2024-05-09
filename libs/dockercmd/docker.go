@@ -341,7 +341,7 @@ func WaitForContainerToReady(containerID string) error {
 }
 
 func CreateAndStartContainer(imageTag string, containerName, containerPort, mountFolder string, withGPU bool) (*container.ContainerCreateCreatedBody, error) {
-	// withGPU = false
+	withGPU = false
 	existedContainer, err := GetContainerByName(containerName)
 	if err != nil {
 		return nil, err

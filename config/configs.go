@@ -20,7 +20,7 @@ type Config struct {
 
 const (
 	defaultRPC       = "https://eternal-ai3.tc.l2aas.com/rpc"
-	defaultWorkerHub = "0x5AE8B725d99b60b87B22651e5Da24629D58135B7"
+	defaultWorkerHub = "0xb0F6c20163170958f9935121378a3ed3E8d6263d"
 	defaultModelsDir = "./models"
 	defaultPort      = 5656
 )

@@ -112,7 +112,72 @@ func (tskw *TaskWatcher) Start() {
 		return
 	}
 
+	if tskw.mode == "miner" {
+		err = tskw.joinForMinting()
+		if err != nil {
+			log.Println("join for minting error: ", err)
+			// return
+		}
+	}
+
 	tskw.watchAndAssignTask()
+}
+
+func (tskw *TaskWatcher) joinForMinting() error {
+	ctx := context.Background()
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
+
+	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	nonce, err := ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := ethClient.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = uint64(0)  // in units
+	auth.GasPrice = gasPrice
+
+	tx, err := workerHub.WorkerHubTransactor.JoinForMinting(auth)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while JoinForMinting"))
+	}
+
+	log.Println("JoinForMinting tx: ", tx.Hash().Hex())
+
+	err = eth.WaitForTx(ethClient, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+
+	return nil
 }
 
 func (tskw *TaskWatcher) GetCurrentRunningTasks() []types.TaskRunnerInfo {
@@ -247,7 +312,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 		// }
 	} else {
 		// get unresolved claimed inference requests
-		requests, err := workerHub.WorkerHubCaller.GetMintingAssignments(&bind.CallOpts{
+		requests, err := workerHub.WorkerHubCaller.GetMiningAssignments(&bind.CallOpts{
 			From: workerAddress,
 		})
 		if err != nil {
@@ -601,12 +666,12 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 
 	log.Println("check staked for: ", address.String())
 
-	workerInfo, err := workerHub.WorkerHubCaller.Minters(nil, *address)
+	workerInfo, err := workerHub.WorkerHubCaller.Miners(nil, *address)
 	if err != nil {
 		return false, errors.Join(err, errors.New("Error while getting worker info"))
 	}
 
-	minStake, err := workerHub.WorkerHubCaller.MinterMinimumStake(nil)
+	minStake, err := workerHub.WorkerHubCaller.MinerMinimumStake(nil)
 	if err != nil {
 
 		return false, errors.Join(err, errors.New("Error while getting minimum stake"))
@@ -639,7 +704,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while getting account info"))
 	}
 
-	minStake, err := workerHub.WorkerHubCaller.MinterMinimumStake(nil)
+	minStake, err := workerHub.WorkerHubCaller.MinerMinimumStake(nil)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting minimum stake"))
 	}
@@ -669,7 +734,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	auth.GasLimit = uint64(0) // in units
 	auth.GasPrice = gasPrice
 
-	tx, err := workerHub.WorkerHubTransactor.RegisterMinter(auth, 1)
+	tx, err := workerHub.WorkerHubTransactor.RegisterMiner(auth, 1)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while staking"))
 	}
@@ -844,7 +909,7 @@ func (tskw *TaskWatcher) Unstaked() error {
 	auth.GasLimit = uint64(0)  // in units
 	auth.GasPrice = gasPrice
 
-	tx, err := workerHub.WorkerHubTransactor.UnregisterMinter(auth)
+	tx, err := workerHub.WorkerHubTransactor.UnregisterMiner(auth)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while staking"))
 	}
