@@ -135,7 +135,7 @@ func (m *ModelManager) PreloadModels(list []string) error {
 }
 
 func (m *ModelManager) loadModel(modelAddress string) error {
-
+	m.status = "loading model " + modelAddress
 	client, err := ethclient.Dial(m.rpc)
 	if err != nil {
 		return err
@@ -178,6 +178,8 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 			return err
 		}
 	}
+
+	m.status = "model " + modelAddress + " loaded"
 	return nil
 }
 

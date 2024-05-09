@@ -153,7 +153,7 @@ func (m UIinstance) View() string {
 	s += fmt.Sprintf("\n %s Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.statusText))
 
 	if m.modelManager != nil {
-		// s += fmt.Sprintf("\n %s ModelManager Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.modelManager.GetStatus()))
+		s += fmt.Sprintf("\n %s ModelManager Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.modelManager.GetStatus()))
 	}
 
 	if m.taskManager != nil {

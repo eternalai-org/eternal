@@ -323,7 +323,7 @@ func WaitForContainerToReady(containerID string) error {
 
 	for {
 		i++
-		if i > 30 {
+		if i > 120 {
 			return fmt.Errorf("Timeout waiting for container to be ready")
 		}
 		info, err := apiClient.ContainerInspect(context.Background(), containerID)
