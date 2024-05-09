@@ -158,9 +158,10 @@ func (m UIinstance) View() string {
 
 	if m.taskManager != nil {
 		s += fmt.Sprintf("\n %s Assigned Model:%s%s\n", ">", " ", textStyle(m.taskManager.GetAssignedModel()))
+		s += fmt.Sprintf("\n %s Stake Status:%s%s\n", ">", " ", textStyle(m.taskManager.StakeStatus()))
 		s += fmt.Sprintf("\n %s Worker Address:%s%s\n", ">", " ", textStyle(m.taskManager.GetWorkerAddress()))
-		s += fmt.Sprintf("\n %s Balance:%s%s EAI\n", ">", " ", textStyle(m.taskManager.GetWorkerBalance()))
-		s += fmt.Sprintf("\n %s ProcessedTasks:%s%s\n", ">", " ", textStyle(fmt.Sprintf("%v", m.taskManager.GetProcessedTasks())))
+		s += fmt.Sprintf("\n %s Balance:%s%s EAI", ">", " ", textStyle(m.taskManager.GetWorkerBalance()))
+		s += fmt.Sprintf(" %s Session Earning:%s%s EAI (%s tasks)\n", "|", " ", textStyle(fmt.Sprintf("%v", m.taskManager.GetSessionEarning())), textStyle(fmt.Sprintf("%v", m.taskManager.GetProcessedTasks())))
 
 		tasks := m.taskManager.GetCurrentRunningTasks()
 		taskIDs := make([]string, 0, len(tasks))

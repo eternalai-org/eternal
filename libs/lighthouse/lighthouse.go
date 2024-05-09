@@ -3,6 +3,7 @@ package lighthouse
 import (
 	"bytes"
 	"encoding/json"
+	"eternal-infer-worker/libs/eth"
 	"fmt"
 	"io"
 	"log"
@@ -222,6 +223,105 @@ func UploadData(apikey, fileName string, data []byte) (string, error) {
 	}
 
 	return respBody.Hash, nil
+}
+
+func GenAPIkey(privkey string) (string, error) {
+
+	priv, address, err := eth.GetAccountInfo(privkey)
+	if err != nil {
+		return "", err
+	}
+
+	msg, err := getMsgToSign(address.String())
+	if err != nil {
+		return "", err
+	}
+
+	sig, err := eth.SignMessage(msg, priv)
+	if err != nil {
+		return "", err
+	}
+
+	apikey, err := getAPIKey(address.String(), sig)
+	if err != nil {
+		return "", err
+	}
+	return apikey, nil
+}
+
+func getMsgToSign(address string) (string, error) {
+
+	urlLink := fmt.Sprintf("https://api.lighthouse.storage/api/auth/get_message?publicKey=%s", address)
+
+	req, err := http.NewRequest(
+		"GET",
+		urlLink,
+		nil,
+	)
+
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	log.Println("body", string(body))
+
+	return string(body), nil
+}
+
+func getAPIKey(address, sig string) (string, error) {
+
+	urlLink := "https://api.lighthouse.storage/api/auth/create_api_key"
+
+	reqBody := map[string]string{
+		"publicKey":     address,
+		"signedMessage": sig,
+		"keyName":       "eternal-node",
+	}
+
+	reqBodyJSON, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		urlLink,
+		bytes.NewBuffer(reqBodyJSON),
+	)
+
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	client := &http.Client{}
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	log.Println("body", string(body))
+
+	return string(body), nil
 }
 
 func getCurrentDir() string {

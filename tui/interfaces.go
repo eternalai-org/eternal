@@ -8,7 +8,9 @@ type TaskManagerI interface {
 	GetWorkerBalance() string
 	UnstakeAndQuit() error
 	GetProcessedTasks() uint64
+	GetSessionEarning() string
 	GetAssignedModel() string
+	StakeStatus() string
 }
 
 type ModelManagerI interface {

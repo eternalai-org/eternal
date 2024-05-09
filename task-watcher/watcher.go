@@ -31,6 +31,13 @@ type NetworkConfig struct {
 	WS  string
 }
 
+type TaskWatcherStatus struct {
+	processedTasks uint64
+	currentEarning *big.Int
+	stakeStatus    string
+	assignModel    string
+}
+
 type TaskWatcher struct {
 	modelManager *manager.ModelManager
 	coordinator  *coordinator.Coordinator
@@ -41,14 +48,13 @@ type TaskWatcher struct {
 	taskContract string
 	// watcherID     int
 	// numOfWorker   int
-	taskQueue      chan *types.TaskInfo
-	runnerLock     sync.RWMutex
-	currentRunner  map[string]*runner.RunnerInstance
-	processedTasks uint64
-	lighthouseAPI  string
-	mode           string
+	taskQueue     chan *types.TaskInfo
+	runnerLock    sync.RWMutex
+	currentRunner map[string]*runner.RunnerInstance
+	lighthouseAPI string
 
-	assignedModel string
+	status TaskWatcherStatus
+	mode   string
 
 	unstakeLock sync.Mutex
 }
@@ -74,6 +80,12 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 		currentRunner: make(map[string]*runner.RunnerInstance),
 		lighthouseAPI: lighthouseAPI,
 		mode:          mode,
+		status: TaskWatcherStatus{
+			processedTasks: 0,
+			stakeStatus:    "-",
+			assignModel:    "-",
+			currentEarning: big.NewInt(0),
+		},
 	}, nil
 }
 
@@ -90,6 +102,13 @@ func (tskw *TaskWatcher) Start() {
 	err := tskw.checkRegisteredAndStaked()
 	if err != nil {
 		log.Println("check registered and staked error: ", err)
+		return
+	}
+
+	err = tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
+	if err != nil {
+		log.Println("preload models error: ", err)
+		panic(err)
 		return
 	}
 
@@ -228,46 +247,36 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 		// }
 	} else {
 		// get unresolved claimed inference requests
-		request, err := workerHub.WorkerHubCaller.GetMinterAssignment(&bind.CallOpts{
+		requests, err := workerHub.WorkerHubCaller.GetMintingAssignments(&bind.CallOpts{
 			From: workerAddress,
 		})
 		if err != nil {
 			return []types.TaskInfo{}, err
 		}
-
-		if request.Cmp(new(big.Int).SetInt64(0)) <= 0 {
+		if len(requests) == 0 {
 			return []types.TaskInfo{}, nil
 		}
 
-		requestInfo, err := workerHub.WorkerHubCaller.MintingAssignments(nil, request)
-		if err != nil {
-			return []types.TaskInfo{}, err
-		}
+		for _, request := range requests {
 
-		inferenceInfo, err := workerHub.WorkerHubCaller.Inferences(nil, requestInfo.InferenceId)
-		if err != nil {
-			return []types.TaskInfo{}, err
-		}
+			modelAddr := strings.ToLower(request.ModelAddress.Hex())
 
-		requestInput, err := workerHub.WorkerHubCaller.GetInferenceInput(nil, requestInfo.InferenceId)
-		if err != nil {
-			return []types.TaskInfo{}, err
-		}
-		modelAddr := strings.ToLower(inferenceInfo.ModelAddress.Hex())
-		if !strings.EqualFold(modelAddr, "0x839dAf171eCF605b9aB8A2C13ae879c817173806") {
-			modelAddr = "0x839daf171ecf605b9ab8a2c13ae879c817173806"
-		}
-		task := types.TaskInfo{
-			TaskID:        request.String(),
-			ModelContract: strings.ToLower(modelAddr),
-			Params:        string(requestInput),
-			Requestor:     strings.ToLower(inferenceInfo.Creator.Hex()),
-			Value:         inferenceInfo.Value.String(),
-		}
+			a, err := workerHub.WorkerHubCaller.GetInferences(nil, []*big.Int{request.InferenceId})
+			if err != nil {
+				return []types.TaskInfo{}, err
+			}
+			task := types.TaskInfo{
+				TaskID:        request.AssignmentId.String(),
+				ModelContract: strings.ToLower(modelAddr),
+				Params:        string(request.Input),
+				Requestor:     strings.ToLower(a[0].Creator.Hex()),
+				Value:         a[0].Value.String(),
+			}
 
-		log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
+			log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
 
-		tasks = append(tasks, task)
+			tasks = append(tasks, task)
+		}
 
 		// for _, request := range requests {
 		/*modelContract, err := abi.NewModel(request.Model, ethClient)
@@ -376,12 +385,12 @@ func (tskw *TaskWatcher) CheckTaskCompleted(taskID string) (bool, error) {
 		return false, errors.New("invalid task id")
 	}
 
-	requestInfo, err := workerHub.WorkerHubCaller.MintingAssignments(nil, requestId)
+	isPending, err := workerHub.WorkerHubCaller.IsAssignmentPending(nil, requestId)
 	if err != nil {
 		return false, err
 	}
 
-	if !requestInfo.Accomplished {
+	if isPending {
 		return false, nil
 	}
 
@@ -435,7 +444,9 @@ func (tskw *TaskWatcher) executeTasks() {
 		// }
 
 		log.Println("task done: ", task.TaskID)
-		tskw.processedTasks++
+		tskw.status.processedTasks++
+		earning, _ := new(big.Int).SetString(task.Value, 10)
+		tskw.status.currentEarning.Add(tskw.status.currentEarning, earning)
 		// tskw.RemoveRunner(task.TaskID)
 	}
 }
@@ -525,7 +536,7 @@ func (tskw *TaskWatcher) SubmitResult(taskID string, result []byte) error {
 	auth.GasLimit = uint64(0)  // in units
 	auth.GasPrice = gasPrice
 
-	tx, err := workerHub.WorkerHubTransactor.SubmitOutput(auth, requestId, result)
+	tx, err := workerHub.WorkerHubTransactor.SubmitSolution(auth, requestId, result)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while submitting result"))
 	}
@@ -551,6 +562,8 @@ func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
 		}
 
 		if !staked {
+			tskw.status.stakeStatus = "not staked"
+			tskw.status.assignModel = "-"
 			err = tskw.stakeForWorker()
 			if err != nil {
 				log.Println("stakeForWorker error: ", err)
@@ -559,8 +572,7 @@ func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
 		}
 
 		if staked {
-			//TODO: @liam check assigned model from contract
-
+			tskw.status.stakeStatus = "staked"
 			break
 		}
 
@@ -603,6 +615,8 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 	if workerInfo.Stake.Cmp(minStake) < 0 {
 		return false, nil
 	}
+
+	tskw.status.assignModel = workerInfo.ModelAddress.Hex()
 	return true, nil
 }
 
@@ -858,12 +872,22 @@ func (tskw *TaskWatcher) UnstakeAndQuit() error {
 }
 
 func (tskw *TaskWatcher) GetProcessedTasks() uint64 {
-	return tskw.processedTasks
+	return tskw.status.processedTasks
+}
+
+func (tskw *TaskWatcher) GetSessionEarning() string {
+	earning := new(big.Float).SetInt(tskw.status.currentEarning)
+	earning = new(big.Float).Quo(earning, big.NewFloat(1e18))
+	return earning.String()
 }
 
 func (tskw *TaskWatcher) GetAssignedModel() string {
-	if tskw.assignedModel == "" {
+	if tskw.status.assignModel == "" {
 		return "-"
 	}
-	return tskw.assignedModel
+	return tskw.status.assignModel
+}
+
+func (tskw *TaskWatcher) StakeStatus() string {
+	return tskw.status.stakeStatus
 }

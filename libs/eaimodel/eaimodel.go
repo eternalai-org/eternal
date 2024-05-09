@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math/big"
@@ -44,34 +45,34 @@ const (
 	ModelTypeImage ModelType = "image"
 )
 
-type HardwareTier string
+type HardwareTier int64
 
 const (
-	HardwareTier_1 HardwareTier = "1"
-	HardwareTier_2 HardwareTier = "2"
-	HardwareTier_3 HardwareTier = "3"
+	HardwareTier_1 HardwareTier = 1
+	HardwareTier_2 HardwareTier = 2
+	HardwareTier_3 HardwareTier = 3
 )
 
 func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*ModelInfoContract, error) {
 
-	fakeModel := &ModelInfoContract{
-		ModelID:   new(big.Int).SetInt64(1),
-		ModelAddr: strings.ToLower(modelAddr),
-		Metadata: ModelMetadata{
-			Version:   1,
-			ModelName: "Fake Model",
-			ModelType: "text",
-			// ModelURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
-			// ModelFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
-			ModelURL:         "https://gateway.lighthouse.storage/ipfs/QmcFYMYpVodkpT6t1fVmWNjPnUnnQbXvwpqyheXvPGKUr8",
-			ModelFileHash:    "7f1f29cb884c5b2f4d072b99afcb87f32cbe4adc88cffedab15ffc9fd30887ae",
-			MinHardwareTier:  HardwareTier_1,
-			VerifierURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
-			VerifierFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
-		},
-	}
+	// fakeModel := &ModelInfoContract{
+	// 	ModelID:   new(big.Int).SetInt64(1),
+	// 	ModelAddr: strings.ToLower(modelAddr),
+	// 	Metadata: ModelMetadata{
+	// 		Version:   1,
+	// 		ModelName: "Fake Model",
+	// 		ModelType: "text",
+	// 		// ModelURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
+	// 		// ModelFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
+	// 		ModelURL:         "https://gateway.lighthouse.storage/ipfs/QmcFYMYpVodkpT6t1fVmWNjPnUnnQbXvwpqyheXvPGKUr8",
+	// 		ModelFileHash:    "7f1f29cb884c5b2f4d072b99afcb87f32cbe4adc88cffedab15ffc9fd30887ae",
+	// 		MinHardwareTier:  HardwareTier_1,
+	// 		VerifierURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
+	// 		VerifierFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
+	// 	},
+	// }
 
-	return fakeModel, nil
+	// return fakeModel, nil
 
 	addr := common.HexToAddress(modelAddr)
 
@@ -84,8 +85,8 @@ func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*M
 		return nil, err
 	}
 	if modelID.Cmp(new(big.Int).SetInt64(0)) <= 0 {
-		log.Println("model id is invalid")
-		return nil, nil
+		log.Println("model id is invalid", modelID)
+		return nil, errors.New("model id is invalid")
 	}
 
 	modelName, err := modelContract.HybridModelCaller.Name(nil)
@@ -98,11 +99,10 @@ func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*M
 		ModelAddr: strings.ToLower(modelAddr),
 	}
 
-	// metadata, err := modelContract.ModelCaller.Metadata(nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	metadata := ""
+	metadata, err := modelContract.HybridModelCaller.Metadata(nil)
+	if err != nil {
+		return nil, err
+	}
 
 	modelMetadata := &ModelMetadata{}
 

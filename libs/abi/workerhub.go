@@ -29,9 +29,44 @@ var (
 	_ = abi.ConvertType
 )
 
+// IWorkerHubAssignmentInfo is an auto generated low-level Go binding around an user-defined struct.
+type IWorkerHubAssignmentInfo struct {
+	AssignmentId *big.Int
+	InferenceId  *big.Int
+	Value        *big.Int
+	Input        []byte
+	ModelAddress common.Address
+	Creator      common.Address
+	ExpiredAt    *big.Int
+}
+
+// IWorkerHubInferenceInfo is an auto generated low-level Go binding around an user-defined struct.
+type IWorkerHubInferenceInfo struct {
+	InferenceId      *big.Int
+	Input            []byte
+	Output           []byte
+	Value            *big.Int
+	DisputingAddress common.Address
+	ModelAddress     common.Address
+	ExpiredAt        *big.Int
+	Status           uint8
+	Creator          common.Address
+}
+
+// IWorkerHubWorkerInfo is an auto generated low-level Go binding around an user-defined struct.
+type IWorkerHubWorkerInfo struct {
+	WorkerAddress    common.Address
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
+}
+
 // WorkerHubMetaData contains all meta data concerning the WorkerHub contract.
 var WorkerHubMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"value\",\"type\":\"address\"}],\"name\":\"AddressSetValueNotFound\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"AlreadyRegistered\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"value\",\"type\":\"address\"}],\"name\":\"DuplicatedAddressSetValue\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"DuplicatedUint256SetValue\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedTransfer\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FeeTooLow\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidModel\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTier\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"MintingSessionNotEnded\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotRegistered\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"StakeTooLow\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Uint256SetValueNotFound\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatingSessionNotEnded\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"MinterExtraStake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"MinterRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"}],\"name\":\"MinterUnregistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"model\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"modelId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minimumFee\",\"type\":\"uint256\"}],\"name\":\"ModelRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"model\",\"type\":\"address\"}],\"name\":\"ModelUnregistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"NewInference\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValidatorExtraStake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValidatorRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ValidatorUnregistration\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_inferenceId\",\"type\":\"uint256\"}],\"name\":\"getInferenceInput\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_inferenceId\",\"type\":\"uint256\"}],\"name\":\"getInferenceOutput\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinterAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinterAssignment\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getModelAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getValidatorAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"increaseMinterStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"increaseValidatorStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"_creator\",\"type\":\"address\"}],\"name\":\"infer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"inferenceNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"inferences\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"modelId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_minterMinimumStake\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"_minterRequirement\",\"type\":\"uint8\"},{\"internalType\":\"uint40\",\"name\":\"_mintingTimeLimit\",\"type\":\"uint40\"},{\"internalType\":\"uint256\",\"name\":\"_validatorMinimumStake\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"_validatorRequirement\",\"type\":\"uint8\"},{\"internalType\":\"uint40\",\"name\":\"_validatingTimeLimit\",\"type\":\"uint40\"},{\"internalType\":\"uint16\",\"name\":\"_maximumTier\",\"type\":\"uint16\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maximumTier\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterMinimumStake\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterPivot\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterRequirement\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"minters\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currentTaskId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commission\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintingAssignmentNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"mintingAssignments\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"worker\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"expiredAt\",\"type\":\"uint40\"},{\"internalType\":\"uint8\",\"name\":\"index\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"accomplished\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintingTimeLimit\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"modelNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"models\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"modelId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minimumFee\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"tier\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"name\":\"registerMinter\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_model\",\"type\":\"address\"},{\"internalType\":\"uint16\",\"name\":\"_tier\",\"type\":\"uint16\"},{\"internalType\":\"uint256\",\"name\":\"_minimumFee\",\"type\":\"uint256\"}],\"name\":\"registerModel\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"name\":\"registerValidator\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_assignmentId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_output\",\"type\":\"bytes\"}],\"name\":\"submitOutput\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unregisterMinter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_model\",\"type\":\"address\"}],\"name\":\"unregisterModel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unregisterValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatingAssignmentNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"validatingAssignments\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"worker\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"expiredAt\",\"type\":\"uint40\"},{\"internalType\":\"uint8\",\"name\":\"index\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"accomplished\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatingTimeLimit\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatorMinimumStake\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatorPivot\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatorRequirement\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validators\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"currentTaskId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commission\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"value\",\"type\":\"address\"}],\"name\":\"AddressSet_DuplicatedValue\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"value\",\"type\":\"address\"}],\"name\":\"AddressSet_ValueNotFound\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"AlreadyRegistered\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"AlreadySubmitted\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedTransfer\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FeeTooLow\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidBlockValue\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTier\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"MintingSessionNotEnded\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotRegistered\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NullStake\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"StakeTooLow\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"StillBeingLocked\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Uint256Set_DuplicatedValue\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatingSessionNotEnded\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldBlocks\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newBlocks\",\"type\":\"uint256\"}],\"name\":\"BlocksPerEpoch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"assigmentId\",\"type\":\"uint256\"}],\"name\":\"InferenceDisputation\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"enumIWorkerHub.InferenceStatus\",\"name\":\"newStatus\",\"type\":\"uint8\"}],\"name\":\"InferenceStatusUpdate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"MinterExtraStake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"MinterRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"}],\"name\":\"MinterUnregistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"}],\"name\":\"MinterUnstake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"model\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minimumFee\",\"type\":\"uint256\"}],\"name\":\"ModelRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"model\",\"type\":\"address\"}],\"name\":\"ModelUnregistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"assignmentId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint40\",\"name\":\"expiredAt\",\"type\":\"uint40\"}],\"name\":\"NewAssignment\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"NewInference\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"worker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"RewardClaim\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldReward\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newReward\",\"type\":\"uint256\"}],\"name\":\"RewardPerEpoch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldReward\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newReward\",\"type\":\"uint256\"}],\"name\":\"RewardPerEpochBasedOnPerf\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"assigmentId\",\"type\":\"uint256\"}],\"name\":\"SolutionSubmission\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValidatorExtraStake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValidatorRegistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ValidatorUnregistration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"}],\"name\":\"ValidatorUnstake\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"assignmentNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blocksPerEpoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_minter\",\"type\":\"address\"}],\"name\":\"claimReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentEpoch\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_assignmentId\",\"type\":\"uint256\"}],\"name\":\"disputeInfer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"disputingTimeLimit\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"disqualificationPercentage\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feePercentage\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"_inferenceIds\",\"type\":\"uint256[]\"}],\"name\":\"getInferences\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"output\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"disputingAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"expiredAt\",\"type\":\"uint40\"},{\"internalType\":\"enumIWorkerHub.InferenceStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"}],\"internalType\":\"structIWorkerHub.InferenceInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinterAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinters\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"workerAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitment\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"lastClaimedEpoch\",\"type\":\"uint40\"},{\"internalType\":\"uint40\",\"name\":\"activeTime\",\"type\":\"uint40\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"internalType\":\"structIWorkerHub.WorkerInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMintingAssignments\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"assignmentId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"inferenceId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"expiredAt\",\"type\":\"uint40\"}],\"internalType\":\"structIWorkerHub.AssignmentInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getModelAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getValidatorAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getValidators\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"workerAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitment\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"lastClaimedEpoch\",\"type\":\"uint40\"},{\"internalType\":\"uint40\",\"name\":\"activeTime\",\"type\":\"uint40\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"internalType\":\"structIWorkerHub.WorkerInfo[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"increaseMinterStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"increaseValidatorStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"_creator\",\"type\":\"address\"}],\"name\":\"infer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"inferenceNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_treasury\",\"type\":\"address\"},{\"internalType\":\"uint16\",\"name\":\"_feePercentage\",\"type\":\"uint16\"},{\"internalType\":\"uint256\",\"name\":\"_minterMinimumStake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_validatorMinimumStake\",\"type\":\"uint256\"},{\"internalType\":\"uint40\",\"name\":\"_mintingTimeLimit\",\"type\":\"uint40\"},{\"internalType\":\"uint8\",\"name\":\"_minterRequirement\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"_blocksPerEpoch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_rewardPerEpochBasedOnPerf\",\"type\":\"uint256\"},{\"internalType\":\"uint40\",\"name\":\"_unstakeDelayTime\",\"type\":\"uint40\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_assignmentId\",\"type\":\"uint256\"}],\"name\":\"isAssignmentPending\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maximumTier\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterMinimumStake\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterRequirement\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"minterTaskCompleted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"minterUnstakeRequests\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint40\",\"name\":\"unlockAt\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"minters\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitment\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"lastClaimedEpoch\",\"type\":\"uint40\"},{\"internalType\":\"uint40\",\"name\":\"activeTime\",\"type\":\"uint40\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintingTimeLimit\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"models\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minimumFee\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"tier\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"penaltyDuration\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"name\":\"registerMinter\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_model\",\"type\":\"address\"},{\"internalType\":\"uint16\",\"name\":\"_tier\",\"type\":\"uint16\"},{\"internalType\":\"uint256\",\"name\":\"_minimumFee\",\"type\":\"uint256\"}],\"name\":\"registerModel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"name\":\"registerValidator\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_inferenceId\",\"type\":\"uint256\"}],\"name\":\"resolveInference\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"rewardInEpoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"perfReward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"epochReward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalTaskCompleted\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalMinter\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rewardPerEpoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rewardPerEpochBasedOnPerf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_minter\",\"type\":\"address\"}],\"name\":\"rewardToClaim\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_blocks\",\"type\":\"uint256\"}],\"name\":\"setBlocksPerEpoch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newRewardAmount\",\"type\":\"uint256\"}],\"name\":\"setNewRewardInEpoch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newRewardAmount\",\"type\":\"uint256\"}],\"name\":\"setNewRewardInEpochBasedOnPerf\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_assigmentId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"submitSolution\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasury\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unregisterMinter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_model\",\"type\":\"address\"}],\"name\":\"unregisterModel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unregisterValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unstakeDelayTime\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unstakeForMinter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unstakeForValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatingTimeLimit\",\"outputs\":[{\"internalType\":\"uint40\",\"name\":\"\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"validatorDisputed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validatorMinimumStake\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validatorUnstakeRequests\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint40\",\"name\":\"unlockAt\",\"type\":\"uint40\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validators\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"stake\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitment\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"modelAddress\",\"type\":\"address\"},{\"internalType\":\"uint40\",\"name\":\"lastClaimedEpoch\",\"type\":\"uint40\"},{\"internalType\":\"uint40\",\"name\":\"activeTime\",\"type\":\"uint40\"},{\"internalType\":\"uint16\",\"name\":\"tier\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
 }
 
 // WorkerHubABI is the input ABI used to generate the binding from.
@@ -180,66 +215,221 @@ func (_WorkerHub *WorkerHubTransactorRaw) Transact(opts *bind.TransactOpts, meth
 	return _WorkerHub.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetInferenceInput is a free data retrieval call binding the contract method 0xab973d5d.
+// AssignmentNumber is a free data retrieval call binding the contract method 0x6973d3f2.
 //
-// Solidity: function getInferenceInput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubCaller) GetInferenceInput(opts *bind.CallOpts, _inferenceId *big.Int) ([]byte, error) {
+// Solidity: function assignmentNumber() view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) AssignmentNumber(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "getInferenceInput", _inferenceId)
+	err := _WorkerHub.contract.Call(opts, &out, "assignmentNumber")
 
 	if err != nil {
-		return *new([]byte), err
+		return *new(*big.Int), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
 
 }
 
-// GetInferenceInput is a free data retrieval call binding the contract method 0xab973d5d.
+// AssignmentNumber is a free data retrieval call binding the contract method 0x6973d3f2.
 //
-// Solidity: function getInferenceInput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubSession) GetInferenceInput(_inferenceId *big.Int) ([]byte, error) {
-	return _WorkerHub.Contract.GetInferenceInput(&_WorkerHub.CallOpts, _inferenceId)
+// Solidity: function assignmentNumber() view returns(uint256)
+func (_WorkerHub *WorkerHubSession) AssignmentNumber() (*big.Int, error) {
+	return _WorkerHub.Contract.AssignmentNumber(&_WorkerHub.CallOpts)
 }
 
-// GetInferenceInput is a free data retrieval call binding the contract method 0xab973d5d.
+// AssignmentNumber is a free data retrieval call binding the contract method 0x6973d3f2.
 //
-// Solidity: function getInferenceInput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubCallerSession) GetInferenceInput(_inferenceId *big.Int) ([]byte, error) {
-	return _WorkerHub.Contract.GetInferenceInput(&_WorkerHub.CallOpts, _inferenceId)
+// Solidity: function assignmentNumber() view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) AssignmentNumber() (*big.Int, error) {
+	return _WorkerHub.Contract.AssignmentNumber(&_WorkerHub.CallOpts)
 }
 
-// GetInferenceOutput is a free data retrieval call binding the contract method 0xbc0e1f84.
+// BlocksPerEpoch is a free data retrieval call binding the contract method 0xf0682054.
 //
-// Solidity: function getInferenceOutput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubCaller) GetInferenceOutput(opts *bind.CallOpts, _inferenceId *big.Int) ([]byte, error) {
+// Solidity: function blocksPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) BlocksPerEpoch(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "getInferenceOutput", _inferenceId)
+	err := _WorkerHub.contract.Call(opts, &out, "blocksPerEpoch")
 
 	if err != nil {
-		return *new([]byte), err
+		return *new(*big.Int), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
 
 }
 
-// GetInferenceOutput is a free data retrieval call binding the contract method 0xbc0e1f84.
+// BlocksPerEpoch is a free data retrieval call binding the contract method 0xf0682054.
 //
-// Solidity: function getInferenceOutput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubSession) GetInferenceOutput(_inferenceId *big.Int) ([]byte, error) {
-	return _WorkerHub.Contract.GetInferenceOutput(&_WorkerHub.CallOpts, _inferenceId)
+// Solidity: function blocksPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubSession) BlocksPerEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.BlocksPerEpoch(&_WorkerHub.CallOpts)
 }
 
-// GetInferenceOutput is a free data retrieval call binding the contract method 0xbc0e1f84.
+// BlocksPerEpoch is a free data retrieval call binding the contract method 0xf0682054.
 //
-// Solidity: function getInferenceOutput(uint256 _inferenceId) view returns(bytes)
-func (_WorkerHub *WorkerHubCallerSession) GetInferenceOutput(_inferenceId *big.Int) ([]byte, error) {
-	return _WorkerHub.Contract.GetInferenceOutput(&_WorkerHub.CallOpts, _inferenceId)
+// Solidity: function blocksPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) BlocksPerEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.BlocksPerEpoch(&_WorkerHub.CallOpts)
+}
+
+// CurrentEpoch is a free data retrieval call binding the contract method 0x76671808.
+//
+// Solidity: function currentEpoch() view returns(uint40)
+func (_WorkerHub *WorkerHubCaller) CurrentEpoch(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "currentEpoch")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CurrentEpoch is a free data retrieval call binding the contract method 0x76671808.
+//
+// Solidity: function currentEpoch() view returns(uint40)
+func (_WorkerHub *WorkerHubSession) CurrentEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.CurrentEpoch(&_WorkerHub.CallOpts)
+}
+
+// CurrentEpoch is a free data retrieval call binding the contract method 0x76671808.
+//
+// Solidity: function currentEpoch() view returns(uint40)
+func (_WorkerHub *WorkerHubCallerSession) CurrentEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.CurrentEpoch(&_WorkerHub.CallOpts)
+}
+
+// DisputingTimeLimit is a free data retrieval call binding the contract method 0xd64f1f5f.
+//
+// Solidity: function disputingTimeLimit() view returns(uint40)
+func (_WorkerHub *WorkerHubCaller) DisputingTimeLimit(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "disputingTimeLimit")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// DisputingTimeLimit is a free data retrieval call binding the contract method 0xd64f1f5f.
+//
+// Solidity: function disputingTimeLimit() view returns(uint40)
+func (_WorkerHub *WorkerHubSession) DisputingTimeLimit() (*big.Int, error) {
+	return _WorkerHub.Contract.DisputingTimeLimit(&_WorkerHub.CallOpts)
+}
+
+// DisputingTimeLimit is a free data retrieval call binding the contract method 0xd64f1f5f.
+//
+// Solidity: function disputingTimeLimit() view returns(uint40)
+func (_WorkerHub *WorkerHubCallerSession) DisputingTimeLimit() (*big.Int, error) {
+	return _WorkerHub.Contract.DisputingTimeLimit(&_WorkerHub.CallOpts)
+}
+
+// DisqualificationPercentage is a free data retrieval call binding the contract method 0x4670ca47.
+//
+// Solidity: function disqualificationPercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubCaller) DisqualificationPercentage(opts *bind.CallOpts) (uint16, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "disqualificationPercentage")
+
+	if err != nil {
+		return *new(uint16), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint16)).(*uint16)
+
+	return out0, err
+
+}
+
+// DisqualificationPercentage is a free data retrieval call binding the contract method 0x4670ca47.
+//
+// Solidity: function disqualificationPercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubSession) DisqualificationPercentage() (uint16, error) {
+	return _WorkerHub.Contract.DisqualificationPercentage(&_WorkerHub.CallOpts)
+}
+
+// DisqualificationPercentage is a free data retrieval call binding the contract method 0x4670ca47.
+//
+// Solidity: function disqualificationPercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubCallerSession) DisqualificationPercentage() (uint16, error) {
+	return _WorkerHub.Contract.DisqualificationPercentage(&_WorkerHub.CallOpts)
+}
+
+// FeePercentage is a free data retrieval call binding the contract method 0xa001ecdd.
+//
+// Solidity: function feePercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubCaller) FeePercentage(opts *bind.CallOpts) (uint16, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "feePercentage")
+
+	if err != nil {
+		return *new(uint16), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint16)).(*uint16)
+
+	return out0, err
+
+}
+
+// FeePercentage is a free data retrieval call binding the contract method 0xa001ecdd.
+//
+// Solidity: function feePercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubSession) FeePercentage() (uint16, error) {
+	return _WorkerHub.Contract.FeePercentage(&_WorkerHub.CallOpts)
+}
+
+// FeePercentage is a free data retrieval call binding the contract method 0xa001ecdd.
+//
+// Solidity: function feePercentage() view returns(uint16)
+func (_WorkerHub *WorkerHubCallerSession) FeePercentage() (uint16, error) {
+	return _WorkerHub.Contract.FeePercentage(&_WorkerHub.CallOpts)
+}
+
+// GetInferences is a free data retrieval call binding the contract method 0xa01253d8.
+//
+// Solidity: function getInferences(uint256[] _inferenceIds) view returns((uint256,bytes,bytes,uint256,address,address,uint40,uint8,address)[])
+func (_WorkerHub *WorkerHubCaller) GetInferences(opts *bind.CallOpts, _inferenceIds []*big.Int) ([]IWorkerHubInferenceInfo, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "getInferences", _inferenceIds)
+
+	if err != nil {
+		return *new([]IWorkerHubInferenceInfo), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]IWorkerHubInferenceInfo)).(*[]IWorkerHubInferenceInfo)
+
+	return out0, err
+
+}
+
+// GetInferences is a free data retrieval call binding the contract method 0xa01253d8.
+//
+// Solidity: function getInferences(uint256[] _inferenceIds) view returns((uint256,bytes,bytes,uint256,address,address,uint40,uint8,address)[])
+func (_WorkerHub *WorkerHubSession) GetInferences(_inferenceIds []*big.Int) ([]IWorkerHubInferenceInfo, error) {
+	return _WorkerHub.Contract.GetInferences(&_WorkerHub.CallOpts, _inferenceIds)
+}
+
+// GetInferences is a free data retrieval call binding the contract method 0xa01253d8.
+//
+// Solidity: function getInferences(uint256[] _inferenceIds) view returns((uint256,bytes,bytes,uint256,address,address,uint40,uint8,address)[])
+func (_WorkerHub *WorkerHubCallerSession) GetInferences(_inferenceIds []*big.Int) ([]IWorkerHubInferenceInfo, error) {
+	return _WorkerHub.Contract.GetInferences(&_WorkerHub.CallOpts, _inferenceIds)
 }
 
 // GetMinterAddresses is a free data retrieval call binding the contract method 0x22543d63.
@@ -273,35 +463,66 @@ func (_WorkerHub *WorkerHubCallerSession) GetMinterAddresses() ([]common.Address
 	return _WorkerHub.Contract.GetMinterAddresses(&_WorkerHub.CallOpts)
 }
 
-// GetMinterAssignment is a free data retrieval call binding the contract method 0x766cf103.
+// GetMinters is a free data retrieval call binding the contract method 0x6b32810b.
 //
-// Solidity: function getMinterAssignment() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) GetMinterAssignment(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function getMinters() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubCaller) GetMinters(opts *bind.CallOpts) ([]IWorkerHubWorkerInfo, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "getMinterAssignment")
+	err := _WorkerHub.contract.Call(opts, &out, "getMinters")
 
 	if err != nil {
-		return *new(*big.Int), err
+		return *new([]IWorkerHubWorkerInfo), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	out0 := *abi.ConvertType(out[0], new([]IWorkerHubWorkerInfo)).(*[]IWorkerHubWorkerInfo)
 
 	return out0, err
 
 }
 
-// GetMinterAssignment is a free data retrieval call binding the contract method 0x766cf103.
+// GetMinters is a free data retrieval call binding the contract method 0x6b32810b.
 //
-// Solidity: function getMinterAssignment() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) GetMinterAssignment() (*big.Int, error) {
-	return _WorkerHub.Contract.GetMinterAssignment(&_WorkerHub.CallOpts)
+// Solidity: function getMinters() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubSession) GetMinters() ([]IWorkerHubWorkerInfo, error) {
+	return _WorkerHub.Contract.GetMinters(&_WorkerHub.CallOpts)
 }
 
-// GetMinterAssignment is a free data retrieval call binding the contract method 0x766cf103.
+// GetMinters is a free data retrieval call binding the contract method 0x6b32810b.
 //
-// Solidity: function getMinterAssignment() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) GetMinterAssignment() (*big.Int, error) {
-	return _WorkerHub.Contract.GetMinterAssignment(&_WorkerHub.CallOpts)
+// Solidity: function getMinters() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubCallerSession) GetMinters() ([]IWorkerHubWorkerInfo, error) {
+	return _WorkerHub.Contract.GetMinters(&_WorkerHub.CallOpts)
+}
+
+// GetMintingAssignments is a free data retrieval call binding the contract method 0x2f67cf52.
+//
+// Solidity: function getMintingAssignments() view returns((uint256,uint256,uint256,bytes,address,address,uint40)[])
+func (_WorkerHub *WorkerHubCaller) GetMintingAssignments(opts *bind.CallOpts) ([]IWorkerHubAssignmentInfo, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "getMintingAssignments")
+
+	if err != nil {
+		return *new([]IWorkerHubAssignmentInfo), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]IWorkerHubAssignmentInfo)).(*[]IWorkerHubAssignmentInfo)
+
+	return out0, err
+
+}
+
+// GetMintingAssignments is a free data retrieval call binding the contract method 0x2f67cf52.
+//
+// Solidity: function getMintingAssignments() view returns((uint256,uint256,uint256,bytes,address,address,uint40)[])
+func (_WorkerHub *WorkerHubSession) GetMintingAssignments() ([]IWorkerHubAssignmentInfo, error) {
+	return _WorkerHub.Contract.GetMintingAssignments(&_WorkerHub.CallOpts)
+}
+
+// GetMintingAssignments is a free data retrieval call binding the contract method 0x2f67cf52.
+//
+// Solidity: function getMintingAssignments() view returns((uint256,uint256,uint256,bytes,address,address,uint40)[])
+func (_WorkerHub *WorkerHubCallerSession) GetMintingAssignments() ([]IWorkerHubAssignmentInfo, error) {
+	return _WorkerHub.Contract.GetMintingAssignments(&_WorkerHub.CallOpts)
 }
 
 // GetModelAddresses is a free data retrieval call binding the contract method 0x9ae49cd3.
@@ -366,6 +587,37 @@ func (_WorkerHub *WorkerHubCallerSession) GetValidatorAddresses() ([]common.Addr
 	return _WorkerHub.Contract.GetValidatorAddresses(&_WorkerHub.CallOpts)
 }
 
+// GetValidators is a free data retrieval call binding the contract method 0xb7ab4db5.
+//
+// Solidity: function getValidators() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubCaller) GetValidators(opts *bind.CallOpts) ([]IWorkerHubWorkerInfo, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "getValidators")
+
+	if err != nil {
+		return *new([]IWorkerHubWorkerInfo), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]IWorkerHubWorkerInfo)).(*[]IWorkerHubWorkerInfo)
+
+	return out0, err
+
+}
+
+// GetValidators is a free data retrieval call binding the contract method 0xb7ab4db5.
+//
+// Solidity: function getValidators() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubSession) GetValidators() ([]IWorkerHubWorkerInfo, error) {
+	return _WorkerHub.Contract.GetValidators(&_WorkerHub.CallOpts)
+}
+
+// GetValidators is a free data retrieval call binding the contract method 0xb7ab4db5.
+//
+// Solidity: function getValidators() view returns((address,uint256,uint256,address,uint40,uint40,uint16)[])
+func (_WorkerHub *WorkerHubCallerSession) GetValidators() ([]IWorkerHubWorkerInfo, error) {
+	return _WorkerHub.Contract.GetValidators(&_WorkerHub.CallOpts)
+}
+
 // InferenceNumber is a free data retrieval call binding the contract method 0xf80dca98.
 //
 // Solidity: function inferenceNumber() view returns(uint256)
@@ -397,64 +649,66 @@ func (_WorkerHub *WorkerHubCallerSession) InferenceNumber() (*big.Int, error) {
 	return _WorkerHub.Contract.InferenceNumber(&_WorkerHub.CallOpts)
 }
 
-// Inferences is a free data retrieval call binding the contract method 0xfa8e8c69.
+// IsAssignmentPending is a free data retrieval call binding the contract method 0x57a38def.
 //
-// Solidity: function inferences(uint256 ) view returns(address modelAddress, uint256 modelId, uint256 value, bytes input, address creator)
-func (_WorkerHub *WorkerHubCaller) Inferences(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	ModelAddress common.Address
-	ModelId      *big.Int
-	Value        *big.Int
-	Input        []byte
-	Creator      common.Address
-}, error) {
+// Solidity: function isAssignmentPending(uint256 _assignmentId) view returns(bool)
+func (_WorkerHub *WorkerHubCaller) IsAssignmentPending(opts *bind.CallOpts, _assignmentId *big.Int) (bool, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "inferences", arg0)
+	err := _WorkerHub.contract.Call(opts, &out, "isAssignmentPending", _assignmentId)
 
-	outstruct := new(struct {
-		ModelAddress common.Address
-		ModelId      *big.Int
-		Value        *big.Int
-		Input        []byte
-		Creator      common.Address
-	})
 	if err != nil {
-		return *outstruct, err
+		return *new(bool), err
 	}
 
-	outstruct.ModelAddress = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-	outstruct.ModelId = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Value = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Input = *abi.ConvertType(out[3], new([]byte)).(*[]byte)
-	outstruct.Creator = *abi.ConvertType(out[4], new(common.Address)).(*common.Address)
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
-	return *outstruct, err
+	return out0, err
 
 }
 
-// Inferences is a free data retrieval call binding the contract method 0xfa8e8c69.
+// IsAssignmentPending is a free data retrieval call binding the contract method 0x57a38def.
 //
-// Solidity: function inferences(uint256 ) view returns(address modelAddress, uint256 modelId, uint256 value, bytes input, address creator)
-func (_WorkerHub *WorkerHubSession) Inferences(arg0 *big.Int) (struct {
-	ModelAddress common.Address
-	ModelId      *big.Int
-	Value        *big.Int
-	Input        []byte
-	Creator      common.Address
-}, error) {
-	return _WorkerHub.Contract.Inferences(&_WorkerHub.CallOpts, arg0)
+// Solidity: function isAssignmentPending(uint256 _assignmentId) view returns(bool)
+func (_WorkerHub *WorkerHubSession) IsAssignmentPending(_assignmentId *big.Int) (bool, error) {
+	return _WorkerHub.Contract.IsAssignmentPending(&_WorkerHub.CallOpts, _assignmentId)
 }
 
-// Inferences is a free data retrieval call binding the contract method 0xfa8e8c69.
+// IsAssignmentPending is a free data retrieval call binding the contract method 0x57a38def.
 //
-// Solidity: function inferences(uint256 ) view returns(address modelAddress, uint256 modelId, uint256 value, bytes input, address creator)
-func (_WorkerHub *WorkerHubCallerSession) Inferences(arg0 *big.Int) (struct {
-	ModelAddress common.Address
-	ModelId      *big.Int
-	Value        *big.Int
-	Input        []byte
-	Creator      common.Address
-}, error) {
-	return _WorkerHub.Contract.Inferences(&_WorkerHub.CallOpts, arg0)
+// Solidity: function isAssignmentPending(uint256 _assignmentId) view returns(bool)
+func (_WorkerHub *WorkerHubCallerSession) IsAssignmentPending(_assignmentId *big.Int) (bool, error) {
+	return _WorkerHub.Contract.IsAssignmentPending(&_WorkerHub.CallOpts, _assignmentId)
+}
+
+// LastBlock is a free data retrieval call binding the contract method 0x806b984f.
+//
+// Solidity: function lastBlock() view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) LastBlock(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "lastBlock")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// LastBlock is a free data retrieval call binding the contract method 0x806b984f.
+//
+// Solidity: function lastBlock() view returns(uint256)
+func (_WorkerHub *WorkerHubSession) LastBlock() (*big.Int, error) {
+	return _WorkerHub.Contract.LastBlock(&_WorkerHub.CallOpts)
+}
+
+// LastBlock is a free data retrieval call binding the contract method 0x806b984f.
+//
+// Solidity: function lastBlock() view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) LastBlock() (*big.Int, error) {
+	return _WorkerHub.Contract.LastBlock(&_WorkerHub.CallOpts)
 }
 
 // MaximumTier is a free data retrieval call binding the contract method 0x0716187f.
@@ -519,37 +773,6 @@ func (_WorkerHub *WorkerHubCallerSession) MinterMinimumStake() (*big.Int, error)
 	return _WorkerHub.Contract.MinterMinimumStake(&_WorkerHub.CallOpts)
 }
 
-// MinterPivot is a free data retrieval call binding the contract method 0xed14e12f.
-//
-// Solidity: function minterPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) MinterPivot(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "minterPivot")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// MinterPivot is a free data retrieval call binding the contract method 0xed14e12f.
-//
-// Solidity: function minterPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) MinterPivot() (*big.Int, error) {
-	return _WorkerHub.Contract.MinterPivot(&_WorkerHub.CallOpts)
-}
-
-// MinterPivot is a free data retrieval call binding the contract method 0xed14e12f.
-//
-// Solidity: function minterPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) MinterPivot() (*big.Int, error) {
-	return _WorkerHub.Contract.MinterPivot(&_WorkerHub.CallOpts)
-}
-
 // MinterRequirement is a free data retrieval call binding the contract method 0x09efefe7.
 //
 // Solidity: function minterRequirement() view returns(uint8)
@@ -581,67 +804,12 @@ func (_WorkerHub *WorkerHubCallerSession) MinterRequirement() (uint8, error) {
 	return _WorkerHub.Contract.MinterRequirement(&_WorkerHub.CallOpts)
 }
 
-// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
+// MinterTaskCompleted is a free data retrieval call binding the contract method 0x0c17d6be.
 //
-// Solidity: function minters(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
-func (_WorkerHub *WorkerHubCaller) Minters(opts *bind.CallOpts, arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
-}, error) {
+// Solidity: function minterTaskCompleted(address , uint256 ) view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) MinterTaskCompleted(opts *bind.CallOpts, arg0 common.Address, arg1 *big.Int) (*big.Int, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "minters", arg0)
-
-	outstruct := new(struct {
-		Stake         *big.Int
-		CurrentTaskId *big.Int
-		Commission    *big.Int
-		Tier          uint16
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.Stake = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.CurrentTaskId = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Commission = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Tier = *abi.ConvertType(out[3], new(uint16)).(*uint16)
-
-	return *outstruct, err
-
-}
-
-// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
-//
-// Solidity: function minters(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
-func (_WorkerHub *WorkerHubSession) Minters(arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
-}, error) {
-	return _WorkerHub.Contract.Minters(&_WorkerHub.CallOpts, arg0)
-}
-
-// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
-//
-// Solidity: function minters(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
-func (_WorkerHub *WorkerHubCallerSession) Minters(arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
-}, error) {
-	return _WorkerHub.Contract.Minters(&_WorkerHub.CallOpts, arg0)
-}
-
-// MintingAssignmentNumber is a free data retrieval call binding the contract method 0x460ae7f3.
-//
-// Solidity: function mintingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) MintingAssignmentNumber(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "mintingAssignmentNumber")
+	err := _WorkerHub.contract.Call(opts, &out, "minterTaskCompleted", arg0, arg1)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -653,78 +821,128 @@ func (_WorkerHub *WorkerHubCaller) MintingAssignmentNumber(opts *bind.CallOpts) 
 
 }
 
-// MintingAssignmentNumber is a free data retrieval call binding the contract method 0x460ae7f3.
+// MinterTaskCompleted is a free data retrieval call binding the contract method 0x0c17d6be.
 //
-// Solidity: function mintingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) MintingAssignmentNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.MintingAssignmentNumber(&_WorkerHub.CallOpts)
+// Solidity: function minterTaskCompleted(address , uint256 ) view returns(uint256)
+func (_WorkerHub *WorkerHubSession) MinterTaskCompleted(arg0 common.Address, arg1 *big.Int) (*big.Int, error) {
+	return _WorkerHub.Contract.MinterTaskCompleted(&_WorkerHub.CallOpts, arg0, arg1)
 }
 
-// MintingAssignmentNumber is a free data retrieval call binding the contract method 0x460ae7f3.
+// MinterTaskCompleted is a free data retrieval call binding the contract method 0x0c17d6be.
 //
-// Solidity: function mintingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) MintingAssignmentNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.MintingAssignmentNumber(&_WorkerHub.CallOpts)
+// Solidity: function minterTaskCompleted(address , uint256 ) view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) MinterTaskCompleted(arg0 common.Address, arg1 *big.Int) (*big.Int, error) {
+	return _WorkerHub.Contract.MinterTaskCompleted(&_WorkerHub.CallOpts, arg0, arg1)
 }
 
-// MintingAssignments is a free data retrieval call binding the contract method 0x11d87854.
+// MinterUnstakeRequests is a free data retrieval call binding the contract method 0x91756d05.
 //
-// Solidity: function mintingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubCaller) MintingAssignments(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function minterUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubCaller) MinterUnstakeRequests(opts *bind.CallOpts, arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
 }, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "mintingAssignments", arg0)
+	err := _WorkerHub.contract.Call(opts, &out, "minterUnstakeRequests", arg0)
 
 	outstruct := new(struct {
-		InferenceId  *big.Int
-		Worker       common.Address
-		ExpiredAt    *big.Int
-		Index        uint8
-		Accomplished bool
+		Stake    *big.Int
+		UnlockAt *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
-	outstruct.InferenceId = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.Worker = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
-	outstruct.ExpiredAt = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Index = *abi.ConvertType(out[3], new(uint8)).(*uint8)
-	outstruct.Accomplished = *abi.ConvertType(out[4], new(bool)).(*bool)
+	outstruct.Stake = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.UnlockAt = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
 
 }
 
-// MintingAssignments is a free data retrieval call binding the contract method 0x11d87854.
+// MinterUnstakeRequests is a free data retrieval call binding the contract method 0x91756d05.
 //
-// Solidity: function mintingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubSession) MintingAssignments(arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function minterUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubSession) MinterUnstakeRequests(arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
 }, error) {
-	return _WorkerHub.Contract.MintingAssignments(&_WorkerHub.CallOpts, arg0)
+	return _WorkerHub.Contract.MinterUnstakeRequests(&_WorkerHub.CallOpts, arg0)
 }
 
-// MintingAssignments is a free data retrieval call binding the contract method 0x11d87854.
+// MinterUnstakeRequests is a free data retrieval call binding the contract method 0x91756d05.
 //
-// Solidity: function mintingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubCallerSession) MintingAssignments(arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function minterUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubCallerSession) MinterUnstakeRequests(arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
 }, error) {
-	return _WorkerHub.Contract.MintingAssignments(&_WorkerHub.CallOpts, arg0)
+	return _WorkerHub.Contract.MinterUnstakeRequests(&_WorkerHub.CallOpts, arg0)
+}
+
+// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
+//
+// Solidity: function minters(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
+func (_WorkerHub *WorkerHubCaller) Minters(opts *bind.CallOpts, arg0 common.Address) (struct {
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
+}, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "minters", arg0)
+
+	outstruct := new(struct {
+		Stake            *big.Int
+		Commitment       *big.Int
+		ModelAddress     common.Address
+		LastClaimedEpoch *big.Int
+		ActiveTime       *big.Int
+		Tier             uint16
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.Stake = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.Commitment = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.ModelAddress = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
+	outstruct.LastClaimedEpoch = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.ActiveTime = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
+	outstruct.Tier = *abi.ConvertType(out[5], new(uint16)).(*uint16)
+
+	return *outstruct, err
+
+}
+
+// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
+//
+// Solidity: function minters(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
+func (_WorkerHub *WorkerHubSession) Minters(arg0 common.Address) (struct {
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
+}, error) {
+	return _WorkerHub.Contract.Minters(&_WorkerHub.CallOpts, arg0)
+}
+
+// Minters is a free data retrieval call binding the contract method 0xf46eccc4.
+//
+// Solidity: function minters(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
+func (_WorkerHub *WorkerHubCallerSession) Minters(arg0 common.Address) (struct {
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
+}, error) {
+	return _WorkerHub.Contract.Minters(&_WorkerHub.CallOpts, arg0)
 }
 
 // MintingTimeLimit is a free data retrieval call binding the contract method 0x8da0445f.
@@ -758,42 +976,10 @@ func (_WorkerHub *WorkerHubCallerSession) MintingTimeLimit() (*big.Int, error) {
 	return _WorkerHub.Contract.MintingTimeLimit(&_WorkerHub.CallOpts)
 }
 
-// ModelNumber is a free data retrieval call binding the contract method 0x79065621.
-//
-// Solidity: function modelNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) ModelNumber(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "modelNumber")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// ModelNumber is a free data retrieval call binding the contract method 0x79065621.
-//
-// Solidity: function modelNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) ModelNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.ModelNumber(&_WorkerHub.CallOpts)
-}
-
-// ModelNumber is a free data retrieval call binding the contract method 0x79065621.
-//
-// Solidity: function modelNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) ModelNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.ModelNumber(&_WorkerHub.CallOpts)
-}
-
 // Models is a free data retrieval call binding the contract method 0x54917f83.
 //
-// Solidity: function models(address ) view returns(uint256 modelId, uint256 minimumFee, uint32 tier)
+// Solidity: function models(address ) view returns(uint256 minimumFee, uint32 tier)
 func (_WorkerHub *WorkerHubCaller) Models(opts *bind.CallOpts, arg0 common.Address) (struct {
-	ModelId    *big.Int
 	MinimumFee *big.Int
 	Tier       uint32
 }, error) {
@@ -801,7 +987,6 @@ func (_WorkerHub *WorkerHubCaller) Models(opts *bind.CallOpts, arg0 common.Addre
 	err := _WorkerHub.contract.Call(opts, &out, "models", arg0)
 
 	outstruct := new(struct {
-		ModelId    *big.Int
 		MinimumFee *big.Int
 		Tier       uint32
 	})
@@ -809,9 +994,8 @@ func (_WorkerHub *WorkerHubCaller) Models(opts *bind.CallOpts, arg0 common.Addre
 		return *outstruct, err
 	}
 
-	outstruct.ModelId = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.MinimumFee = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Tier = *abi.ConvertType(out[2], new(uint32)).(*uint32)
+	outstruct.MinimumFee = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.Tier = *abi.ConvertType(out[1], new(uint32)).(*uint32)
 
 	return *outstruct, err
 
@@ -819,9 +1003,8 @@ func (_WorkerHub *WorkerHubCaller) Models(opts *bind.CallOpts, arg0 common.Addre
 
 // Models is a free data retrieval call binding the contract method 0x54917f83.
 //
-// Solidity: function models(address ) view returns(uint256 modelId, uint256 minimumFee, uint32 tier)
+// Solidity: function models(address ) view returns(uint256 minimumFee, uint32 tier)
 func (_WorkerHub *WorkerHubSession) Models(arg0 common.Address) (struct {
-	ModelId    *big.Int
 	MinimumFee *big.Int
 	Tier       uint32
 }, error) {
@@ -830,9 +1013,8 @@ func (_WorkerHub *WorkerHubSession) Models(arg0 common.Address) (struct {
 
 // Models is a free data retrieval call binding the contract method 0x54917f83.
 //
-// Solidity: function models(address ) view returns(uint256 modelId, uint256 minimumFee, uint32 tier)
+// Solidity: function models(address ) view returns(uint256 minimumFee, uint32 tier)
 func (_WorkerHub *WorkerHubCallerSession) Models(arg0 common.Address) (struct {
-	ModelId    *big.Int
 	MinimumFee *big.Int
 	Tier       uint32
 }, error) {
@@ -901,12 +1083,12 @@ func (_WorkerHub *WorkerHubCallerSession) Paused() (bool, error) {
 	return _WorkerHub.Contract.Paused(&_WorkerHub.CallOpts)
 }
 
-// ValidatingAssignmentNumber is a free data retrieval call binding the contract method 0x26d9bd4b.
+// PenaltyDuration is a free data retrieval call binding the contract method 0x5aa1326c.
 //
-// Solidity: function validatingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) ValidatingAssignmentNumber(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function penaltyDuration() view returns(uint40)
+func (_WorkerHub *WorkerHubCaller) PenaltyDuration(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "validatingAssignmentNumber")
+	err := _WorkerHub.contract.Call(opts, &out, "penaltyDuration")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -918,78 +1100,197 @@ func (_WorkerHub *WorkerHubCaller) ValidatingAssignmentNumber(opts *bind.CallOpt
 
 }
 
-// ValidatingAssignmentNumber is a free data retrieval call binding the contract method 0x26d9bd4b.
+// PenaltyDuration is a free data retrieval call binding the contract method 0x5aa1326c.
 //
-// Solidity: function validatingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) ValidatingAssignmentNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.ValidatingAssignmentNumber(&_WorkerHub.CallOpts)
+// Solidity: function penaltyDuration() view returns(uint40)
+func (_WorkerHub *WorkerHubSession) PenaltyDuration() (*big.Int, error) {
+	return _WorkerHub.Contract.PenaltyDuration(&_WorkerHub.CallOpts)
 }
 
-// ValidatingAssignmentNumber is a free data retrieval call binding the contract method 0x26d9bd4b.
+// PenaltyDuration is a free data retrieval call binding the contract method 0x5aa1326c.
 //
-// Solidity: function validatingAssignmentNumber() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) ValidatingAssignmentNumber() (*big.Int, error) {
-	return _WorkerHub.Contract.ValidatingAssignmentNumber(&_WorkerHub.CallOpts)
+// Solidity: function penaltyDuration() view returns(uint40)
+func (_WorkerHub *WorkerHubCallerSession) PenaltyDuration() (*big.Int, error) {
+	return _WorkerHub.Contract.PenaltyDuration(&_WorkerHub.CallOpts)
 }
 
-// ValidatingAssignments is a free data retrieval call binding the contract method 0x02596788.
+// RewardInEpoch is a free data retrieval call binding the contract method 0x652ff159.
 //
-// Solidity: function validatingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubCaller) ValidatingAssignments(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function rewardInEpoch(uint256 ) view returns(uint256 perfReward, uint256 epochReward, uint256 totalTaskCompleted, uint256 totalMinter)
+func (_WorkerHub *WorkerHubCaller) RewardInEpoch(opts *bind.CallOpts, arg0 *big.Int) (struct {
+	PerfReward         *big.Int
+	EpochReward        *big.Int
+	TotalTaskCompleted *big.Int
+	TotalMinter        *big.Int
 }, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "validatingAssignments", arg0)
+	err := _WorkerHub.contract.Call(opts, &out, "rewardInEpoch", arg0)
 
 	outstruct := new(struct {
-		InferenceId  *big.Int
-		Worker       common.Address
-		ExpiredAt    *big.Int
-		Index        uint8
-		Accomplished bool
+		PerfReward         *big.Int
+		EpochReward        *big.Int
+		TotalTaskCompleted *big.Int
+		TotalMinter        *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
-	outstruct.InferenceId = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.Worker = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
-	outstruct.ExpiredAt = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Index = *abi.ConvertType(out[3], new(uint8)).(*uint8)
-	outstruct.Accomplished = *abi.ConvertType(out[4], new(bool)).(*bool)
+	outstruct.PerfReward = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.EpochReward = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.TotalTaskCompleted = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.TotalMinter = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
 
 }
 
-// ValidatingAssignments is a free data retrieval call binding the contract method 0x02596788.
+// RewardInEpoch is a free data retrieval call binding the contract method 0x652ff159.
 //
-// Solidity: function validatingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubSession) ValidatingAssignments(arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function rewardInEpoch(uint256 ) view returns(uint256 perfReward, uint256 epochReward, uint256 totalTaskCompleted, uint256 totalMinter)
+func (_WorkerHub *WorkerHubSession) RewardInEpoch(arg0 *big.Int) (struct {
+	PerfReward         *big.Int
+	EpochReward        *big.Int
+	TotalTaskCompleted *big.Int
+	TotalMinter        *big.Int
 }, error) {
-	return _WorkerHub.Contract.ValidatingAssignments(&_WorkerHub.CallOpts, arg0)
+	return _WorkerHub.Contract.RewardInEpoch(&_WorkerHub.CallOpts, arg0)
 }
 
-// ValidatingAssignments is a free data retrieval call binding the contract method 0x02596788.
+// RewardInEpoch is a free data retrieval call binding the contract method 0x652ff159.
 //
-// Solidity: function validatingAssignments(uint256 ) view returns(uint256 inferenceId, address worker, uint40 expiredAt, uint8 index, bool accomplished)
-func (_WorkerHub *WorkerHubCallerSession) ValidatingAssignments(arg0 *big.Int) (struct {
-	InferenceId  *big.Int
-	Worker       common.Address
-	ExpiredAt    *big.Int
-	Index        uint8
-	Accomplished bool
+// Solidity: function rewardInEpoch(uint256 ) view returns(uint256 perfReward, uint256 epochReward, uint256 totalTaskCompleted, uint256 totalMinter)
+func (_WorkerHub *WorkerHubCallerSession) RewardInEpoch(arg0 *big.Int) (struct {
+	PerfReward         *big.Int
+	EpochReward        *big.Int
+	TotalTaskCompleted *big.Int
+	TotalMinter        *big.Int
 }, error) {
-	return _WorkerHub.Contract.ValidatingAssignments(&_WorkerHub.CallOpts, arg0)
+	return _WorkerHub.Contract.RewardInEpoch(&_WorkerHub.CallOpts, arg0)
+}
+
+// RewardPerEpoch is a free data retrieval call binding the contract method 0x84449a9d.
+//
+// Solidity: function rewardPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) RewardPerEpoch(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "rewardPerEpoch")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// RewardPerEpoch is a free data retrieval call binding the contract method 0x84449a9d.
+//
+// Solidity: function rewardPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubSession) RewardPerEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.RewardPerEpoch(&_WorkerHub.CallOpts)
+}
+
+// RewardPerEpoch is a free data retrieval call binding the contract method 0x84449a9d.
+//
+// Solidity: function rewardPerEpoch() view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) RewardPerEpoch() (*big.Int, error) {
+	return _WorkerHub.Contract.RewardPerEpoch(&_WorkerHub.CallOpts)
+}
+
+// RewardPerEpochBasedOnPerf is a free data retrieval call binding the contract method 0x90f20b4a.
+//
+// Solidity: function rewardPerEpochBasedOnPerf() view returns(uint256)
+func (_WorkerHub *WorkerHubCaller) RewardPerEpochBasedOnPerf(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "rewardPerEpochBasedOnPerf")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// RewardPerEpochBasedOnPerf is a free data retrieval call binding the contract method 0x90f20b4a.
+//
+// Solidity: function rewardPerEpochBasedOnPerf() view returns(uint256)
+func (_WorkerHub *WorkerHubSession) RewardPerEpochBasedOnPerf() (*big.Int, error) {
+	return _WorkerHub.Contract.RewardPerEpochBasedOnPerf(&_WorkerHub.CallOpts)
+}
+
+// RewardPerEpochBasedOnPerf is a free data retrieval call binding the contract method 0x90f20b4a.
+//
+// Solidity: function rewardPerEpochBasedOnPerf() view returns(uint256)
+func (_WorkerHub *WorkerHubCallerSession) RewardPerEpochBasedOnPerf() (*big.Int, error) {
+	return _WorkerHub.Contract.RewardPerEpochBasedOnPerf(&_WorkerHub.CallOpts)
+}
+
+// Treasury is a free data retrieval call binding the contract method 0x61d027b3.
+//
+// Solidity: function treasury() view returns(address)
+func (_WorkerHub *WorkerHubCaller) Treasury(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "treasury")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Treasury is a free data retrieval call binding the contract method 0x61d027b3.
+//
+// Solidity: function treasury() view returns(address)
+func (_WorkerHub *WorkerHubSession) Treasury() (common.Address, error) {
+	return _WorkerHub.Contract.Treasury(&_WorkerHub.CallOpts)
+}
+
+// Treasury is a free data retrieval call binding the contract method 0x61d027b3.
+//
+// Solidity: function treasury() view returns(address)
+func (_WorkerHub *WorkerHubCallerSession) Treasury() (common.Address, error) {
+	return _WorkerHub.Contract.Treasury(&_WorkerHub.CallOpts)
+}
+
+// UnstakeDelayTime is a free data retrieval call binding the contract method 0xe4fefd65.
+//
+// Solidity: function unstakeDelayTime() view returns(uint40)
+func (_WorkerHub *WorkerHubCaller) UnstakeDelayTime(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "unstakeDelayTime")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// UnstakeDelayTime is a free data retrieval call binding the contract method 0xe4fefd65.
+//
+// Solidity: function unstakeDelayTime() view returns(uint40)
+func (_WorkerHub *WorkerHubSession) UnstakeDelayTime() (*big.Int, error) {
+	return _WorkerHub.Contract.UnstakeDelayTime(&_WorkerHub.CallOpts)
+}
+
+// UnstakeDelayTime is a free data retrieval call binding the contract method 0xe4fefd65.
+//
+// Solidity: function unstakeDelayTime() view returns(uint40)
+func (_WorkerHub *WorkerHubCallerSession) UnstakeDelayTime() (*big.Int, error) {
+	return _WorkerHub.Contract.UnstakeDelayTime(&_WorkerHub.CallOpts)
 }
 
 // ValidatingTimeLimit is a free data retrieval call binding the contract method 0x56f2eca3.
@@ -1023,6 +1324,37 @@ func (_WorkerHub *WorkerHubCallerSession) ValidatingTimeLimit() (*big.Int, error
 	return _WorkerHub.Contract.ValidatingTimeLimit(&_WorkerHub.CallOpts)
 }
 
+// ValidatorDisputed is a free data retrieval call binding the contract method 0x7146ab67.
+//
+// Solidity: function validatorDisputed(address , uint256 ) view returns(bool)
+func (_WorkerHub *WorkerHubCaller) ValidatorDisputed(opts *bind.CallOpts, arg0 common.Address, arg1 *big.Int) (bool, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "validatorDisputed", arg0, arg1)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// ValidatorDisputed is a free data retrieval call binding the contract method 0x7146ab67.
+//
+// Solidity: function validatorDisputed(address , uint256 ) view returns(bool)
+func (_WorkerHub *WorkerHubSession) ValidatorDisputed(arg0 common.Address, arg1 *big.Int) (bool, error) {
+	return _WorkerHub.Contract.ValidatorDisputed(&_WorkerHub.CallOpts, arg0, arg1)
+}
+
+// ValidatorDisputed is a free data retrieval call binding the contract method 0x7146ab67.
+//
+// Solidity: function validatorDisputed(address , uint256 ) view returns(bool)
+func (_WorkerHub *WorkerHubCallerSession) ValidatorDisputed(arg0 common.Address, arg1 *big.Int) (bool, error) {
+	return _WorkerHub.Contract.ValidatorDisputed(&_WorkerHub.CallOpts, arg0, arg1)
+}
+
 // ValidatorMinimumStake is a free data retrieval call binding the contract method 0x412f9775.
 //
 // Solidity: function validatorMinimumStake() view returns(uint256)
@@ -1054,94 +1386,83 @@ func (_WorkerHub *WorkerHubCallerSession) ValidatorMinimumStake() (*big.Int, err
 	return _WorkerHub.Contract.ValidatorMinimumStake(&_WorkerHub.CallOpts)
 }
 
-// ValidatorPivot is a free data retrieval call binding the contract method 0x34a1eb27.
+// ValidatorUnstakeRequests is a free data retrieval call binding the contract method 0xfd3623f7.
 //
-// Solidity: function validatorPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubCaller) ValidatorPivot(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "validatorPivot")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// ValidatorPivot is a free data retrieval call binding the contract method 0x34a1eb27.
-//
-// Solidity: function validatorPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubSession) ValidatorPivot() (*big.Int, error) {
-	return _WorkerHub.Contract.ValidatorPivot(&_WorkerHub.CallOpts)
-}
-
-// ValidatorPivot is a free data retrieval call binding the contract method 0x34a1eb27.
-//
-// Solidity: function validatorPivot() view returns(uint256)
-func (_WorkerHub *WorkerHubCallerSession) ValidatorPivot() (*big.Int, error) {
-	return _WorkerHub.Contract.ValidatorPivot(&_WorkerHub.CallOpts)
-}
-
-// ValidatorRequirement is a free data retrieval call binding the contract method 0x4f57cc80.
-//
-// Solidity: function validatorRequirement() view returns(uint8)
-func (_WorkerHub *WorkerHubCaller) ValidatorRequirement(opts *bind.CallOpts) (uint8, error) {
-	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "validatorRequirement")
-
-	if err != nil {
-		return *new(uint8), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
-
-	return out0, err
-
-}
-
-// ValidatorRequirement is a free data retrieval call binding the contract method 0x4f57cc80.
-//
-// Solidity: function validatorRequirement() view returns(uint8)
-func (_WorkerHub *WorkerHubSession) ValidatorRequirement() (uint8, error) {
-	return _WorkerHub.Contract.ValidatorRequirement(&_WorkerHub.CallOpts)
-}
-
-// ValidatorRequirement is a free data retrieval call binding the contract method 0x4f57cc80.
-//
-// Solidity: function validatorRequirement() view returns(uint8)
-func (_WorkerHub *WorkerHubCallerSession) ValidatorRequirement() (uint8, error) {
-	return _WorkerHub.Contract.ValidatorRequirement(&_WorkerHub.CallOpts)
-}
-
-// Validators is a free data retrieval call binding the contract method 0xfa52c7d8.
-//
-// Solidity: function validators(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
-func (_WorkerHub *WorkerHubCaller) Validators(opts *bind.CallOpts, arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
+// Solidity: function validatorUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubCaller) ValidatorUnstakeRequests(opts *bind.CallOpts, arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
 }, error) {
 	var out []interface{}
-	err := _WorkerHub.contract.Call(opts, &out, "validators", arg0)
+	err := _WorkerHub.contract.Call(opts, &out, "validatorUnstakeRequests", arg0)
 
 	outstruct := new(struct {
-		Stake         *big.Int
-		CurrentTaskId *big.Int
-		Commission    *big.Int
-		Tier          uint16
+		Stake    *big.Int
+		UnlockAt *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
 	outstruct.Stake = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.CurrentTaskId = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Commission = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Tier = *abi.ConvertType(out[3], new(uint16)).(*uint16)
+	outstruct.UnlockAt = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+
+	return *outstruct, err
+
+}
+
+// ValidatorUnstakeRequests is a free data retrieval call binding the contract method 0xfd3623f7.
+//
+// Solidity: function validatorUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubSession) ValidatorUnstakeRequests(arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
+}, error) {
+	return _WorkerHub.Contract.ValidatorUnstakeRequests(&_WorkerHub.CallOpts, arg0)
+}
+
+// ValidatorUnstakeRequests is a free data retrieval call binding the contract method 0xfd3623f7.
+//
+// Solidity: function validatorUnstakeRequests(address ) view returns(uint256 stake, uint40 unlockAt)
+func (_WorkerHub *WorkerHubCallerSession) ValidatorUnstakeRequests(arg0 common.Address) (struct {
+	Stake    *big.Int
+	UnlockAt *big.Int
+}, error) {
+	return _WorkerHub.Contract.ValidatorUnstakeRequests(&_WorkerHub.CallOpts, arg0)
+}
+
+// Validators is a free data retrieval call binding the contract method 0xfa52c7d8.
+//
+// Solidity: function validators(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
+func (_WorkerHub *WorkerHubCaller) Validators(opts *bind.CallOpts, arg0 common.Address) (struct {
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
+}, error) {
+	var out []interface{}
+	err := _WorkerHub.contract.Call(opts, &out, "validators", arg0)
+
+	outstruct := new(struct {
+		Stake            *big.Int
+		Commitment       *big.Int
+		ModelAddress     common.Address
+		LastClaimedEpoch *big.Int
+		ActiveTime       *big.Int
+		Tier             uint16
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.Stake = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.Commitment = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.ModelAddress = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
+	outstruct.LastClaimedEpoch = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.ActiveTime = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
+	outstruct.Tier = *abi.ConvertType(out[5], new(uint16)).(*uint16)
 
 	return *outstruct, err
 
@@ -1149,24 +1470,28 @@ func (_WorkerHub *WorkerHubCaller) Validators(opts *bind.CallOpts, arg0 common.A
 
 // Validators is a free data retrieval call binding the contract method 0xfa52c7d8.
 //
-// Solidity: function validators(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
+// Solidity: function validators(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
 func (_WorkerHub *WorkerHubSession) Validators(arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
 }, error) {
 	return _WorkerHub.Contract.Validators(&_WorkerHub.CallOpts, arg0)
 }
 
 // Validators is a free data retrieval call binding the contract method 0xfa52c7d8.
 //
-// Solidity: function validators(address ) view returns(uint256 stake, uint256 currentTaskId, uint256 commission, uint16 tier)
+// Solidity: function validators(address ) view returns(uint256 stake, uint256 commitment, address modelAddress, uint40 lastClaimedEpoch, uint40 activeTime, uint16 tier)
 func (_WorkerHub *WorkerHubCallerSession) Validators(arg0 common.Address) (struct {
-	Stake         *big.Int
-	CurrentTaskId *big.Int
-	Commission    *big.Int
-	Tier          uint16
+	Stake            *big.Int
+	Commitment       *big.Int
+	ModelAddress     common.Address
+	LastClaimedEpoch *big.Int
+	ActiveTime       *big.Int
+	Tier             uint16
 }, error) {
 	return _WorkerHub.Contract.Validators(&_WorkerHub.CallOpts, arg0)
 }
@@ -1200,6 +1525,48 @@ func (_WorkerHub *WorkerHubSession) Version() (string, error) {
 // Solidity: function version() pure returns(string)
 func (_WorkerHub *WorkerHubCallerSession) Version() (string, error) {
 	return _WorkerHub.Contract.Version(&_WorkerHub.CallOpts)
+}
+
+// ClaimReward is a paid mutator transaction binding the contract method 0xd279c191.
+//
+// Solidity: function claimReward(address _minter) returns()
+func (_WorkerHub *WorkerHubTransactor) ClaimReward(opts *bind.TransactOpts, _minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "claimReward", _minter)
+}
+
+// ClaimReward is a paid mutator transaction binding the contract method 0xd279c191.
+//
+// Solidity: function claimReward(address _minter) returns()
+func (_WorkerHub *WorkerHubSession) ClaimReward(_minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.Contract.ClaimReward(&_WorkerHub.TransactOpts, _minter)
+}
+
+// ClaimReward is a paid mutator transaction binding the contract method 0xd279c191.
+//
+// Solidity: function claimReward(address _minter) returns()
+func (_WorkerHub *WorkerHubTransactorSession) ClaimReward(_minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.Contract.ClaimReward(&_WorkerHub.TransactOpts, _minter)
+}
+
+// DisputeInfer is a paid mutator transaction binding the contract method 0x72422748.
+//
+// Solidity: function disputeInfer(uint256 _assignmentId) returns()
+func (_WorkerHub *WorkerHubTransactor) DisputeInfer(opts *bind.TransactOpts, _assignmentId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "disputeInfer", _assignmentId)
+}
+
+// DisputeInfer is a paid mutator transaction binding the contract method 0x72422748.
+//
+// Solidity: function disputeInfer(uint256 _assignmentId) returns()
+func (_WorkerHub *WorkerHubSession) DisputeInfer(_assignmentId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.DisputeInfer(&_WorkerHub.TransactOpts, _assignmentId)
+}
+
+// DisputeInfer is a paid mutator transaction binding the contract method 0x72422748.
+//
+// Solidity: function disputeInfer(uint256 _assignmentId) returns()
+func (_WorkerHub *WorkerHubTransactorSession) DisputeInfer(_assignmentId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.DisputeInfer(&_WorkerHub.TransactOpts, _assignmentId)
 }
 
 // IncreaseMinterStake is a paid mutator transaction binding the contract method 0xba22db75.
@@ -1265,25 +1632,25 @@ func (_WorkerHub *WorkerHubTransactorSession) Infer(_input []byte, _creator comm
 	return _WorkerHub.Contract.Infer(&_WorkerHub.TransactOpts, _input, _creator)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0xd3cdaa3d.
+// Initialize is a paid mutator transaction binding the contract method 0xfea2a02f.
 //
-// Solidity: function initialize(uint256 _minterMinimumStake, uint8 _minterRequirement, uint40 _mintingTimeLimit, uint256 _validatorMinimumStake, uint8 _validatorRequirement, uint40 _validatingTimeLimit, uint16 _maximumTier) returns()
-func (_WorkerHub *WorkerHubTransactor) Initialize(opts *bind.TransactOpts, _minterMinimumStake *big.Int, _minterRequirement uint8, _mintingTimeLimit *big.Int, _validatorMinimumStake *big.Int, _validatorRequirement uint8, _validatingTimeLimit *big.Int, _maximumTier uint16) (*types.Transaction, error) {
-	return _WorkerHub.contract.Transact(opts, "initialize", _minterMinimumStake, _minterRequirement, _mintingTimeLimit, _validatorMinimumStake, _validatorRequirement, _validatingTimeLimit, _maximumTier)
+// Solidity: function initialize(address _treasury, uint16 _feePercentage, uint256 _minterMinimumStake, uint256 _validatorMinimumStake, uint40 _mintingTimeLimit, uint8 _minterRequirement, uint256 _blocksPerEpoch, uint256 _rewardPerEpochBasedOnPerf, uint40 _unstakeDelayTime) returns()
+func (_WorkerHub *WorkerHubTransactor) Initialize(opts *bind.TransactOpts, _treasury common.Address, _feePercentage uint16, _minterMinimumStake *big.Int, _validatorMinimumStake *big.Int, _mintingTimeLimit *big.Int, _minterRequirement uint8, _blocksPerEpoch *big.Int, _rewardPerEpochBasedOnPerf *big.Int, _unstakeDelayTime *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "initialize", _treasury, _feePercentage, _minterMinimumStake, _validatorMinimumStake, _mintingTimeLimit, _minterRequirement, _blocksPerEpoch, _rewardPerEpochBasedOnPerf, _unstakeDelayTime)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0xd3cdaa3d.
+// Initialize is a paid mutator transaction binding the contract method 0xfea2a02f.
 //
-// Solidity: function initialize(uint256 _minterMinimumStake, uint8 _minterRequirement, uint40 _mintingTimeLimit, uint256 _validatorMinimumStake, uint8 _validatorRequirement, uint40 _validatingTimeLimit, uint16 _maximumTier) returns()
-func (_WorkerHub *WorkerHubSession) Initialize(_minterMinimumStake *big.Int, _minterRequirement uint8, _mintingTimeLimit *big.Int, _validatorMinimumStake *big.Int, _validatorRequirement uint8, _validatingTimeLimit *big.Int, _maximumTier uint16) (*types.Transaction, error) {
-	return _WorkerHub.Contract.Initialize(&_WorkerHub.TransactOpts, _minterMinimumStake, _minterRequirement, _mintingTimeLimit, _validatorMinimumStake, _validatorRequirement, _validatingTimeLimit, _maximumTier)
+// Solidity: function initialize(address _treasury, uint16 _feePercentage, uint256 _minterMinimumStake, uint256 _validatorMinimumStake, uint40 _mintingTimeLimit, uint8 _minterRequirement, uint256 _blocksPerEpoch, uint256 _rewardPerEpochBasedOnPerf, uint40 _unstakeDelayTime) returns()
+func (_WorkerHub *WorkerHubSession) Initialize(_treasury common.Address, _feePercentage uint16, _minterMinimumStake *big.Int, _validatorMinimumStake *big.Int, _mintingTimeLimit *big.Int, _minterRequirement uint8, _blocksPerEpoch *big.Int, _rewardPerEpochBasedOnPerf *big.Int, _unstakeDelayTime *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.Initialize(&_WorkerHub.TransactOpts, _treasury, _feePercentage, _minterMinimumStake, _validatorMinimumStake, _mintingTimeLimit, _minterRequirement, _blocksPerEpoch, _rewardPerEpochBasedOnPerf, _unstakeDelayTime)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0xd3cdaa3d.
+// Initialize is a paid mutator transaction binding the contract method 0xfea2a02f.
 //
-// Solidity: function initialize(uint256 _minterMinimumStake, uint8 _minterRequirement, uint40 _mintingTimeLimit, uint256 _validatorMinimumStake, uint8 _validatorRequirement, uint40 _validatingTimeLimit, uint16 _maximumTier) returns()
-func (_WorkerHub *WorkerHubTransactorSession) Initialize(_minterMinimumStake *big.Int, _minterRequirement uint8, _mintingTimeLimit *big.Int, _validatorMinimumStake *big.Int, _validatorRequirement uint8, _validatingTimeLimit *big.Int, _maximumTier uint16) (*types.Transaction, error) {
-	return _WorkerHub.Contract.Initialize(&_WorkerHub.TransactOpts, _minterMinimumStake, _minterRequirement, _mintingTimeLimit, _validatorMinimumStake, _validatorRequirement, _validatingTimeLimit, _maximumTier)
+// Solidity: function initialize(address _treasury, uint16 _feePercentage, uint256 _minterMinimumStake, uint256 _validatorMinimumStake, uint40 _mintingTimeLimit, uint8 _minterRequirement, uint256 _blocksPerEpoch, uint256 _rewardPerEpochBasedOnPerf, uint40 _unstakeDelayTime) returns()
+func (_WorkerHub *WorkerHubTransactorSession) Initialize(_treasury common.Address, _feePercentage uint16, _minterMinimumStake *big.Int, _validatorMinimumStake *big.Int, _mintingTimeLimit *big.Int, _minterRequirement uint8, _blocksPerEpoch *big.Int, _rewardPerEpochBasedOnPerf *big.Int, _unstakeDelayTime *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.Initialize(&_WorkerHub.TransactOpts, _treasury, _feePercentage, _minterMinimumStake, _validatorMinimumStake, _mintingTimeLimit, _minterRequirement, _blocksPerEpoch, _rewardPerEpochBasedOnPerf, _unstakeDelayTime)
 }
 
 // Pause is a paid mutator transaction binding the contract method 0x8456cb59.
@@ -1330,21 +1697,21 @@ func (_WorkerHub *WorkerHubTransactorSession) RegisterMinter(tier uint16) (*type
 
 // RegisterModel is a paid mutator transaction binding the contract method 0xa8d6d3d1.
 //
-// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns(uint256)
+// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns()
 func (_WorkerHub *WorkerHubTransactor) RegisterModel(opts *bind.TransactOpts, _model common.Address, _tier uint16, _minimumFee *big.Int) (*types.Transaction, error) {
 	return _WorkerHub.contract.Transact(opts, "registerModel", _model, _tier, _minimumFee)
 }
 
 // RegisterModel is a paid mutator transaction binding the contract method 0xa8d6d3d1.
 //
-// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns(uint256)
+// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns()
 func (_WorkerHub *WorkerHubSession) RegisterModel(_model common.Address, _tier uint16, _minimumFee *big.Int) (*types.Transaction, error) {
 	return _WorkerHub.Contract.RegisterModel(&_WorkerHub.TransactOpts, _model, _tier, _minimumFee)
 }
 
 // RegisterModel is a paid mutator transaction binding the contract method 0xa8d6d3d1.
 //
-// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns(uint256)
+// Solidity: function registerModel(address _model, uint16 _tier, uint256 _minimumFee) returns()
 func (_WorkerHub *WorkerHubTransactorSession) RegisterModel(_model common.Address, _tier uint16, _minimumFee *big.Int) (*types.Transaction, error) {
 	return _WorkerHub.Contract.RegisterModel(&_WorkerHub.TransactOpts, _model, _tier, _minimumFee)
 }
@@ -1391,25 +1758,130 @@ func (_WorkerHub *WorkerHubTransactorSession) RenounceOwnership() (*types.Transa
 	return _WorkerHub.Contract.RenounceOwnership(&_WorkerHub.TransactOpts)
 }
 
-// SubmitOutput is a paid mutator transaction binding the contract method 0x41d24baa.
+// ResolveInference is a paid mutator transaction binding the contract method 0x6029e786.
 //
-// Solidity: function submitOutput(uint256 _assignmentId, bytes _output) returns()
-func (_WorkerHub *WorkerHubTransactor) SubmitOutput(opts *bind.TransactOpts, _assignmentId *big.Int, _output []byte) (*types.Transaction, error) {
-	return _WorkerHub.contract.Transact(opts, "submitOutput", _assignmentId, _output)
+// Solidity: function resolveInference(uint256 _inferenceId) returns()
+func (_WorkerHub *WorkerHubTransactor) ResolveInference(opts *bind.TransactOpts, _inferenceId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "resolveInference", _inferenceId)
 }
 
-// SubmitOutput is a paid mutator transaction binding the contract method 0x41d24baa.
+// ResolveInference is a paid mutator transaction binding the contract method 0x6029e786.
 //
-// Solidity: function submitOutput(uint256 _assignmentId, bytes _output) returns()
-func (_WorkerHub *WorkerHubSession) SubmitOutput(_assignmentId *big.Int, _output []byte) (*types.Transaction, error) {
-	return _WorkerHub.Contract.SubmitOutput(&_WorkerHub.TransactOpts, _assignmentId, _output)
+// Solidity: function resolveInference(uint256 _inferenceId) returns()
+func (_WorkerHub *WorkerHubSession) ResolveInference(_inferenceId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.ResolveInference(&_WorkerHub.TransactOpts, _inferenceId)
 }
 
-// SubmitOutput is a paid mutator transaction binding the contract method 0x41d24baa.
+// ResolveInference is a paid mutator transaction binding the contract method 0x6029e786.
 //
-// Solidity: function submitOutput(uint256 _assignmentId, bytes _output) returns()
-func (_WorkerHub *WorkerHubTransactorSession) SubmitOutput(_assignmentId *big.Int, _output []byte) (*types.Transaction, error) {
-	return _WorkerHub.Contract.SubmitOutput(&_WorkerHub.TransactOpts, _assignmentId, _output)
+// Solidity: function resolveInference(uint256 _inferenceId) returns()
+func (_WorkerHub *WorkerHubTransactorSession) ResolveInference(_inferenceId *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.ResolveInference(&_WorkerHub.TransactOpts, _inferenceId)
+}
+
+// RewardToClaim is a paid mutator transaction binding the contract method 0x674a63b9.
+//
+// Solidity: function rewardToClaim(address _minter) returns(uint256)
+func (_WorkerHub *WorkerHubTransactor) RewardToClaim(opts *bind.TransactOpts, _minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "rewardToClaim", _minter)
+}
+
+// RewardToClaim is a paid mutator transaction binding the contract method 0x674a63b9.
+//
+// Solidity: function rewardToClaim(address _minter) returns(uint256)
+func (_WorkerHub *WorkerHubSession) RewardToClaim(_minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.Contract.RewardToClaim(&_WorkerHub.TransactOpts, _minter)
+}
+
+// RewardToClaim is a paid mutator transaction binding the contract method 0x674a63b9.
+//
+// Solidity: function rewardToClaim(address _minter) returns(uint256)
+func (_WorkerHub *WorkerHubTransactorSession) RewardToClaim(_minter common.Address) (*types.Transaction, error) {
+	return _WorkerHub.Contract.RewardToClaim(&_WorkerHub.TransactOpts, _minter)
+}
+
+// SetBlocksPerEpoch is a paid mutator transaction binding the contract method 0x034438b0.
+//
+// Solidity: function setBlocksPerEpoch(uint256 _blocks) returns()
+func (_WorkerHub *WorkerHubTransactor) SetBlocksPerEpoch(opts *bind.TransactOpts, _blocks *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "setBlocksPerEpoch", _blocks)
+}
+
+// SetBlocksPerEpoch is a paid mutator transaction binding the contract method 0x034438b0.
+//
+// Solidity: function setBlocksPerEpoch(uint256 _blocks) returns()
+func (_WorkerHub *WorkerHubSession) SetBlocksPerEpoch(_blocks *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetBlocksPerEpoch(&_WorkerHub.TransactOpts, _blocks)
+}
+
+// SetBlocksPerEpoch is a paid mutator transaction binding the contract method 0x034438b0.
+//
+// Solidity: function setBlocksPerEpoch(uint256 _blocks) returns()
+func (_WorkerHub *WorkerHubTransactorSession) SetBlocksPerEpoch(_blocks *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetBlocksPerEpoch(&_WorkerHub.TransactOpts, _blocks)
+}
+
+// SetNewRewardInEpoch is a paid mutator transaction binding the contract method 0xe32bd90c.
+//
+// Solidity: function setNewRewardInEpoch(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubTransactor) SetNewRewardInEpoch(opts *bind.TransactOpts, _newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "setNewRewardInEpoch", _newRewardAmount)
+}
+
+// SetNewRewardInEpoch is a paid mutator transaction binding the contract method 0xe32bd90c.
+//
+// Solidity: function setNewRewardInEpoch(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubSession) SetNewRewardInEpoch(_newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetNewRewardInEpoch(&_WorkerHub.TransactOpts, _newRewardAmount)
+}
+
+// SetNewRewardInEpoch is a paid mutator transaction binding the contract method 0xe32bd90c.
+//
+// Solidity: function setNewRewardInEpoch(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubTransactorSession) SetNewRewardInEpoch(_newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetNewRewardInEpoch(&_WorkerHub.TransactOpts, _newRewardAmount)
+}
+
+// SetNewRewardInEpochBasedOnPerf is a paid mutator transaction binding the contract method 0x99754809.
+//
+// Solidity: function setNewRewardInEpochBasedOnPerf(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubTransactor) SetNewRewardInEpochBasedOnPerf(opts *bind.TransactOpts, _newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "setNewRewardInEpochBasedOnPerf", _newRewardAmount)
+}
+
+// SetNewRewardInEpochBasedOnPerf is a paid mutator transaction binding the contract method 0x99754809.
+//
+// Solidity: function setNewRewardInEpochBasedOnPerf(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubSession) SetNewRewardInEpochBasedOnPerf(_newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetNewRewardInEpochBasedOnPerf(&_WorkerHub.TransactOpts, _newRewardAmount)
+}
+
+// SetNewRewardInEpochBasedOnPerf is a paid mutator transaction binding the contract method 0x99754809.
+//
+// Solidity: function setNewRewardInEpochBasedOnPerf(uint256 _newRewardAmount) returns()
+func (_WorkerHub *WorkerHubTransactorSession) SetNewRewardInEpochBasedOnPerf(_newRewardAmount *big.Int) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SetNewRewardInEpochBasedOnPerf(&_WorkerHub.TransactOpts, _newRewardAmount)
+}
+
+// SubmitSolution is a paid mutator transaction binding the contract method 0xe84dee6b.
+//
+// Solidity: function submitSolution(uint256 _assigmentId, bytes _data) returns()
+func (_WorkerHub *WorkerHubTransactor) SubmitSolution(opts *bind.TransactOpts, _assigmentId *big.Int, _data []byte) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "submitSolution", _assigmentId, _data)
+}
+
+// SubmitSolution is a paid mutator transaction binding the contract method 0xe84dee6b.
+//
+// Solidity: function submitSolution(uint256 _assigmentId, bytes _data) returns()
+func (_WorkerHub *WorkerHubSession) SubmitSolution(_assigmentId *big.Int, _data []byte) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SubmitSolution(&_WorkerHub.TransactOpts, _assigmentId, _data)
+}
+
+// SubmitSolution is a paid mutator transaction binding the contract method 0xe84dee6b.
+//
+// Solidity: function submitSolution(uint256 _assigmentId, bytes _data) returns()
+func (_WorkerHub *WorkerHubTransactorSession) SubmitSolution(_assigmentId *big.Int, _data []byte) (*types.Transaction, error) {
+	return _WorkerHub.Contract.SubmitSolution(&_WorkerHub.TransactOpts, _assigmentId, _data)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -1517,6 +1989,48 @@ func (_WorkerHub *WorkerHubTransactorSession) UnregisterValidator() (*types.Tran
 	return _WorkerHub.Contract.UnregisterValidator(&_WorkerHub.TransactOpts)
 }
 
+// UnstakeForMinter is a paid mutator transaction binding the contract method 0x7d95a863.
+//
+// Solidity: function unstakeForMinter() returns()
+func (_WorkerHub *WorkerHubTransactor) UnstakeForMinter(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "unstakeForMinter")
+}
+
+// UnstakeForMinter is a paid mutator transaction binding the contract method 0x7d95a863.
+//
+// Solidity: function unstakeForMinter() returns()
+func (_WorkerHub *WorkerHubSession) UnstakeForMinter() (*types.Transaction, error) {
+	return _WorkerHub.Contract.UnstakeForMinter(&_WorkerHub.TransactOpts)
+}
+
+// UnstakeForMinter is a paid mutator transaction binding the contract method 0x7d95a863.
+//
+// Solidity: function unstakeForMinter() returns()
+func (_WorkerHub *WorkerHubTransactorSession) UnstakeForMinter() (*types.Transaction, error) {
+	return _WorkerHub.Contract.UnstakeForMinter(&_WorkerHub.TransactOpts)
+}
+
+// UnstakeForValidator is a paid mutator transaction binding the contract method 0x42b093cf.
+//
+// Solidity: function unstakeForValidator() returns()
+func (_WorkerHub *WorkerHubTransactor) UnstakeForValidator(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _WorkerHub.contract.Transact(opts, "unstakeForValidator")
+}
+
+// UnstakeForValidator is a paid mutator transaction binding the contract method 0x42b093cf.
+//
+// Solidity: function unstakeForValidator() returns()
+func (_WorkerHub *WorkerHubSession) UnstakeForValidator() (*types.Transaction, error) {
+	return _WorkerHub.Contract.UnstakeForValidator(&_WorkerHub.TransactOpts)
+}
+
+// UnstakeForValidator is a paid mutator transaction binding the contract method 0x42b093cf.
+//
+// Solidity: function unstakeForValidator() returns()
+func (_WorkerHub *WorkerHubTransactorSession) UnstakeForValidator() (*types.Transaction, error) {
+	return _WorkerHub.Contract.UnstakeForValidator(&_WorkerHub.TransactOpts)
+}
+
 // Receive is a paid mutator transaction binding the contract receive function.
 //
 // Solidity: receive() payable returns()
@@ -1536,6 +2050,439 @@ func (_WorkerHub *WorkerHubSession) Receive() (*types.Transaction, error) {
 // Solidity: receive() payable returns()
 func (_WorkerHub *WorkerHubTransactorSession) Receive() (*types.Transaction, error) {
 	return _WorkerHub.Contract.Receive(&_WorkerHub.TransactOpts)
+}
+
+// WorkerHubBlocksPerEpochIterator is returned from FilterBlocksPerEpoch and is used to iterate over the raw logs and unpacked data for BlocksPerEpoch events raised by the WorkerHub contract.
+type WorkerHubBlocksPerEpochIterator struct {
+	Event *WorkerHubBlocksPerEpoch // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubBlocksPerEpochIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubBlocksPerEpoch)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubBlocksPerEpoch)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubBlocksPerEpochIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubBlocksPerEpochIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubBlocksPerEpoch represents a BlocksPerEpoch event raised by the WorkerHub contract.
+type WorkerHubBlocksPerEpoch struct {
+	OldBlocks *big.Int
+	NewBlocks *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterBlocksPerEpoch is a free log retrieval operation binding the contract event 0x3179ee2c3011a36d6d80a4b422f208df28ef9493d1d9ce1555b3116bd26ddb3d.
+//
+// Solidity: event BlocksPerEpoch(uint256 oldBlocks, uint256 newBlocks)
+func (_WorkerHub *WorkerHubFilterer) FilterBlocksPerEpoch(opts *bind.FilterOpts) (*WorkerHubBlocksPerEpochIterator, error) {
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "BlocksPerEpoch")
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubBlocksPerEpochIterator{contract: _WorkerHub.contract, event: "BlocksPerEpoch", logs: logs, sub: sub}, nil
+}
+
+// WatchBlocksPerEpoch is a free log subscription operation binding the contract event 0x3179ee2c3011a36d6d80a4b422f208df28ef9493d1d9ce1555b3116bd26ddb3d.
+//
+// Solidity: event BlocksPerEpoch(uint256 oldBlocks, uint256 newBlocks)
+func (_WorkerHub *WorkerHubFilterer) WatchBlocksPerEpoch(opts *bind.WatchOpts, sink chan<- *WorkerHubBlocksPerEpoch) (event.Subscription, error) {
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "BlocksPerEpoch")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubBlocksPerEpoch)
+				if err := _WorkerHub.contract.UnpackLog(event, "BlocksPerEpoch", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseBlocksPerEpoch is a log parse operation binding the contract event 0x3179ee2c3011a36d6d80a4b422f208df28ef9493d1d9ce1555b3116bd26ddb3d.
+//
+// Solidity: event BlocksPerEpoch(uint256 oldBlocks, uint256 newBlocks)
+func (_WorkerHub *WorkerHubFilterer) ParseBlocksPerEpoch(log types.Log) (*WorkerHubBlocksPerEpoch, error) {
+	event := new(WorkerHubBlocksPerEpoch)
+	if err := _WorkerHub.contract.UnpackLog(event, "BlocksPerEpoch", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubInferenceDisputationIterator is returned from FilterInferenceDisputation and is used to iterate over the raw logs and unpacked data for InferenceDisputation events raised by the WorkerHub contract.
+type WorkerHubInferenceDisputationIterator struct {
+	Event *WorkerHubInferenceDisputation // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubInferenceDisputationIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubInferenceDisputation)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubInferenceDisputation)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubInferenceDisputationIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubInferenceDisputationIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubInferenceDisputation represents a InferenceDisputation event raised by the WorkerHub contract.
+type WorkerHubInferenceDisputation struct {
+	Validator   common.Address
+	AssigmentId *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterInferenceDisputation is a free log retrieval operation binding the contract event 0x7a35142f149dfe3f5cd7125e68104edcde63a29e539db29b23cf0823512dec9c.
+//
+// Solidity: event InferenceDisputation(address indexed validator, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) FilterInferenceDisputation(opts *bind.FilterOpts, validator []common.Address, assigmentId []*big.Int) (*WorkerHubInferenceDisputationIterator, error) {
+
+	var validatorRule []interface{}
+	for _, validatorItem := range validator {
+		validatorRule = append(validatorRule, validatorItem)
+	}
+	var assigmentIdRule []interface{}
+	for _, assigmentIdItem := range assigmentId {
+		assigmentIdRule = append(assigmentIdRule, assigmentIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "InferenceDisputation", validatorRule, assigmentIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubInferenceDisputationIterator{contract: _WorkerHub.contract, event: "InferenceDisputation", logs: logs, sub: sub}, nil
+}
+
+// WatchInferenceDisputation is a free log subscription operation binding the contract event 0x7a35142f149dfe3f5cd7125e68104edcde63a29e539db29b23cf0823512dec9c.
+//
+// Solidity: event InferenceDisputation(address indexed validator, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) WatchInferenceDisputation(opts *bind.WatchOpts, sink chan<- *WorkerHubInferenceDisputation, validator []common.Address, assigmentId []*big.Int) (event.Subscription, error) {
+
+	var validatorRule []interface{}
+	for _, validatorItem := range validator {
+		validatorRule = append(validatorRule, validatorItem)
+	}
+	var assigmentIdRule []interface{}
+	for _, assigmentIdItem := range assigmentId {
+		assigmentIdRule = append(assigmentIdRule, assigmentIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "InferenceDisputation", validatorRule, assigmentIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubInferenceDisputation)
+				if err := _WorkerHub.contract.UnpackLog(event, "InferenceDisputation", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInferenceDisputation is a log parse operation binding the contract event 0x7a35142f149dfe3f5cd7125e68104edcde63a29e539db29b23cf0823512dec9c.
+//
+// Solidity: event InferenceDisputation(address indexed validator, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) ParseInferenceDisputation(log types.Log) (*WorkerHubInferenceDisputation, error) {
+	event := new(WorkerHubInferenceDisputation)
+	if err := _WorkerHub.contract.UnpackLog(event, "InferenceDisputation", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubInferenceStatusUpdateIterator is returned from FilterInferenceStatusUpdate and is used to iterate over the raw logs and unpacked data for InferenceStatusUpdate events raised by the WorkerHub contract.
+type WorkerHubInferenceStatusUpdateIterator struct {
+	Event *WorkerHubInferenceStatusUpdate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubInferenceStatusUpdateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubInferenceStatusUpdate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubInferenceStatusUpdate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubInferenceStatusUpdateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubInferenceStatusUpdateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubInferenceStatusUpdate represents a InferenceStatusUpdate event raised by the WorkerHub contract.
+type WorkerHubInferenceStatusUpdate struct {
+	InferenceId *big.Int
+	NewStatus   uint8
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterInferenceStatusUpdate is a free log retrieval operation binding the contract event 0xbc645ece538d7606c8ac26de30aef5fbd0ed2ee0c945f4e5d860da3e62781d50.
+//
+// Solidity: event InferenceStatusUpdate(uint256 indexed inferenceId, uint8 newStatus)
+func (_WorkerHub *WorkerHubFilterer) FilterInferenceStatusUpdate(opts *bind.FilterOpts, inferenceId []*big.Int) (*WorkerHubInferenceStatusUpdateIterator, error) {
+
+	var inferenceIdRule []interface{}
+	for _, inferenceIdItem := range inferenceId {
+		inferenceIdRule = append(inferenceIdRule, inferenceIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "InferenceStatusUpdate", inferenceIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubInferenceStatusUpdateIterator{contract: _WorkerHub.contract, event: "InferenceStatusUpdate", logs: logs, sub: sub}, nil
+}
+
+// WatchInferenceStatusUpdate is a free log subscription operation binding the contract event 0xbc645ece538d7606c8ac26de30aef5fbd0ed2ee0c945f4e5d860da3e62781d50.
+//
+// Solidity: event InferenceStatusUpdate(uint256 indexed inferenceId, uint8 newStatus)
+func (_WorkerHub *WorkerHubFilterer) WatchInferenceStatusUpdate(opts *bind.WatchOpts, sink chan<- *WorkerHubInferenceStatusUpdate, inferenceId []*big.Int) (event.Subscription, error) {
+
+	var inferenceIdRule []interface{}
+	for _, inferenceIdItem := range inferenceId {
+		inferenceIdRule = append(inferenceIdRule, inferenceIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "InferenceStatusUpdate", inferenceIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubInferenceStatusUpdate)
+				if err := _WorkerHub.contract.UnpackLog(event, "InferenceStatusUpdate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInferenceStatusUpdate is a log parse operation binding the contract event 0xbc645ece538d7606c8ac26de30aef5fbd0ed2ee0c945f4e5d860da3e62781d50.
+//
+// Solidity: event InferenceStatusUpdate(uint256 indexed inferenceId, uint8 newStatus)
+func (_WorkerHub *WorkerHubFilterer) ParseInferenceStatusUpdate(log types.Log) (*WorkerHubInferenceStatusUpdate, error) {
+	event := new(WorkerHubInferenceStatusUpdate)
+	if err := _WorkerHub.contract.UnpackLog(event, "InferenceStatusUpdate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // WorkerHubInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the WorkerHub contract.
@@ -2115,6 +3062,151 @@ func (_WorkerHub *WorkerHubFilterer) ParseMinterUnregistration(log types.Log) (*
 	return event, nil
 }
 
+// WorkerHubMinterUnstakeIterator is returned from FilterMinterUnstake and is used to iterate over the raw logs and unpacked data for MinterUnstake events raised by the WorkerHub contract.
+type WorkerHubMinterUnstakeIterator struct {
+	Event *WorkerHubMinterUnstake // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubMinterUnstakeIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubMinterUnstake)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubMinterUnstake)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubMinterUnstakeIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubMinterUnstakeIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubMinterUnstake represents a MinterUnstake event raised by the WorkerHub contract.
+type WorkerHubMinterUnstake struct {
+	Minter common.Address
+	Stake  *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterMinterUnstake is a free log retrieval operation binding the contract event 0x16f4eb4a3036adee389329a079211972c6dcceb2bc577f4ea780f21897ddcfcb.
+//
+// Solidity: event MinterUnstake(address indexed minter, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) FilterMinterUnstake(opts *bind.FilterOpts, minter []common.Address) (*WorkerHubMinterUnstakeIterator, error) {
+
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "MinterUnstake", minterRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubMinterUnstakeIterator{contract: _WorkerHub.contract, event: "MinterUnstake", logs: logs, sub: sub}, nil
+}
+
+// WatchMinterUnstake is a free log subscription operation binding the contract event 0x16f4eb4a3036adee389329a079211972c6dcceb2bc577f4ea780f21897ddcfcb.
+//
+// Solidity: event MinterUnstake(address indexed minter, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) WatchMinterUnstake(opts *bind.WatchOpts, sink chan<- *WorkerHubMinterUnstake, minter []common.Address) (event.Subscription, error) {
+
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "MinterUnstake", minterRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubMinterUnstake)
+				if err := _WorkerHub.contract.UnpackLog(event, "MinterUnstake", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseMinterUnstake is a log parse operation binding the contract event 0x16f4eb4a3036adee389329a079211972c6dcceb2bc577f4ea780f21897ddcfcb.
+//
+// Solidity: event MinterUnstake(address indexed minter, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) ParseMinterUnstake(log types.Log) (*WorkerHubMinterUnstake, error) {
+	event := new(WorkerHubMinterUnstake)
+	if err := _WorkerHub.contract.UnpackLog(event, "MinterUnstake", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // WorkerHubModelRegistrationIterator is returned from FilterModelRegistration and is used to iterate over the raw logs and unpacked data for ModelRegistration events raised by the WorkerHub contract.
 type WorkerHubModelRegistrationIterator struct {
 	Event *WorkerHubModelRegistration // Event containing the contract specifics and raw log
@@ -2185,56 +3277,47 @@ func (it *WorkerHubModelRegistrationIterator) Close() error {
 // WorkerHubModelRegistration represents a ModelRegistration event raised by the WorkerHub contract.
 type WorkerHubModelRegistration struct {
 	Model      common.Address
-	ModelId    *big.Int
 	Tier       uint16
 	MinimumFee *big.Int
 	Raw        types.Log // Blockchain specific contextual infos
 }
 
-// FilterModelRegistration is a free log retrieval operation binding the contract event 0xc866a92eb047ee02b8ba71f5ac25523fda8737ce206f248fa675d2e7c9645ffd.
+// FilterModelRegistration is a free log retrieval operation binding the contract event 0x7041913a4cb21c28c931da9d9e4b5ed0ad84e47fcf2a65527f03c438d534ed5c.
 //
-// Solidity: event ModelRegistration(address indexed model, uint256 indexed modelId, uint16 indexed tier, uint256 minimumFee)
-func (_WorkerHub *WorkerHubFilterer) FilterModelRegistration(opts *bind.FilterOpts, model []common.Address, modelId []*big.Int, tier []uint16) (*WorkerHubModelRegistrationIterator, error) {
+// Solidity: event ModelRegistration(address indexed model, uint16 indexed tier, uint256 minimumFee)
+func (_WorkerHub *WorkerHubFilterer) FilterModelRegistration(opts *bind.FilterOpts, model []common.Address, tier []uint16) (*WorkerHubModelRegistrationIterator, error) {
 
 	var modelRule []interface{}
 	for _, modelItem := range model {
 		modelRule = append(modelRule, modelItem)
-	}
-	var modelIdRule []interface{}
-	for _, modelIdItem := range modelId {
-		modelIdRule = append(modelIdRule, modelIdItem)
 	}
 	var tierRule []interface{}
 	for _, tierItem := range tier {
 		tierRule = append(tierRule, tierItem)
 	}
 
-	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "ModelRegistration", modelRule, modelIdRule, tierRule)
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "ModelRegistration", modelRule, tierRule)
 	if err != nil {
 		return nil, err
 	}
 	return &WorkerHubModelRegistrationIterator{contract: _WorkerHub.contract, event: "ModelRegistration", logs: logs, sub: sub}, nil
 }
 
-// WatchModelRegistration is a free log subscription operation binding the contract event 0xc866a92eb047ee02b8ba71f5ac25523fda8737ce206f248fa675d2e7c9645ffd.
+// WatchModelRegistration is a free log subscription operation binding the contract event 0x7041913a4cb21c28c931da9d9e4b5ed0ad84e47fcf2a65527f03c438d534ed5c.
 //
-// Solidity: event ModelRegistration(address indexed model, uint256 indexed modelId, uint16 indexed tier, uint256 minimumFee)
-func (_WorkerHub *WorkerHubFilterer) WatchModelRegistration(opts *bind.WatchOpts, sink chan<- *WorkerHubModelRegistration, model []common.Address, modelId []*big.Int, tier []uint16) (event.Subscription, error) {
+// Solidity: event ModelRegistration(address indexed model, uint16 indexed tier, uint256 minimumFee)
+func (_WorkerHub *WorkerHubFilterer) WatchModelRegistration(opts *bind.WatchOpts, sink chan<- *WorkerHubModelRegistration, model []common.Address, tier []uint16) (event.Subscription, error) {
 
 	var modelRule []interface{}
 	for _, modelItem := range model {
 		modelRule = append(modelRule, modelItem)
-	}
-	var modelIdRule []interface{}
-	for _, modelIdItem := range modelId {
-		modelIdRule = append(modelIdRule, modelIdItem)
 	}
 	var tierRule []interface{}
 	for _, tierItem := range tier {
 		tierRule = append(tierRule, tierItem)
 	}
 
-	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "ModelRegistration", modelRule, modelIdRule, tierRule)
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "ModelRegistration", modelRule, tierRule)
 	if err != nil {
 		return nil, err
 	}
@@ -2266,9 +3349,9 @@ func (_WorkerHub *WorkerHubFilterer) WatchModelRegistration(opts *bind.WatchOpts
 	}), nil
 }
 
-// ParseModelRegistration is a log parse operation binding the contract event 0xc866a92eb047ee02b8ba71f5ac25523fda8737ce206f248fa675d2e7c9645ffd.
+// ParseModelRegistration is a log parse operation binding the contract event 0x7041913a4cb21c28c931da9d9e4b5ed0ad84e47fcf2a65527f03c438d534ed5c.
 //
-// Solidity: event ModelRegistration(address indexed model, uint256 indexed modelId, uint16 indexed tier, uint256 minimumFee)
+// Solidity: event ModelRegistration(address indexed model, uint16 indexed tier, uint256 minimumFee)
 func (_WorkerHub *WorkerHubFilterer) ParseModelRegistration(log types.Log) (*WorkerHubModelRegistration, error) {
 	event := new(WorkerHubModelRegistration)
 	if err := _WorkerHub.contract.UnpackLog(event, "ModelRegistration", log); err != nil {
@@ -2416,6 +3499,169 @@ func (_WorkerHub *WorkerHubFilterer) WatchModelUnregistration(opts *bind.WatchOp
 func (_WorkerHub *WorkerHubFilterer) ParseModelUnregistration(log types.Log) (*WorkerHubModelUnregistration, error) {
 	event := new(WorkerHubModelUnregistration)
 	if err := _WorkerHub.contract.UnpackLog(event, "ModelUnregistration", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubNewAssignmentIterator is returned from FilterNewAssignment and is used to iterate over the raw logs and unpacked data for NewAssignment events raised by the WorkerHub contract.
+type WorkerHubNewAssignmentIterator struct {
+	Event *WorkerHubNewAssignment // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubNewAssignmentIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubNewAssignment)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubNewAssignment)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubNewAssignmentIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubNewAssignmentIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubNewAssignment represents a NewAssignment event raised by the WorkerHub contract.
+type WorkerHubNewAssignment struct {
+	AssignmentId *big.Int
+	InferenceId  *big.Int
+	Minter       common.Address
+	ExpiredAt    *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterNewAssignment is a free log retrieval operation binding the contract event 0x53cc8b652f33c56dac5f1c97a284cc971e7adcb8abe9454b0853f076c6deb7d5.
+//
+// Solidity: event NewAssignment(uint256 indexed assignmentId, uint256 indexed inferenceId, address indexed minter, uint40 expiredAt)
+func (_WorkerHub *WorkerHubFilterer) FilterNewAssignment(opts *bind.FilterOpts, assignmentId []*big.Int, inferenceId []*big.Int, minter []common.Address) (*WorkerHubNewAssignmentIterator, error) {
+
+	var assignmentIdRule []interface{}
+	for _, assignmentIdItem := range assignmentId {
+		assignmentIdRule = append(assignmentIdRule, assignmentIdItem)
+	}
+	var inferenceIdRule []interface{}
+	for _, inferenceIdItem := range inferenceId {
+		inferenceIdRule = append(inferenceIdRule, inferenceIdItem)
+	}
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "NewAssignment", assignmentIdRule, inferenceIdRule, minterRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubNewAssignmentIterator{contract: _WorkerHub.contract, event: "NewAssignment", logs: logs, sub: sub}, nil
+}
+
+// WatchNewAssignment is a free log subscription operation binding the contract event 0x53cc8b652f33c56dac5f1c97a284cc971e7adcb8abe9454b0853f076c6deb7d5.
+//
+// Solidity: event NewAssignment(uint256 indexed assignmentId, uint256 indexed inferenceId, address indexed minter, uint40 expiredAt)
+func (_WorkerHub *WorkerHubFilterer) WatchNewAssignment(opts *bind.WatchOpts, sink chan<- *WorkerHubNewAssignment, assignmentId []*big.Int, inferenceId []*big.Int, minter []common.Address) (event.Subscription, error) {
+
+	var assignmentIdRule []interface{}
+	for _, assignmentIdItem := range assignmentId {
+		assignmentIdRule = append(assignmentIdRule, assignmentIdItem)
+	}
+	var inferenceIdRule []interface{}
+	for _, inferenceIdItem := range inferenceId {
+		inferenceIdRule = append(inferenceIdRule, inferenceIdItem)
+	}
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "NewAssignment", assignmentIdRule, inferenceIdRule, minterRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubNewAssignment)
+				if err := _WorkerHub.contract.UnpackLog(event, "NewAssignment", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseNewAssignment is a log parse operation binding the contract event 0x53cc8b652f33c56dac5f1c97a284cc971e7adcb8abe9454b0853f076c6deb7d5.
+//
+// Solidity: event NewAssignment(uint256 indexed assignmentId, uint256 indexed inferenceId, address indexed minter, uint40 expiredAt)
+func (_WorkerHub *WorkerHubFilterer) ParseNewAssignment(log types.Log) (*WorkerHubNewAssignment, error) {
+	event := new(WorkerHubNewAssignment)
+	if err := _WorkerHub.contract.UnpackLog(event, "NewAssignment", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -2857,6 +4103,574 @@ func (_WorkerHub *WorkerHubFilterer) WatchPaused(opts *bind.WatchOpts, sink chan
 func (_WorkerHub *WorkerHubFilterer) ParsePaused(log types.Log) (*WorkerHubPaused, error) {
 	event := new(WorkerHubPaused)
 	if err := _WorkerHub.contract.UnpackLog(event, "Paused", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubRewardClaimIterator is returned from FilterRewardClaim and is used to iterate over the raw logs and unpacked data for RewardClaim events raised by the WorkerHub contract.
+type WorkerHubRewardClaimIterator struct {
+	Event *WorkerHubRewardClaim // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubRewardClaimIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubRewardClaim)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubRewardClaim)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubRewardClaimIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubRewardClaimIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubRewardClaim represents a RewardClaim event raised by the WorkerHub contract.
+type WorkerHubRewardClaim struct {
+	Worker common.Address
+	Value  *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterRewardClaim is a free log retrieval operation binding the contract event 0x75690555e75b04e280e646889defdcbefd8401507e5394d1173fd84290944c29.
+//
+// Solidity: event RewardClaim(address indexed worker, uint256 value)
+func (_WorkerHub *WorkerHubFilterer) FilterRewardClaim(opts *bind.FilterOpts, worker []common.Address) (*WorkerHubRewardClaimIterator, error) {
+
+	var workerRule []interface{}
+	for _, workerItem := range worker {
+		workerRule = append(workerRule, workerItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "RewardClaim", workerRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubRewardClaimIterator{contract: _WorkerHub.contract, event: "RewardClaim", logs: logs, sub: sub}, nil
+}
+
+// WatchRewardClaim is a free log subscription operation binding the contract event 0x75690555e75b04e280e646889defdcbefd8401507e5394d1173fd84290944c29.
+//
+// Solidity: event RewardClaim(address indexed worker, uint256 value)
+func (_WorkerHub *WorkerHubFilterer) WatchRewardClaim(opts *bind.WatchOpts, sink chan<- *WorkerHubRewardClaim, worker []common.Address) (event.Subscription, error) {
+
+	var workerRule []interface{}
+	for _, workerItem := range worker {
+		workerRule = append(workerRule, workerItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "RewardClaim", workerRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubRewardClaim)
+				if err := _WorkerHub.contract.UnpackLog(event, "RewardClaim", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseRewardClaim is a log parse operation binding the contract event 0x75690555e75b04e280e646889defdcbefd8401507e5394d1173fd84290944c29.
+//
+// Solidity: event RewardClaim(address indexed worker, uint256 value)
+func (_WorkerHub *WorkerHubFilterer) ParseRewardClaim(log types.Log) (*WorkerHubRewardClaim, error) {
+	event := new(WorkerHubRewardClaim)
+	if err := _WorkerHub.contract.UnpackLog(event, "RewardClaim", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubRewardPerEpochIterator is returned from FilterRewardPerEpoch and is used to iterate over the raw logs and unpacked data for RewardPerEpoch events raised by the WorkerHub contract.
+type WorkerHubRewardPerEpochIterator struct {
+	Event *WorkerHubRewardPerEpoch // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubRewardPerEpochIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubRewardPerEpoch)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubRewardPerEpoch)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubRewardPerEpochIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubRewardPerEpochIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubRewardPerEpoch represents a RewardPerEpoch event raised by the WorkerHub contract.
+type WorkerHubRewardPerEpoch struct {
+	OldReward *big.Int
+	NewReward *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterRewardPerEpoch is a free log retrieval operation binding the contract event 0x3d731857045dfa7982ed8ff308eeda54c7e156ba99609db02c50b4485f64c463.
+//
+// Solidity: event RewardPerEpoch(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) FilterRewardPerEpoch(opts *bind.FilterOpts) (*WorkerHubRewardPerEpochIterator, error) {
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "RewardPerEpoch")
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubRewardPerEpochIterator{contract: _WorkerHub.contract, event: "RewardPerEpoch", logs: logs, sub: sub}, nil
+}
+
+// WatchRewardPerEpoch is a free log subscription operation binding the contract event 0x3d731857045dfa7982ed8ff308eeda54c7e156ba99609db02c50b4485f64c463.
+//
+// Solidity: event RewardPerEpoch(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) WatchRewardPerEpoch(opts *bind.WatchOpts, sink chan<- *WorkerHubRewardPerEpoch) (event.Subscription, error) {
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "RewardPerEpoch")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubRewardPerEpoch)
+				if err := _WorkerHub.contract.UnpackLog(event, "RewardPerEpoch", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseRewardPerEpoch is a log parse operation binding the contract event 0x3d731857045dfa7982ed8ff308eeda54c7e156ba99609db02c50b4485f64c463.
+//
+// Solidity: event RewardPerEpoch(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) ParseRewardPerEpoch(log types.Log) (*WorkerHubRewardPerEpoch, error) {
+	event := new(WorkerHubRewardPerEpoch)
+	if err := _WorkerHub.contract.UnpackLog(event, "RewardPerEpoch", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubRewardPerEpochBasedOnPerfIterator is returned from FilterRewardPerEpochBasedOnPerf and is used to iterate over the raw logs and unpacked data for RewardPerEpochBasedOnPerf events raised by the WorkerHub contract.
+type WorkerHubRewardPerEpochBasedOnPerfIterator struct {
+	Event *WorkerHubRewardPerEpochBasedOnPerf // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubRewardPerEpochBasedOnPerfIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubRewardPerEpochBasedOnPerf)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubRewardPerEpochBasedOnPerf)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubRewardPerEpochBasedOnPerfIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubRewardPerEpochBasedOnPerfIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubRewardPerEpochBasedOnPerf represents a RewardPerEpochBasedOnPerf event raised by the WorkerHub contract.
+type WorkerHubRewardPerEpochBasedOnPerf struct {
+	OldReward *big.Int
+	NewReward *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterRewardPerEpochBasedOnPerf is a free log retrieval operation binding the contract event 0x140d5df2de20371811806c8962c8ceebe74aa09cc166e0d64bed23a5fa261983.
+//
+// Solidity: event RewardPerEpochBasedOnPerf(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) FilterRewardPerEpochBasedOnPerf(opts *bind.FilterOpts) (*WorkerHubRewardPerEpochBasedOnPerfIterator, error) {
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "RewardPerEpochBasedOnPerf")
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubRewardPerEpochBasedOnPerfIterator{contract: _WorkerHub.contract, event: "RewardPerEpochBasedOnPerf", logs: logs, sub: sub}, nil
+}
+
+// WatchRewardPerEpochBasedOnPerf is a free log subscription operation binding the contract event 0x140d5df2de20371811806c8962c8ceebe74aa09cc166e0d64bed23a5fa261983.
+//
+// Solidity: event RewardPerEpochBasedOnPerf(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) WatchRewardPerEpochBasedOnPerf(opts *bind.WatchOpts, sink chan<- *WorkerHubRewardPerEpochBasedOnPerf) (event.Subscription, error) {
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "RewardPerEpochBasedOnPerf")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubRewardPerEpochBasedOnPerf)
+				if err := _WorkerHub.contract.UnpackLog(event, "RewardPerEpochBasedOnPerf", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseRewardPerEpochBasedOnPerf is a log parse operation binding the contract event 0x140d5df2de20371811806c8962c8ceebe74aa09cc166e0d64bed23a5fa261983.
+//
+// Solidity: event RewardPerEpochBasedOnPerf(uint256 oldReward, uint256 newReward)
+func (_WorkerHub *WorkerHubFilterer) ParseRewardPerEpochBasedOnPerf(log types.Log) (*WorkerHubRewardPerEpochBasedOnPerf, error) {
+	event := new(WorkerHubRewardPerEpochBasedOnPerf)
+	if err := _WorkerHub.contract.UnpackLog(event, "RewardPerEpochBasedOnPerf", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubSolutionSubmissionIterator is returned from FilterSolutionSubmission and is used to iterate over the raw logs and unpacked data for SolutionSubmission events raised by the WorkerHub contract.
+type WorkerHubSolutionSubmissionIterator struct {
+	Event *WorkerHubSolutionSubmission // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubSolutionSubmissionIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubSolutionSubmission)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubSolutionSubmission)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubSolutionSubmissionIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubSolutionSubmissionIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubSolutionSubmission represents a SolutionSubmission event raised by the WorkerHub contract.
+type WorkerHubSolutionSubmission struct {
+	Minter      common.Address
+	AssigmentId *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterSolutionSubmission is a free log retrieval operation binding the contract event 0x9f669b92b9cbc7611f7ab6c77db07a424051c777433e21bd90f1bdf940096dd9.
+//
+// Solidity: event SolutionSubmission(address indexed minter, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) FilterSolutionSubmission(opts *bind.FilterOpts, minter []common.Address, assigmentId []*big.Int) (*WorkerHubSolutionSubmissionIterator, error) {
+
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+	var assigmentIdRule []interface{}
+	for _, assigmentIdItem := range assigmentId {
+		assigmentIdRule = append(assigmentIdRule, assigmentIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "SolutionSubmission", minterRule, assigmentIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubSolutionSubmissionIterator{contract: _WorkerHub.contract, event: "SolutionSubmission", logs: logs, sub: sub}, nil
+}
+
+// WatchSolutionSubmission is a free log subscription operation binding the contract event 0x9f669b92b9cbc7611f7ab6c77db07a424051c777433e21bd90f1bdf940096dd9.
+//
+// Solidity: event SolutionSubmission(address indexed minter, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) WatchSolutionSubmission(opts *bind.WatchOpts, sink chan<- *WorkerHubSolutionSubmission, minter []common.Address, assigmentId []*big.Int) (event.Subscription, error) {
+
+	var minterRule []interface{}
+	for _, minterItem := range minter {
+		minterRule = append(minterRule, minterItem)
+	}
+	var assigmentIdRule []interface{}
+	for _, assigmentIdItem := range assigmentId {
+		assigmentIdRule = append(assigmentIdRule, assigmentIdItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "SolutionSubmission", minterRule, assigmentIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubSolutionSubmission)
+				if err := _WorkerHub.contract.UnpackLog(event, "SolutionSubmission", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSolutionSubmission is a log parse operation binding the contract event 0x9f669b92b9cbc7611f7ab6c77db07a424051c777433e21bd90f1bdf940096dd9.
+//
+// Solidity: event SolutionSubmission(address indexed minter, uint256 indexed assigmentId)
+func (_WorkerHub *WorkerHubFilterer) ParseSolutionSubmission(log types.Log) (*WorkerHubSolutionSubmission, error) {
+	event := new(WorkerHubSolutionSubmission)
+	if err := _WorkerHub.contract.UnpackLog(event, "SolutionSubmission", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -3434,6 +5248,151 @@ func (_WorkerHub *WorkerHubFilterer) WatchValidatorUnregistration(opts *bind.Wat
 func (_WorkerHub *WorkerHubFilterer) ParseValidatorUnregistration(log types.Log) (*WorkerHubValidatorUnregistration, error) {
 	event := new(WorkerHubValidatorUnregistration)
 	if err := _WorkerHub.contract.UnpackLog(event, "ValidatorUnregistration", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// WorkerHubValidatorUnstakeIterator is returned from FilterValidatorUnstake and is used to iterate over the raw logs and unpacked data for ValidatorUnstake events raised by the WorkerHub contract.
+type WorkerHubValidatorUnstakeIterator struct {
+	Event *WorkerHubValidatorUnstake // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *WorkerHubValidatorUnstakeIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(WorkerHubValidatorUnstake)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(WorkerHubValidatorUnstake)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *WorkerHubValidatorUnstakeIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *WorkerHubValidatorUnstakeIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// WorkerHubValidatorUnstake represents a ValidatorUnstake event raised by the WorkerHub contract.
+type WorkerHubValidatorUnstake struct {
+	Validator common.Address
+	Stake     *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorUnstake is a free log retrieval operation binding the contract event 0xfa8e6fe2f340a3c8da106ab24f4645cdc4f034a0c0514cabfa764531f13798b3.
+//
+// Solidity: event ValidatorUnstake(address indexed validator, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) FilterValidatorUnstake(opts *bind.FilterOpts, validator []common.Address) (*WorkerHubValidatorUnstakeIterator, error) {
+
+	var validatorRule []interface{}
+	for _, validatorItem := range validator {
+		validatorRule = append(validatorRule, validatorItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.FilterLogs(opts, "ValidatorUnstake", validatorRule)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkerHubValidatorUnstakeIterator{contract: _WorkerHub.contract, event: "ValidatorUnstake", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorUnstake is a free log subscription operation binding the contract event 0xfa8e6fe2f340a3c8da106ab24f4645cdc4f034a0c0514cabfa764531f13798b3.
+//
+// Solidity: event ValidatorUnstake(address indexed validator, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) WatchValidatorUnstake(opts *bind.WatchOpts, sink chan<- *WorkerHubValidatorUnstake, validator []common.Address) (event.Subscription, error) {
+
+	var validatorRule []interface{}
+	for _, validatorItem := range validator {
+		validatorRule = append(validatorRule, validatorItem)
+	}
+
+	logs, sub, err := _WorkerHub.contract.WatchLogs(opts, "ValidatorUnstake", validatorRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(WorkerHubValidatorUnstake)
+				if err := _WorkerHub.contract.UnpackLog(event, "ValidatorUnstake", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorUnstake is a log parse operation binding the contract event 0xfa8e6fe2f340a3c8da106ab24f4645cdc4f034a0c0514cabfa764531f13798b3.
+//
+// Solidity: event ValidatorUnstake(address indexed validator, uint256 stake)
+func (_WorkerHub *WorkerHubFilterer) ParseValidatorUnstake(log types.Log) (*WorkerHubValidatorUnstake, error) {
+	event := new(WorkerHubValidatorUnstake)
+	if err := _WorkerHub.contract.UnpackLog(event, "ValidatorUnstake", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

@@ -120,6 +120,7 @@ func (rt *Router) SubmitTask(c *gin.Context) {
 		return
 	}
 
+	log.Println("submit task", task)
 	err := rt.watcher.SubmitTask(&task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, APIResponse{

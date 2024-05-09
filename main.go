@@ -2,12 +2,12 @@ package main
 
 import (
 	"eternal-infer-worker/apis"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/logger"
 	_ "eternal-infer-worker/libs/logger"
 	"eternal-infer-worker/manager"
 	watcher "eternal-infer-worker/task-watcher"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -41,49 +41,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	mode := "miner"
 
-	rpc := flag.String("rpc", "https://eternal-ai3.tc.l2aas.com/rpc", "rpc url of the network")
-	// ws := flag.String("ws", "", "ws url of the network")
-	taskContract := flag.String("task-contract", "0x00D5F8ae3B8AFD2d9E815CdD03CACbc91563A44F", "task contract address")
-	account := flag.String("account", "", "account private key")
-	modelsDir := flag.String("models-dir", "./models", "models dir")
-	preloadModelStr := flag.String("model", "0x839dAf171eCF605b9aB8A2C13ae879c817173806", "model")
-	lighthouseAPI := flag.String("lighthouse-api", "", "lighthouse api")
-	port := flag.Int("port", 5656, "port of the server")
-	modeValidator := flag.Bool("validator", false, "run as validator")
-
-	flag.Parse()
-
-	if *modeValidator {
-		mode = "validator"
+	cfg, err := config.ReadConfig()
+	if err != nil {
+		fmt.Println("Error reading config file: ", err)
+		panic(err)
 	}
 
-	_ = lighthouseAPI
-
-	if *account == "" || *lighthouseAPI == "" || *port == 0 || *preloadModelStr == "" {
-		fmt.Println("*account", *account)
-		fmt.Println("*lighthouseAPI", *lighthouseAPI)
-		fmt.Println("*port", *port)
-		fmt.Println("*preloadModelStr", *preloadModelStr)
-
-		flag.PrintDefaults()
-		return
-	}
-
-	modelManager := manager.NewModelManager(*modelsDir, *rpc, mode, *taskContract)
+	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
-		RPC: *rpc,
+		RPC: cfg.RPC,
 		// WS:  *ws,
-	}, *taskContract, *account, *modelsDir, *lighthouseAPI, mode, 1, 1, modelManager, nil)
+	}, cfg.WorkerHub, cfg.Account, cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode, 1, 1, modelManager, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	stopChn := make(chan struct{}, 1)
 
-	ui := tui.InitialModel(VersionTag, mode, stopChn, newTaskWatcher, modelManager)
+	ui := tui.InitialModel(VersionTag, cfg.NodeMode, stopChn, newTaskWatcher, modelManager)
 	tui.UI = &ui
 
 	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
@@ -139,17 +116,12 @@ func main() {
 		}
 	}()
 
-	// err = modelManager.PreloadModels([]string{*preloadModelStr})
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	go modelManager.WatchAndPreloadModels()
+	// go modelManager.WatchAndPreloadModels()
 
 	go newTaskWatcher.Start()
 
 	go func() {
-		err = apis.InitRouter(*port, newTaskWatcher).StartRouter()
+		err = apis.InitRouter(cfg.Port, newTaskWatcher).StartRouter()
 		if err != nil {
 			panic(err)
 		}

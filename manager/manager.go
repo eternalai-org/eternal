@@ -2,7 +2,6 @@ package manager
 
 import (
 	"errors"
-	"eternal-infer-worker/libs/abi"
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
 	"log"
@@ -11,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -54,62 +52,62 @@ func (m *ModelManager) GetLoadeModels() []string {
 	return res
 }
 
-func (m *ModelManager) WatchAndPreloadModels() {
-	for {
-		time.Sleep(5 * time.Second)
-		modelsList, err := m.getHubModels()
-		if err != nil {
-			log.Println("Get models error: ", err)
-			continue
-		}
+// func (m *ModelManager) WatchAndPreloadModels() {
+// 	for {
+// 		time.Sleep(5 * time.Second)
+// 		modelsList, err := m.getHubModels()
+// 		if err != nil {
+// 			log.Println("Get models error: ", err)
+// 			continue
+// 		}
 
-		loadedModels := m.GetLoadeModels()
-		loadedModelsMap := make(map[string]bool)
+// 		loadedModels := m.GetLoadeModels()
+// 		loadedModelsMap := make(map[string]bool)
 
-		for _, modelAddr := range loadedModels {
-			loadedModelsMap[modelAddr] = true
-		}
+// 		for _, modelAddr := range loadedModels {
+// 			loadedModelsMap[modelAddr] = true
+// 		}
 
-		modelToPreload := []string{}
-		for _, modelAddr := range modelsList {
-			if _, ok := loadedModelsMap[strings.ToLower(modelAddr.String())]; !ok {
-				modelToPreload = append(modelToPreload, modelAddr.String())
-			}
-		}
+// 		modelToPreload := []string{}
+// 		for _, modelAddr := range modelsList {
+// 			if _, ok := loadedModelsMap[strings.ToLower(modelAddr.String())]; !ok {
+// 				modelToPreload = append(modelToPreload, modelAddr.String())
+// 			}
+// 		}
 
-		if len(modelToPreload) > 0 {
-			m.setStatus("preloading new models")
-			log.Println("Preload models: ", modelToPreload)
-			err := m.PreloadModels(modelToPreload)
-			if err != nil {
-				log.Println("Preload models error: ", err)
-			}
-		} else {
-			log.Println("No new models to preload")
-			m.setStatus("all model preloaded")
-		}
-	}
-}
+// 		if len(modelToPreload) > 0 {
+// 			m.setStatus("preloading new models")
+// 			log.Println("Preload models: ", modelToPreload)
+// 			err := m.PreloadModels(modelToPreload)
+// 			if err != nil {
+// 				log.Println("Preload models error: ", err)
+// 			}
+// 		} else {
+// 			log.Println("No new models to preload")
+// 			m.setStatus("all model preloaded")
+// 		}
+// 	}
+// }
 
-func (m *ModelManager) getHubModels() ([]common.Address, error) {
-	client, err := ethclient.Dial(m.rpc)
-	if err != nil {
-		return nil, err
-	}
+// func (m *ModelManager) getHubModels() ([]common.Address, error) {
+// 	client, err := ethclient.Dial(m.rpc)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	hubAddress := common.HexToAddress(m.workerHub)
+// 	hubAddress := common.HexToAddress(m.workerHub)
 
-	workerHub, err := abi.NewWorkerHub(hubAddress, client)
-	if err != nil {
-		return nil, err
-	}
+// 	workerHub, err := abi.NewWorkerHub(hubAddress, client)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	models, err := workerHub.WorkerHubCaller.GetModelAddresses(nil)
-	if err != nil {
-		return nil, err
-	}
-	return models, nil
-}
+// 	models, err := workerHub.WorkerHubCaller.Models()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return models, nil
+// }
 
 func (m *ModelManager) PreloadModels(list []string) error {
 	m.lck.Lock()
@@ -155,6 +153,8 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		Port:      fmt.Sprintf("%v", randPort()),
 	}
 
+	log.Println("Model path: ", inst.ModelPath)
+
 	m.currentModels[strings.ToLower(modelAddress)] = inst
 
 	err = inst.SetupDocker()
@@ -162,10 +162,10 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	// err = inst.StartDocker()
-	// if err != nil {
-	// 	return err
-	// }
+	err = inst.StartDocker()
+	if err != nil {
+		return err
+	}
 
 	if m.nodeMode == "validator" {
 		err = inst.SetupDockerVerifier()
@@ -173,10 +173,10 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 			return err
 		}
 
-		// err = inst.StartDockerVerifier()
-		// if err != nil {
-		// 	return err
-		// }
+		err = inst.StartDockerVerifier()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

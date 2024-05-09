@@ -4,10 +4,9 @@ import (
 	"os"
 )
 
-func init() {
-	checkSetupCondaFile()
-
-}
+// func init() {
+// 	checkSetupCondaFile()
+// }
 
 func checkSetupCondaFile() error {
 	// write SETUP_CONDA_CONTENT to setup_conda.sh
