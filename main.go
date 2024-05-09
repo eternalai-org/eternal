@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
-	"strings"
 	"time"
 
 	"eternal-infer-worker/tui"
@@ -25,11 +24,13 @@ var VersionTag string
 func main() {
 	defer func() {
 		if r := recover(); r != nil {
-			tui.UI.UpdateSectionText(tui.UIMessageData{
-				Section: tui.UISectionStatusText,
-				Color:   "danger",
-				Text:    "Panic attack! 💀 ",
-			})
+			if tui.UI != nil {
+				tui.UI.UpdateSectionText(tui.UIMessageData{
+					Section: tui.UISectionStatusText,
+					Color:   "danger",
+					Text:    "Panic attack! 💀 ",
+				})
+			}
 			log.Println("Panic attack", r)
 			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 		}
@@ -40,6 +41,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	mode := "miner"
+
 	rpc := flag.String("rpc", "https://eternal-ai3.tc.l2aas.com/rpc", "rpc url of the network")
 	// ws := flag.String("ws", "", "ws url of the network")
 	taskContract := flag.String("task-contract", "0x00D5F8ae3B8AFD2d9E815CdD03CACbc91563A44F", "task contract address")
@@ -48,20 +51,22 @@ func main() {
 	preloadModelStr := flag.String("model", "0x839dAf171eCF605b9aB8A2C13ae879c817173806", "model")
 	lighthouseAPI := flag.String("lighthouse-api", "", "lighthouse api")
 	port := flag.Int("port", 5656, "port of the server")
-	// mode := flag.String("mode", "miner", "mode of the server, worker or validator")
-	mode := "miner"
-	argsWithProg := os.Args
-	if len(argsWithProg) > 0 {
-		if strings.EqualFold(argsWithProg[0], "validator") {
-			mode = "validator"
-		}
-	}
+	modeValidator := flag.Bool("validator", false, "run as validator")
 
 	flag.Parse()
+
+	if *modeValidator {
+		mode = "validator"
+	}
 
 	_ = lighthouseAPI
 
 	if *account == "" || *lighthouseAPI == "" || *port == 0 || *preloadModelStr == "" {
+		fmt.Println("*account", *account)
+		fmt.Println("*lighthouseAPI", *lighthouseAPI)
+		fmt.Println("*port", *port)
+		fmt.Println("*preloadModelStr", *preloadModelStr)
+
 		flag.PrintDefaults()
 		return
 	}

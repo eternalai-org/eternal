@@ -34,7 +34,7 @@ func InitialModel(version, nodeMode string, stopChn chan struct{}, taskMng TaskM
 		sub:          make(chan UIMessageData, 1),
 		version:      version,
 		sublog:       make(chan UILogText),
-		logLines:     make([]string, 8),
+		logLines:     make([]string, 5),
 		nodeMode:     nodeMode,
 		stopChn:      stopChn,
 		taskManager:  taskMng,
@@ -70,7 +70,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case UILogText:
 		m.logLines = append(m.logLines, string(msg))
-		if len(m.logLines) > 8 {
+		if len(m.logLines) > 5 {
 			m.logLines = m.logLines[1:]
 		}
 		return m, tea.Batch(
@@ -139,7 +139,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m UIinstance) View() string {
 	var s string
-	s = fmt.Sprintf("[Eternal Infer Worker] [v%v] [%v]\n\n", m.version, m.nodeMode)
+	s = fmt.Sprintf("[Eternal] [%v] [%v]\n\n", m.version, m.nodeMode)
 	// If the spinner is showing, render it and bail.
 
 	s += "Logs: ---------------------------------- \n\n"
@@ -153,13 +153,14 @@ func (m UIinstance) View() string {
 	s += fmt.Sprintf("\n %s Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.statusText))
 
 	if m.modelManager != nil {
-		s += fmt.Sprintf("\n %s ModelManager Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.modelManager.GetStatus()))
+		// s += fmt.Sprintf("\n %s ModelManager Status:%s%s\n", m.statusSpinner.View(), " ", textStyle(m.modelManager.GetStatus()))
 	}
-	// s += fmt.Sprintf("\n %s Loaded Model:%s%s\n\n", ">", " ", textStyle(m.loadedModel))
 
 	if m.taskManager != nil {
+		s += fmt.Sprintf("\n %s Assigned Model:%s%s\n", ">", " ", textStyle(m.taskManager.GetAssignedModel()))
 		s += fmt.Sprintf("\n %s Worker Address:%s%s\n", ">", " ", textStyle(m.taskManager.GetWorkerAddress()))
 		s += fmt.Sprintf("\n %s Balance:%s%s EAI\n", ">", " ", textStyle(m.taskManager.GetWorkerBalance()))
+		s += fmt.Sprintf("\n %s ProcessedTasks:%s%s\n", ">", " ", textStyle(fmt.Sprintf("%v", m.taskManager.GetProcessedTasks())))
 
 		tasks := m.taskManager.GetCurrentRunningTasks()
 		taskIDs := make([]string, 0, len(tasks))

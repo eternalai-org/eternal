@@ -41,11 +41,14 @@ type TaskWatcher struct {
 	taskContract string
 	// watcherID     int
 	// numOfWorker   int
-	taskQueue     chan *types.TaskInfo
-	runnerLock    sync.RWMutex
-	currentRunner map[string]*runner.RunnerInstance
-	lighthouseAPI string
-	mode          string
+	taskQueue      chan *types.TaskInfo
+	runnerLock     sync.RWMutex
+	currentRunner  map[string]*runner.RunnerInstance
+	processedTasks uint64
+	lighthouseAPI  string
+	mode           string
+
+	assignedModel string
 
 	unstakeLock sync.Mutex
 }
@@ -90,7 +93,7 @@ func (tskw *TaskWatcher) Start() {
 		return
 	}
 
-	// tskw.watchAndAssignTask()
+	tskw.watchAndAssignTask()
 }
 
 func (tskw *TaskWatcher) GetCurrentRunningTasks() []types.TaskRunnerInfo {
@@ -432,6 +435,7 @@ func (tskw *TaskWatcher) executeTasks() {
 		// }
 
 		log.Println("task done: ", task.TaskID)
+		tskw.processedTasks++
 		// tskw.RemoveRunner(task.TaskID)
 	}
 }
@@ -555,6 +559,8 @@ func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
 		}
 
 		if staked {
+			//TODO: @liam check assigned model from contract
+
 			break
 		}
 
@@ -849,4 +855,15 @@ func (tskw *TaskWatcher) UnstakeAndQuit() error {
 	time.Sleep(5 * time.Second)
 
 	return nil
+}
+
+func (tskw *TaskWatcher) GetProcessedTasks() uint64 {
+	return tskw.processedTasks
+}
+
+func (tskw *TaskWatcher) GetAssignedModel() string {
+	if tskw.assignedModel == "" {
+		return "-"
+	}
+	return tskw.assignedModel
 }
