@@ -451,7 +451,10 @@ func (tskw *TaskWatcher) executeTasks() {
 
 			if isCompleted {
 				log.Println("task already completed: ", task.TaskID)
-				tskw.RemoveRunner(task.TaskID)
+				log.Println("task done: ", task.TaskID)
+				tskw.status.processedTasks++
+				earning, _ := new(big.Int).SetString(task.Value, 10)
+				tskw.status.currentEarning.Add(tskw.status.currentEarning, earning)
 				continue
 			}
 			// assign task to worker
