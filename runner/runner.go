@@ -46,6 +46,9 @@ func (r *RunnerInstance) IsDone() bool {
 	return r.isDone
 }
 
+func (r *RunnerInstance) SetDone() {
+	r.isDone = true
+}
 func (r *RunnerInstance) Run(output string) error {
 	defer func() {
 		r.isDone = true
