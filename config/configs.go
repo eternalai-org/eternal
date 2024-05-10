@@ -37,12 +37,19 @@ func ReadConfig() (*Config, error) {
 	port := flag.Int("port", 0, "(optional) port of the server")
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
 
+	help := flag.Bool("help", false, "show help")
+
 	lighthouseAPI := flag.String("lighthouse-api", "", "(*REQUIRE) lighthouse api")
 
 	flag.Parse()
 
 	if *modeValidator {
 		mode = "validator"
+	}
+
+	if *help {
+		flag.PrintDefaults()
+		os.Exit(0)
 	}
 
 	cfg, err := readCfgFile()

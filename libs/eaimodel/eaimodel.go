@@ -22,6 +22,7 @@ type TaskResult struct {
 type ModelInfoContract struct {
 	ModelID   *big.Int
 	ModelAddr string
+	OwnerAddr string
 
 	Metadata ModelMetadata
 }
@@ -114,6 +115,12 @@ func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*M
 	modelMetadata.ModelName = modelName
 
 	newModelInfo.Metadata = *modelMetadata
+	owner, err := modelContract.HybridModelCaller.Owner(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	newModelInfo.OwnerAddr = strings.ToLower(owner.String())
 
 	return newModelInfo, nil
 

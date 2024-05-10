@@ -6,7 +6,7 @@ type TaskManagerI interface {
 	GetCurrentRunningTasks() []types.TaskRunnerInfo
 	GetWorkerAddress() string
 	GetWorkerBalance() string
-	UnstakeAndQuit() error
+	UnregisterAndQuit() error
 	GetProcessedTasks() uint64
 	GetSessionEarning() string
 	GetAssignedModel() string

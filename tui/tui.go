@@ -109,8 +109,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.SetStatusText("Unstaking and quitting")
 			m.setSpinnerStyle(colorToStyle("danger"))
 			go func() {
-				//TODO: next
-				err := m.taskManager.UnstakeAndQuit()
+				err := m.taskManager.UnregisterAndQuit()
 				if err != nil {
 					m.Print("Error: " + err.Error())
 					return
@@ -171,7 +170,8 @@ func (m UIinstance) View() string {
 
 		s += fmt.Sprintf("\n %s Current processing (%v):%s%s\n\n", ">", len(taskIDs), " ", textStyle(fmt.Sprintf("%v", taskIDs)))
 	}
-	s += "\nPress q to quit.\n"
+	s += "\nPress q or ctrl+c to quit\n"
+	s += "Press ctrl+s to unstake and quit\n"
 
 	return s
 }

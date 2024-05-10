@@ -177,6 +177,8 @@ func (tskw *TaskWatcher) joinForMinting() error {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
 
+	log.Println("JoinForMinting success")
+
 	return nil
 }
 
@@ -326,16 +328,16 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 
 			modelAddr := strings.ToLower(request.ModelAddress.Hex())
 
-			a, err := workerHub.WorkerHubCaller.GetInferences(nil, []*big.Int{request.InferenceId})
+			inferenceInfo, err := workerHub.WorkerHubCaller.GetInferences(nil, []*big.Int{request.InferenceId})
 			if err != nil {
 				return []types.TaskInfo{}, err
 			}
 			task := types.TaskInfo{
-				TaskID:        request.AssignmentId.String(),
+				TaskID:        request.InferenceId.String(),
 				ModelContract: strings.ToLower(modelAddr),
 				Params:        string(request.Input),
-				Requestor:     strings.ToLower(a[0].Creator.Hex()),
-				Value:         a[0].Value.String(),
+				Requestor:     strings.ToLower(inferenceInfo[0].Creator.Hex()),
+				Value:         inferenceInfo[0].Value.String(),
 			}
 
 			log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
@@ -343,40 +345,6 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 			tasks = append(tasks, task)
 		}
 
-		// for _, request := range requests {
-		/*modelContract, err := abi.NewModel(request.Model, ethClient)
-		if err != nil {
-			return []types.TaskInfo{}, err
-		}
-		modelID, err := modelContract.ModelCaller.Identifier(nil)
-		if err != nil {
-			return []types.TaskInfo{}, err
-		}
-		if modelID.Cmp(new(big.Int).SetInt64(0)) <= 0 {
-			log.Println("model id is invalid")
-			continue
-		}*/
-
-		// txhash, err := tskw.findRequestTxhash(context.Background(), request.RequestId.String(), ethClient, workerHub)
-		// if err != nil {
-		// 	return []types.TaskInfo{}, err
-		// }
-		// task := types.TaskInfo{
-		// 	TaskID:        request.RequestId.String(),
-		// 	Value:         request.Value.String(),
-		// 	ModelContract: strings.ToLower(request.Model.Hex()),
-		// 	Params:        string(request.Data),
-		// 	Requestor:     strings.ToLower(request.Creator.Hex()),
-		// }
-
-		// modelName, err := tskw.modelManager.GetModelNameByID(task.ModelID)
-		// if err != nil {
-		// 	return []types.TaskInfo{}, err
-		// }
-		// task.ModelAddress = modelName
-
-		// 	tasks = append(tasks, task)
-		// }
 	}
 
 	return tasks, nil
@@ -745,6 +713,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	if err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
+	log.Println("staking success")
 
 	return nil
 }
@@ -867,7 +836,66 @@ func (tskw *TaskWatcher) GetWorkerBalance() string {
 	return balFloat.String()
 }
 
-func (tskw *TaskWatcher) Unstaked() error {
+func (tskw *TaskWatcher) ReclaimStake() error {
+	ctx := context.Background()
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
+
+	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	nonce, err := ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := ethClient.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = uint64(0)  // in units
+	auth.GasPrice = gasPrice
+
+	tx, err := workerHub.WorkerHubTransactor.UnstakeForMiner(auth)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while unsstaking"))
+	}
+
+	log.Println("unstake tx: ", tx.Hash().Hex())
+
+	err = eth.WaitForTx(ethClient, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+
+	log.Println("unstake success")
+
+	return nil
+}
+
+func (tskw *TaskWatcher) Unregister() error {
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -911,28 +939,36 @@ func (tskw *TaskWatcher) Unstaked() error {
 
 	tx, err := workerHub.WorkerHubTransactor.UnregisterMiner(auth)
 	if err != nil {
-		return errors.Join(err, errors.New("Error while staking"))
+		return errors.Join(err, errors.New("Error while unregister miner"))
 	}
 
-	log.Println("stake tx: ", tx.Hash().Hex())
+	log.Println("unregister tx: ", tx.Hash().Hex())
 
 	err = eth.WaitForTx(ethClient, tx.Hash())
 	if err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
 
+	log.Println("unregister success")
+
 	return nil
 }
 
-func (tskw *TaskWatcher) UnstakeAndQuit() error {
+func (tskw *TaskWatcher) UnregisterAndQuit() error {
 	tskw.unstakeLock.Lock()
 	defer tskw.unstakeLock.Unlock()
-	// err := tskw.Unstaked()
+	err := tskw.Unregister()
+	if err != nil {
+		return err
+	}
+	tskw.status.stakeStatus = "not staked"
+
+	// for testnet only
+	// time.Sleep(61 * time.Second)
+	// err = tskw.ReclaimStake()
 	// if err != nil {
 	// 	return err
 	// }
-	time.Sleep(5 * time.Second)
-
 	return nil
 }
 
