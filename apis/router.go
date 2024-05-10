@@ -161,7 +161,7 @@ func (rt *Router) Infer(c *gin.Context) {
 		return
 	}
 
-	err := rt.watcher.AssignTask(&task)
+	err := rt.watcher.AssignTask(task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, APIResponse{
 			Error:  err.Error(),

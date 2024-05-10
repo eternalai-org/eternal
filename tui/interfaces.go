@@ -11,6 +11,7 @@ type TaskManagerI interface {
 	GetSessionEarning() string
 	GetAssignedModel() string
 	StakeStatus() string
+	GetStakedAmount() string
 }
 
 type ModelManagerI interface {

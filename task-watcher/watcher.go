@@ -35,6 +35,7 @@ type TaskWatcherStatus struct {
 	processedTasks uint64
 	currentEarning *big.Int
 	stakeStatus    string
+	stakedAmount   *big.Int
 	assignModel    string
 }
 
@@ -85,6 +86,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 			stakeStatus:    "-",
 			assignModel:    "-",
 			currentEarning: big.NewInt(0),
+			stakedAmount:   big.NewInt(0),
 		},
 	}, nil
 }
@@ -219,7 +221,6 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 		tasks, err := tskw.getPendingTaskFromContract()
 		if err != nil {
 			log.Println("get pending task error: ", err)
-			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -233,12 +234,12 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 		log.Println("pending tasks: ", len(tasks))
 
 		for _, task := range tasks {
-			log.Println("assign task: ", task.TaskID, task.ModelContract, task.Params)
 			if len(tskw.currentRunner) >= maxConcurrentTask {
 				log.Println("worker is full")
 				break
 			}
-			err = tskw.AssignTask(&task)
+			log.Println("assign task: ", task.TaskID, task.ModelContract, task.Params)
+			err = tskw.AssignTask(task)
 			if err != nil {
 				log.Println("assign task error: ", err)
 			}
@@ -334,6 +335,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 			}
 			task := types.TaskInfo{
 				TaskID:        request.InferenceId.String(),
+				AssignmentID:  request.AssignmentId.String(),
 				ModelContract: strings.ToLower(modelAddr),
 				Params:        string(request.Input),
 				Requestor:     strings.ToLower(inferenceInfo[0].Creator.Hex()),
@@ -381,9 +383,9 @@ func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
 	tskw.taskQueue <- task
 }
 
-func (tskw *TaskWatcher) AssignTask(task *types.TaskInfo) error {
+func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 
-	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, task)
+	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, &task)
 	if err != nil {
 		log.Println("create runner error: ", err)
 		return err
@@ -395,11 +397,11 @@ func (tskw *TaskWatcher) AssignTask(task *types.TaskInfo) error {
 		return err
 	}
 
-	go tskw.assigningTask(task)
+	go tskw.assigningTask(&task)
 	return nil
 }
 
-func (tskw *TaskWatcher) CheckTaskCompleted(taskID string) (bool, error) {
+func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, error) {
 
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -413,12 +415,12 @@ func (tskw *TaskWatcher) CheckTaskCompleted(taskID string) (bool, error) {
 		return false, err
 	}
 
-	requestId, ok := new(big.Int).SetString(taskID, 10)
+	assignmentIDBig, ok := new(big.Int).SetString(assignmentID, 10)
 	if !ok {
 		return false, errors.New("invalid task id")
 	}
 
-	isPending, err := workerHub.WorkerHubCaller.IsAssignmentPending(nil, requestId)
+	isPending, err := workerHub.WorkerHubCaller.IsAssignmentPending(nil, assignmentIDBig)
 	if err != nil {
 		return false, err
 	}
@@ -434,27 +436,30 @@ func (tskw *TaskWatcher) executeTasks() {
 	for {
 		task := <-tskw.taskQueue
 
+		newRunner := tskw.GetRunner(task.TaskID)
+		if newRunner == nil {
+			log.Println("runner not found", task.TaskID)
+			continue
+		}
+
 		err := tskw.modelManager.MakeReady(task.ModelContract)
 		if err != nil {
 			log.Println("make ready error: ", err)
+			newRunner.SetDone()
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
 		if tskw.mode == "miner" {
-			isCompleted, err := tskw.CheckTaskCompleted(task.TaskID)
+			isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 			if err != nil {
 				log.Println("check task completed error: ", err)
+				newRunner.SetDone()
 				time.Sleep(1 * time.Second)
 				continue
 			}
 
 			if isCompleted {
-				newRunner := tskw.GetRunner(task.TaskID)
-				if newRunner == nil {
-					log.Println("runner not found", task.TaskID)
-					continue
-				}
 				newRunner.SetDone()
 
 				log.Println("task already completed: ", task.TaskID)
@@ -466,6 +471,8 @@ func (tskw *TaskWatcher) executeTasks() {
 			if err != nil {
 				log.Println("execute worker task error: ", err)
 				time.Sleep(10 * time.Second)
+				newRunner.SetDone()
+				continue
 			}
 		}
 		if tskw.mode == "validator" {
@@ -482,6 +489,8 @@ func (tskw *TaskWatcher) executeTasks() {
 		// 	log.Println("pause instance error: ", err)
 		// 	time.Sleep(1 * time.Second)
 		// }
+
+		newRunner.SetDone()
 
 		log.Println("task done: ", task.TaskID)
 		tskw.status.processedTasks++
@@ -528,7 +537,7 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 	return nil
 }
 
-func (tskw *TaskWatcher) SubmitResult(taskID string, result []byte) error {
+func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error {
 	// submit result to contract
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
@@ -543,7 +552,7 @@ func (tskw *TaskWatcher) SubmitResult(taskID string, result []byte) error {
 		return err
 	}
 
-	requestId, ok := new(big.Int).SetString(taskID, 10)
+	assignmentIDBig, ok := new(big.Int).SetString(assignmentID, 10)
 	if !ok {
 		return errors.New("invalid task id")
 	}
@@ -576,7 +585,7 @@ func (tskw *TaskWatcher) SubmitResult(taskID string, result []byte) error {
 	auth.GasLimit = uint64(0)  // in units
 	auth.GasPrice = gasPrice
 
-	tx, err := workerHub.WorkerHubTransactor.SubmitSolution(auth, requestId, result)
+	tx, err := workerHub.WorkerHubTransactor.SubmitSolution(auth, assignmentIDBig, result)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while submitting result"))
 	}
@@ -657,6 +666,8 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 	}
 
 	tskw.status.assignModel = workerInfo.ModelAddress.Hex()
+	tskw.status.stakedAmount = workerInfo.Stake
+
 	return true, nil
 }
 
@@ -987,6 +998,12 @@ func (tskw *TaskWatcher) GetSessionEarning() string {
 	earning := new(big.Float).SetInt(tskw.status.currentEarning)
 	earning = new(big.Float).Quo(earning, big.NewFloat(1e18))
 	return earning.String()
+}
+
+func (tskw *TaskWatcher) GetStakedAmount() string {
+	amount := new(big.Float).SetInt(tskw.status.stakedAmount)
+	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
+	return amount.String()
 }
 
 func (tskw *TaskWatcher) GetAssignedModel() string {

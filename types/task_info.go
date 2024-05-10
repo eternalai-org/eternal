@@ -10,6 +10,7 @@ type TaskInfo struct {
 	TaskID string `json:"task_id"`
 	// ModelAddress     string `json:"model_name"`
 	// ModelID       string `json:"model_id"`
+	AssignmentID  string `json:"assignment_id"`
 	ModelContract string `json:"model_contract"`
 	Params        string `json:"params"`
 	Requestor     string `json:"requestor"`

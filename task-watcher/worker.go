@@ -76,7 +76,7 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 
 	log.Printf("\nsubmitting result for task %v size %v\n", task.TaskID, len(resultData))
 
-	err = tskw.SubmitResult(task.TaskID, resultData)
+	err = tskw.SubmitResult(task.AssignmentID, resultData)
 	if err != nil {
 		log.Println("submit result error: ", err)
 		return err
