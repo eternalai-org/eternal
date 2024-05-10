@@ -32,11 +32,13 @@ type NetworkConfig struct {
 }
 
 type TaskWatcherStatus struct {
-	processedTasks uint64
-	currentEarning *big.Int
-	stakeStatus    string
-	stakedAmount   *big.Int
-	assignModel    string
+	processedTasks         uint64
+	currentEarning         *big.Int
+	stakeStatus            string
+	stakedAmount           *big.Int
+	pendingUnstakeAmount   *big.Int
+	pendingUnstakeUnlockAt time.Time
+	assignModel            string
 }
 
 type TaskWatcher struct {
@@ -82,11 +84,12 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 		lighthouseAPI: lighthouseAPI,
 		mode:          mode,
 		status: TaskWatcherStatus{
-			processedTasks: 0,
-			stakeStatus:    "-",
-			assignModel:    "-",
-			currentEarning: big.NewInt(0),
-			stakedAmount:   big.NewInt(0),
+			processedTasks:       0,
+			stakeStatus:          "-",
+			assignModel:          "-",
+			currentEarning:       big.NewInt(0),
+			stakedAmount:         big.NewInt(0),
+			pendingUnstakeAmount: big.NewInt(0),
 		},
 	}, nil
 }
@@ -600,6 +603,68 @@ func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error 
 	return nil
 }
 
+func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
+	var workerInfo types.WorkerInfo
+
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return nil, err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return nil, err
+	}
+
+	_, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return nil, errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	info, err := workerHub.WorkerHubCaller.Miners(nil, *address)
+	if err != nil {
+		return nil, errors.Join(err, errors.New("Error while getting worker info"))
+	}
+
+	pendingUnstake, err := workerHub.WorkerHubCaller.MinerUnstakeRequests(nil, *address)
+	if err != nil {
+		return nil, errors.Join(err, errors.New("Error while getting pending unstake"))
+	}
+
+	minStake, err := workerHub.WorkerHubCaller.MinerMinimumStake(nil)
+	if err != nil {
+		return nil, errors.Join(err, errors.New("Error while getting minimum stake"))
+	}
+	stakeStatus := "staked"
+	if info.Stake.Cmp(minStake) < 0 {
+		stakeStatus = "not enough staked"
+	}
+	if info.Stake.Cmp(minStake) == 0 {
+		stakeStatus = "staked"
+	}
+
+	// tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
+	// tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+
+	// tskw.status.assignModel = workerInfo.ModelAddress.Hex()
+	// tskw.status.stakedAmount = workerInfo.Stake
+	stakedAmount := new(big.Float).SetInt(info.Stake)
+	stakedAmount = new(big.Float).Quo(stakedAmount, big.NewFloat(1e18))
+	pendingUnstakeAmount := new(big.Float).SetInt(pendingUnstake.Stake)
+	pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
+
+	workerInfo.Address = address.String()
+	workerInfo.StakeStatus = stakeStatus
+	workerInfo.StakedAmount = stakedAmount.String()
+	workerInfo.PendingUnstakeAmount = pendingUnstakeAmount.String()
+	workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
+	workerInfo.AssignModel = strings.ToLower(info.ModelAddress.Hex())
+
+	return &workerInfo, nil
+}
+
 func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
 
 	for {
@@ -665,9 +730,16 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 		return false, nil
 	}
 
+	pendingUnstake, err := workerHub.WorkerHubCaller.MinerUnstakeRequests(nil, *address)
+	if err != nil {
+		return false, errors.Join(err, errors.New("Error while getting pending unstake"))
+	}
+
+	tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
+	tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+
 	tskw.status.assignModel = workerInfo.ModelAddress.Hex()
 	tskw.status.stakedAmount = workerInfo.Stake
-
 	return true, nil
 }
 
@@ -988,6 +1060,12 @@ func (tskw *TaskWatcher) UnregisterAndQuit() error {
 	// 	return err
 	// }
 	return nil
+}
+
+func (tskw *TaskWatcher) GetUnstakeInfo() (string, time.Time) {
+	amount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
+	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
+	return amount.String(), tskw.status.pendingUnstakeUnlockAt
 }
 
 func (tskw *TaskWatcher) GetProcessedTasks() uint64 {

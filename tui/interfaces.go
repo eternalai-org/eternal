@@ -1,6 +1,9 @@
 package tui
 
-import "eternal-infer-worker/types"
+import (
+	"eternal-infer-worker/types"
+	"time"
+)
 
 type TaskManagerI interface {
 	GetCurrentRunningTasks() []types.TaskRunnerInfo
@@ -12,6 +15,8 @@ type TaskManagerI interface {
 	GetAssignedModel() string
 	StakeStatus() string
 	GetStakedAmount() string
+	GetUnstakeInfo() (string, time.Time)
+	ReclaimStake() error
 }
 
 type ModelManagerI interface {

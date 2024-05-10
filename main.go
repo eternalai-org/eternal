@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"eternal-infer-worker/apis"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/dockercmd"
@@ -37,12 +38,7 @@ func main() {
 	}()
 
 	var err error
-	err = checkRequirement()
-	if err != nil {
-		panic(err)
-	}
-
-	cfg, err := config.ReadConfig()
+	cfg, cmd, err := config.ReadConfig()
 	if err != nil {
 		fmt.Println("Error reading config file: ", err)
 		panic(err)
@@ -58,75 +54,117 @@ func main() {
 		panic(err)
 	}
 
-	stopChn := make(chan struct{}, 1)
-
-	ui := tui.InitialModel(VersionTag, cfg.NodeMode, stopChn, newTaskWatcher, modelManager)
-	tui.UI = &ui
-
-	logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
-	go func() {
-		p := tea.NewProgram(ui, tea.WithAltScreen())
-		if _, err := p.Run(); err != nil {
-			fmt.Printf("Alas, there's been an error: %v", err)
-			os.Exit(1)
-		}
-	}()
-	ui.UpdateSectionText(tui.UIMessageData{
-		Section: tui.UISectionStatusText,
-		Color:   "waiting",
-		Text:    "Starting server...",
-	})
-	time.Sleep(1 * time.Second)
-
-	shutdownEmitted := false
-	go func() {
-		for {
-			select {
-			case <-stopChn:
-				shutdownEmitted = true
-				tui.UI.UpdateSectionText(tui.UIMessageData{
-					Section: tui.UISectionStatusText,
-					Color:   "danger",
-					Text:    "Shutting down..."})
-				err = modelManager.RemoveAllInstanceDocker()
+	if cmd != nil {
+		logger.DefaultLogger.SetTermPrinter(func(text string) {
+			fmt.Println(text)
+		})
+		fmt.Println("Command: ", cmd)
+		switch cmd.Cmd {
+		case "wallet":
+			subcmd := cmd.Args[0]
+			switch subcmd {
+			case "help":
+				fmt.Println("wallet available subcommands: ")
+				fmt.Println("  help (this message)")
+				fmt.Println("  info (show wallet info)")
+				fmt.Println("  unstake (claim unstake)")
+			case "info":
+				info, err := newTaskWatcher.GetWorkerInfo()
 				if err != nil {
 					panic(err)
 				}
-				time.Sleep(1 * time.Second)
-				os.Exit(0)
-			case <-time.After(1 * time.Second):
-			}
-		}
-	}()
-
-	go func() {
-		for {
-			select {
-			case <-stopChn:
-				if shutdownEmitted {
-					tui.UI.UpdateSectionText(tui.UIMessageData{
-						Section: tui.UISectionStatusText,
-						Color:   "danger",
-						Text:    "Force shutting down..."})
-					time.Sleep(1 * time.Second)
-					os.Exit(0)
+				infoBytes, err := json.MarshalIndent(info, "", "  ")
+				if err != nil {
+					panic(err)
 				}
-			case <-time.After(1 * time.Second):
+				fmt.Println("Wallet info: ")
+				fmt.Println(string(infoBytes))
+
+			case "unstake":
+				err := newTaskWatcher.ReclaimStake()
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
-	}()
+		os.Exit(0)
+	} else {
 
-	// go modelManager.WatchAndPreloadModels()
-
-	go newTaskWatcher.Start()
-
-	go func() {
-		err = apis.InitRouter(cfg.Port, newTaskWatcher).StartRouter()
+		err = checkRequirement()
 		if err != nil {
 			panic(err)
 		}
-	}()
-	select {}
+
+		stopChn := make(chan struct{}, 1)
+
+		ui := tui.InitialModel(VersionTag, cfg.NodeMode, stopChn, newTaskWatcher, modelManager)
+		tui.UI = &ui
+
+		logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
+		go func() {
+			p := tea.NewProgram(ui, tea.WithAltScreen())
+			if _, err := p.Run(); err != nil {
+				fmt.Printf("Alas, there's been an error: %v", err)
+				os.Exit(1)
+			}
+		}()
+		ui.UpdateSectionText(tui.UIMessageData{
+			Section: tui.UISectionStatusText,
+			Color:   "waiting",
+			Text:    "Starting server...",
+		})
+		time.Sleep(1 * time.Second)
+
+		shutdownEmitted := false
+		go func() {
+			for {
+				select {
+				case <-stopChn:
+					shutdownEmitted = true
+					tui.UI.UpdateSectionText(tui.UIMessageData{
+						Section: tui.UISectionStatusText,
+						Color:   "danger",
+						Text:    "Shutting down..."})
+					err = modelManager.RemoveAllInstanceDocker()
+					if err != nil {
+						panic(err)
+					}
+					time.Sleep(1 * time.Second)
+					os.Exit(0)
+				case <-time.After(1 * time.Second):
+				}
+			}
+		}()
+
+		go func() {
+			for {
+				select {
+				case <-stopChn:
+					if shutdownEmitted {
+						tui.UI.UpdateSectionText(tui.UIMessageData{
+							Section: tui.UISectionStatusText,
+							Color:   "danger",
+							Text:    "Force shutting down..."})
+						time.Sleep(1 * time.Second)
+						os.Exit(0)
+					}
+				case <-time.After(1 * time.Second):
+				}
+			}
+		}()
+
+		// go modelManager.WatchAndPreloadModels()
+
+		go newTaskWatcher.Start()
+
+		go func() {
+			err = apis.InitRouter(cfg.Port, newTaskWatcher).StartRouter()
+			if err != nil {
+				panic(err)
+			}
+		}()
+		select {}
+	}
 }
 
 func checkRequirement() error {

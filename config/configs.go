@@ -6,7 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
+
+type CmdType struct {
+	Cmd  string
+	Args []string
+}
 
 type Config struct {
 	Port          int    `json:"port"`
@@ -25,9 +31,8 @@ const (
 	defaultPort      = 5656
 )
 
-func ReadConfig() (*Config, error) {
+func ReadConfig() (*Config, *CmdType, error) {
 	var cfg *Config
-	mode := "miner"
 
 	rpc := flag.String("rpc", "", "(optional) rpc url of the network")
 	// ws := flag.String("ws", "", "ws url of the network")
@@ -37,12 +42,14 @@ func ReadConfig() (*Config, error) {
 	port := flag.Int("port", 0, "(optional) port of the server")
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
 
+	wallet := flag.Bool("wallet", false, "wallet cmd")
+
 	help := flag.Bool("help", false, "show help")
 
 	lighthouseAPI := flag.String("lighthouse-api", "", "(*REQUIRE) lighthouse api")
 
 	flag.Parse()
-
+	mode := "miner"
 	if *modeValidator {
 		mode = "validator"
 	}
@@ -54,7 +61,7 @@ func ReadConfig() (*Config, error) {
 
 	cfg, err := readCfgFile()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if *port != 0 {
@@ -74,10 +81,19 @@ func ReadConfig() (*Config, error) {
 	}
 
 	if *workerHub != "" {
+		//check if invalid contract
+		if len(*workerHub) != 42 {
+			return nil, nil, fmt.Errorf("invalid worker hub address")
+		}
 		cfg.WorkerHub = *workerHub
 	}
 
 	if *account != "" {
+		//check if invalid account
+		_, _, err := eth.GetAccountInfo(*account)
+		if err != nil {
+			return nil, nil, err
+		}
 		cfg.Account = *account
 	}
 
@@ -89,17 +105,29 @@ func ReadConfig() (*Config, error) {
 		fmt.Println("*lighthouseAPI", *lighthouseAPI)
 
 		flag.PrintDefaults()
-		return nil, fmt.Errorf("lighthouse api is required")
+		return nil, nil, fmt.Errorf("lighthouse api is required")
 	}
 
 	cfg.setDefaultValue()
 
-	err = cfg.save()
-	if err != nil {
-		return nil, err
+	if *wallet {
+		a := os.Args[1:]
+		ab := strings.Join(a, " ")
+		cmdArgs := strings.Split(ab, "-wallet ")
+		if len(cmdArgs) <= 1 {
+			flag.PrintDefaults()
+			os.Exit(0)
+		}
+		args := strings.Split(cmdArgs[1], " ")
+		return cfg, &CmdType{Cmd: "wallet", Args: args}, nil
 	}
 
-	return cfg, nil
+	err = cfg.save()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cfg, nil, nil
 }
 
 func readCfgFile() (*Config, error) {

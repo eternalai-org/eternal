@@ -95,16 +95,11 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			waitForActivityLog(m.sublog),
 		)
 	case tea.KeyMsg:
-
 		switch msg.String() {
 		case "ctrl+c", "q":
 			go func() {
 				m.stopChn <- struct{}{}
 			}()
-			return m, tea.Batch(
-				waitForActivity(m.sub),
-				waitForActivityLog(m.sublog),
-			)
 		case "ctrl+s":
 			m.SetStatusText("Unstaking and quitting")
 			m.setSpinnerStyle(colorToStyle("danger"))
@@ -116,12 +111,19 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.stopChn <- struct{}{}
 			}()
-
-			return m, tea.Batch(
-				waitForActivity(m.sub),
-				waitForActivityLog(m.sublog),
-			)
+		case "ctrl+r":
+			go func() {
+				err := m.taskManager.ReclaimStake()
+				if err != nil {
+					m.Print("Error: " + err.Error())
+					return
+				}
+			}()
 		}
+		return m, tea.Batch(
+			waitForActivity(m.sub),
+			waitForActivityLog(m.sublog),
+		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.statusSpinner, cmd = m.statusSpinner.Update(msg)
@@ -156,6 +158,11 @@ func (m UIinstance) View() string {
 	}
 
 	if m.taskManager != nil {
+		unstakeAmount, unstakeTime := m.taskManager.GetUnstakeInfo()
+		if unstakeAmount != "0" {
+			s += fmt.Sprintf("\n %s Pending unstake:%s%s EAI available to claim at %s\n", ">", " ", textStyle(unstakeAmount), textStyle(unstakeTime.Format("2006-01-02 15:04:05")))
+			s += "   Press ctrl+r to reclaim stake\n"
+		}
 		s += fmt.Sprintf("\n %s Assigned Model:%s%s\n", ">", " ", textStyle(m.taskManager.GetAssignedModel()))
 		s += fmt.Sprintf("\n %s Stake Status:%s%s (%s EAI)\n", ">", " ", textStyle(m.taskManager.StakeStatus()), textStyle(m.taskManager.GetStakedAmount()))
 		s += fmt.Sprintf("\n %s Worker Address:%s%s\n", ">", " ", textStyle(m.taskManager.GetWorkerAddress()))
