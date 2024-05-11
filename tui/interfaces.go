@@ -17,6 +17,7 @@ type TaskManagerI interface {
 	GetStakedAmount() string
 	GetUnstakeInfo() (string, time.Time)
 	ReclaimStake() error
+	GetMiningReward() string
 }
 
 type ModelManagerI interface {

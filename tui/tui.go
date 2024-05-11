@@ -163,6 +163,10 @@ func (m UIinstance) View() string {
 			s += fmt.Sprintf("\n %s Pending unstake:%s%s EAI available to claim at %s\n", ">", " ", textStyle(unstakeAmount), textStyle(unstakeTime.Format("2006-01-02 15:04:05")))
 			s += "   Press ctrl+r to reclaim stake\n"
 		}
+		miningAmount := m.taskManager.GetMiningReward()
+		if miningAmount != "0" {
+			s += fmt.Sprintf("\n %s Mining reward:%s%s EAI\n", ">", " ", textStyle(miningAmount))
+		}
 		s += fmt.Sprintf("\n %s Assigned Model:%s%s\n", ">", " ", textStyle(m.taskManager.GetAssignedModel()))
 		s += fmt.Sprintf("\n %s Stake Status:%s%s (%s EAI)\n", ">", " ", textStyle(m.taskManager.StakeStatus()), textStyle(m.taskManager.GetStakedAmount()))
 		s += fmt.Sprintf("\n %s Worker Address:%s%s\n", ">", " ", textStyle(m.taskManager.GetWorkerAddress()))
