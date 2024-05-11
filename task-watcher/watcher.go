@@ -39,6 +39,7 @@ type TaskWatcherStatus struct {
 	pendingUnstakeAmount   *big.Int
 	pendingUnstakeUnlockAt time.Time
 	assignModel            string
+	miningRewardAmount     *big.Int
 }
 
 type TaskWatcher struct {
@@ -90,6 +91,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 			currentEarning:       big.NewInt(0),
 			stakedAmount:         big.NewInt(0),
 			pendingUnstakeAmount: big.NewInt(0),
+			miningRewardAmount:   big.NewInt(0),
 		},
 	}, nil
 }
@@ -103,6 +105,7 @@ func (tskw *TaskWatcher) Start() {
 		Text:    "starting task watcher...",
 	})
 	go tskw.executeTasks()
+	go tskw.watchWorkerInfo()
 
 	err := tskw.checkRegisteredAndStaked()
 	if err != nil {
@@ -126,6 +129,17 @@ func (tskw *TaskWatcher) Start() {
 	}
 
 	tskw.watchAndAssignTask()
+}
+
+func (tskw *TaskWatcher) watchWorkerInfo() {
+	for {
+		time.Sleep(2 * time.Second)
+		_, err := tskw.GetWorkerInfo()
+		if err != nil {
+			log.Println("get worker info error: ", err)
+			continue
+		}
+	}
 }
 
 func (tskw *TaskWatcher) joinForMinting() error {
@@ -663,6 +677,15 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 		stakeStatus = "staked"
 	}
 
+	miningReward, err := abi.NewMiningReward(common.HexToAddress(tskw.taskContract), ethClient)
+	if err != nil {
+		return nil, err
+	}
+
+	rewardToClaim, err := miningReward.MiningRewardCaller.RewardToClaim(nil, *address)
+	if err != nil {
+		return nil, err
+	}
 	// tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
 	// tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
 
@@ -672,6 +695,8 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	stakedAmount = new(big.Float).Quo(stakedAmount, big.NewFloat(1e18))
 	pendingUnstakeAmount := new(big.Float).SetInt(pendingUnstake.Stake)
 	pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
+	rewardToClaimAmount := new(big.Float).SetInt(rewardToClaim)
+	rewardToClaimAmount = new(big.Float).Quo(rewardToClaimAmount, big.NewFloat(1e18))
 
 	workerInfo.Address = address.String()
 	workerInfo.StakeStatus = stakeStatus
@@ -679,8 +704,22 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	workerInfo.PendingUnstakeAmount = pendingUnstakeAmount.String()
 	workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
 	workerInfo.AssignModel = strings.ToLower(info.ModelAddress.Hex())
+	workerInfo.MiningReward = rewardToClaimAmount.String()
+
+	tskw.status.stakeStatus = stakeStatus
+	tskw.status.stakedAmount = info.Stake
+	tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
+	tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+	tskw.status.assignModel = strings.ToLower(info.ModelAddress.Hex())
+	tskw.status.miningRewardAmount = rewardToClaim
 
 	return &workerInfo, nil
+}
+
+func (tskw *TaskWatcher) GetMiningReward() string {
+	rewardAmount := new(big.Float).SetInt(tskw.status.miningRewardAmount)
+	rewardAmount = new(big.Float).Quo(rewardAmount, big.NewFloat(1e18))
+	return rewardAmount.String()
 }
 
 func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
