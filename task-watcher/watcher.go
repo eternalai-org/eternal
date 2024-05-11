@@ -496,9 +496,6 @@ func (tskw *TaskWatcher) executeTasks() {
 		newRunner.SetDone()
 
 		log.Println("task done: ", task.TaskID)
-		tskw.status.processedTasks++
-		earning, _ := new(big.Int).SetString(task.Value, 10)
-		tskw.status.currentEarning.Add(tskw.status.currentEarning, earning)
 		// tskw.RemoveRunner(task.TaskID)
 	}
 }
@@ -598,6 +595,27 @@ func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error 
 	err = eth.WaitForTx(ethClient, tx.Hash())
 	if err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+
+	receipt, err := ethClient.TransactionReceipt(ctx, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting tx receipt"))
+	}
+
+	if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+		return errors.New("tx failed")
+	}
+
+	for _, txLog := range receipt.Logs {
+		feeLog, err := workerHub.WorkerHubFilterer.ParseTransferFee(*txLog)
+		if err != nil {
+			continue
+		} else {
+			if strings.EqualFold(feeLog.Miner.Hex(), tskw.address) {
+				tskw.status.processedTasks++
+				tskw.status.currentEarning.Add(tskw.status.currentEarning, feeLog.MingingFee)
+			}
+		}
 	}
 
 	return nil
