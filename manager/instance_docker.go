@@ -208,7 +208,7 @@ func (m *ModelInstance) StartDocker() error {
 		return err
 	}
 
-	ctnInfo, err := dockercmd.CreateAndStartContainer(m.ModelInfo.ModelAddr, m.ModelInfo.ModelAddr, m.Port, resultMountDir, true)
+	ctnInfo, err := dockercmd.CreateAndStartContainer(m.ModelInfo.ModelAddr, m.ModelInfo.ModelAddr, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
 		log.Println("Create and start container got error", err)
 		return err
@@ -242,7 +242,7 @@ func (m *ModelInstance) StartDockerVerifier() error {
 	}
 	containerName := m.ModelInfo.ModelAddr + "_validator"
 
-	ctnInfo, err := dockercmd.CreateAndStartContainer(containerName, containerName, m.Port, resultMountDir, true)
+	ctnInfo, err := dockercmd.CreateAndStartContainer(containerName, containerName, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
 		log.Println("Create and start container got error", err)
 		return err

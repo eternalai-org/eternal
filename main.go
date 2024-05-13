@@ -44,12 +44,12 @@ func main() {
 		panic(err)
 	}
 
-	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub)
+	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: cfg.RPC,
 		// WS:  *ws,
-	}, cfg.WorkerHub, cfg.Account, cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode, 1, 1, modelManager, nil)
+	}, VersionTag, cfg.WorkerHub, cfg.Account, cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode, 1, 1, modelManager, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func main() {
 		logger.DefaultLogger.SetTermPrinter(func(text string) {
 			fmt.Println(text)
 		})
-		fmt.Println("Command: ", cmd)
+		// fmt.Println("Command: ", cmd)
 		switch cmd.Cmd {
 		case "wallet":
 			subcmd := cmd.Args[0]
@@ -67,7 +67,8 @@ func main() {
 				fmt.Println("wallet available subcommands: ")
 				fmt.Println("  help (this message)")
 				fmt.Println("  info (show wallet info)")
-				fmt.Println("  unstake (claim unstake)")
+				fmt.Println("  claim-unstake (claim unstake)")
+				fmt.Println("  claim-reward (claim mining reward)")
 			case "info":
 				info, err := newTaskWatcher.GetWorkerInfo()
 				if err != nil {
@@ -80,8 +81,14 @@ func main() {
 				fmt.Println("Wallet info: ")
 				fmt.Println(string(infoBytes))
 
-			case "unstake":
+			case "claim-unstake":
 				err := newTaskWatcher.ReclaimStake()
+				if err != nil {
+					panic(err)
+				}
+
+			case "claim-reward":
+				err := newTaskWatcher.ClaimMiningReward()
 				if err != nil {
 					panic(err)
 				}
@@ -90,6 +97,9 @@ func main() {
 		os.Exit(0)
 	} else {
 
+		logger.DefaultLogger.SetTermPrinter(func(text string) {
+			fmt.Println(text)
+		})
 		err = checkRequirement()
 		if err != nil {
 			panic(err)

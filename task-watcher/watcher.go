@@ -7,6 +7,7 @@ import (
 	"eternal-infer-worker/libs/abi"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/eth"
+	"eternal-infer-worker/libs/github"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
@@ -33,6 +34,7 @@ type NetworkConfig struct {
 
 type TaskWatcherStatus struct {
 	processedTasks         uint64
+	balance                *big.Int
 	currentEarning         *big.Int
 	stakeStatus            string
 	stakedAmount           *big.Int
@@ -43,6 +45,7 @@ type TaskWatcherStatus struct {
 }
 
 type TaskWatcher struct {
+	version      string
 	modelManager *manager.ModelManager
 	coordinator  *coordinator.Coordinator
 	networkCfg   NetworkConfig
@@ -57,13 +60,17 @@ type TaskWatcher struct {
 	currentRunner map[string]*runner.RunnerInstance
 	lighthouseAPI string
 
-	status TaskWatcherStatus
-	mode   string
+	status     TaskWatcherStatus
+	globalInfo types.HubGlobalInfo
+	mode       string
 
 	unstakeLock sync.Mutex
+
+	hasNewVersion bool
+	newVersion    string
 }
 
-func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, lighthouseAPI, mode string, id, numOfWorker int, modelManager *manager.ModelManager, coordinator *coordinator.Coordinator) (*TaskWatcher, error) {
+func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account, modelsDir, lighthouseAPI, mode string, id, numOfWorker int, modelManager *manager.ModelManager, coordinator *coordinator.Coordinator) (*TaskWatcher, error) {
 
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
@@ -73,6 +80,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 	return &TaskWatcher{
 		networkCfg:   networkCfg,
 		modelsDir:    modelsDir,
+		version:      version,
 		account:      account,
 		address:      strings.ToLower(address),
 		taskContract: taskContract,
@@ -88,6 +96,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, taskContract, account, modelsDir, 
 			processedTasks:       0,
 			stakeStatus:          "-",
 			assignModel:          "-",
+			balance:              big.NewInt(0),
 			currentEarning:       big.NewInt(0),
 			stakedAmount:         big.NewInt(0),
 			pendingUnstakeAmount: big.NewInt(0),
@@ -106,6 +115,8 @@ func (tskw *TaskWatcher) Start() {
 	})
 	go tskw.executeTasks()
 	go tskw.watchWorkerInfo()
+	go tskw.watchHubGlobalInfo()
+	go tskw.watchNewVersion()
 
 	err := tskw.checkRegisteredAndStaked()
 	if err != nil {
@@ -686,17 +697,24 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	// tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
-	// tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
 
-	// tskw.status.assignModel = workerInfo.ModelAddress.Hex()
-	// tskw.status.stakedAmount = workerInfo.Stake
+	bal, err := ethClient.BalanceAt(context.Background(), common.HexToAddress(tskw.address), nil)
+	if err != nil {
+		log.Println("get balance error: ", err)
+		return nil, err
+	}
+
+	balFloat := new(big.Float).SetInt(bal)
+	balFloat = new(big.Float).Quo(balFloat, big.NewFloat(1e18))
+
 	stakedAmount := new(big.Float).SetInt(info.Stake)
 	stakedAmount = new(big.Float).Quo(stakedAmount, big.NewFloat(1e18))
 	pendingUnstakeAmount := new(big.Float).SetInt(pendingUnstake.Stake)
 	pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
 	rewardToClaimAmount := new(big.Float).SetInt(rewardToClaim)
 	rewardToClaimAmount = new(big.Float).Quo(rewardToClaimAmount, big.NewFloat(1e18))
+	balanceAmount := new(big.Float).SetInt(bal)
+	balanceAmount = new(big.Float).Quo(balanceAmount, big.NewFloat(1e18))
 
 	workerInfo.Address = address.String()
 	workerInfo.StakeStatus = stakeStatus
@@ -705,6 +723,7 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
 	workerInfo.AssignModel = strings.ToLower(info.ModelAddress.Hex())
 	workerInfo.MiningReward = rewardToClaimAmount.String()
+	workerInfo.Balance = balanceAmount.String()
 
 	tskw.status.stakeStatus = stakeStatus
 	tskw.status.stakedAmount = info.Stake
@@ -712,6 +731,7 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
 	tskw.status.assignModel = strings.ToLower(info.ModelAddress.Hex())
 	tskw.status.miningRewardAmount = rewardToClaim
+	tskw.status.balance = bal
 
 	return &workerInfo, nil
 }
@@ -965,22 +985,9 @@ func (tskw *TaskWatcher) GetWorkerAddress() string {
 }
 
 func (tskw *TaskWatcher) GetWorkerBalance() string {
-	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
-	if err != nil {
-		log.Println("get eth client error: ", err)
-		return ""
-	}
-
-	bal, err := ethClient.BalanceAt(context.Background(), common.HexToAddress(tskw.address), nil)
-	if err != nil {
-		log.Println("get balance error: ", err)
-		return ""
-	}
-
-	balFloat := new(big.Float).SetInt(bal)
-	balFloat = new(big.Float).Quo(balFloat, big.NewFloat(1e18))
-
-	return balFloat.String()
+	amount := new(big.Float).SetInt(tskw.status.balance)
+	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
+	return amount.String()
 }
 
 func (tskw *TaskWatcher) ReclaimStake() error {
@@ -1119,6 +1126,65 @@ func (tskw *TaskWatcher) UnregisterAndQuit() error {
 	return nil
 }
 
+func (tskw *TaskWatcher) ClaimMiningReward() error {
+	ctx := context.Background()
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
+
+	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	nonce, err := ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := ethClient.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = uint64(0)  // in units
+	auth.GasPrice = gasPrice
+
+	tx, err := workerHub.WorkerHubTransactor.ClaimReward(auth, *address)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while claim reward miner"))
+	}
+
+	log.Println("claim reward tx: ", tx.Hash().Hex())
+
+	err = eth.WaitForTx(ethClient, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+
+	log.Println("claim reward success")
+
+	return nil
+}
+
 func (tskw *TaskWatcher) GetUnstakeInfo() (string, time.Time) {
 	amount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
 	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
@@ -1150,4 +1216,39 @@ func (tskw *TaskWatcher) GetAssignedModel() string {
 
 func (tskw *TaskWatcher) StakeStatus() string {
 	return tskw.status.stakeStatus
+}
+
+func (tskw *TaskWatcher) watchNewVersion() {
+	err := tskw.checkNewVersion()
+	if err != nil {
+		log.Println("check new version error: ", err)
+	}
+	for {
+		time.Sleep(120 * time.Second)
+		err := tskw.checkNewVersion()
+		if err != nil {
+			log.Println("check new version error: ", err)
+		}
+	}
+}
+
+func (tskw *TaskWatcher) checkNewVersion() error {
+	releaseInfo, err := github.GetLatestRelease()
+	if err != nil {
+		return err
+	}
+
+	if releaseInfo.TagName != tskw.version {
+		tskw.hasNewVersion = true
+		tskw.newVersion = releaseInfo.TagName
+	} else {
+		tskw.hasNewVersion = false
+		tskw.newVersion = ""
+	}
+
+	return nil
+}
+
+func (tskw *TaskWatcher) HasNewVersion() (bool, string) {
+	return tskw.hasNewVersion, tskw.newVersion
 }

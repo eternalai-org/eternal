@@ -340,8 +340,7 @@ func WaitForContainerToReady(containerID string) error {
 	return nil
 }
 
-func CreateAndStartContainer(imageTag string, containerName, containerPort, mountFolder string, withGPU bool) (*container.ContainerCreateCreatedBody, error) {
-	// withGPU = false
+func CreateAndStartContainer(imageTag string, containerName, containerPort, mountFolder string, disableGPU bool) (*container.ContainerCreateCreatedBody, error) {
 	existedContainer, err := GetContainerByName(containerName)
 	if err != nil {
 		return nil, err
@@ -375,7 +374,7 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 	}
 
 	gpuOpts := opts.GpuOpts{}
-	if withGPU {
+	if !disableGPU {
 		gpuOpts.Set("all")
 	}
 

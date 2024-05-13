@@ -22,13 +22,12 @@ type Config struct {
 	WorkerHub     string `json:"worker_hub"`
 	Account       string `json:"account"`
 	LighthouseAPI string `json:"lighthouse_api"`
+	DisableGPU    bool   `json:"disable_gpu"`
 }
 
 const (
-	defaultRPC       = "https://node.eternalai.org"
-	defaultWorkerHub = "0x05726BF187938c06d6C832dc493E3Df70fe735c8"
-	// defaultRPC    = "https://eternal-ai3.tc.l2aas.com/rpc" //Testnet
-	// defaultWorkerHub = "0xb0F6c20163170958f9935121378a3ed3E8d6263d" //Testnet
+	defaultRPC       = "https://eternal-ai3.tc.l2aas.com/rpc"
+	defaultWorkerHub = "0xb0F6c20163170958f9935121378a3ed3E8d6263d"
 	defaultModelsDir = "./models"
 	defaultPort      = 5656
 )
@@ -43,8 +42,9 @@ func ReadConfig() (*Config, *CmdType, error) {
 	modelsDir := flag.String("models-dir", "", "(optional) models dir")
 	port := flag.Int("port", 0, "(optional) port of the server")
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
+	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
 
-	wallet := flag.Bool("wallet", false, "wallet cmd")
+	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
 	help := flag.Bool("help", false, "show help")
 
@@ -80,6 +80,10 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	if mode != "" {
 		cfg.NodeMode = mode
+	}
+
+	if *noGPU {
+		cfg.DisableGPU = true
 	}
 
 	if *workerHub != "" {

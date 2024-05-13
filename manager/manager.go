@@ -21,9 +21,10 @@ type ModelManager struct {
 	nodeMode      string
 	workerHub     string
 	status        string
+	disableGPU    bool
 }
 
-func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string) *ModelManager {
+func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool) *ModelManager {
 	return &ModelManager{
 		modelsDir:     modelsDir,
 		rpc:           rpcEndpoint,
@@ -31,6 +32,7 @@ func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string) *ModelM
 		nodeMode:      nodeMode,
 		workerHub:     workerHub,
 		status:        "initializing",
+		disableGPU:    disableGPU,
 	}
 }
 
@@ -135,7 +137,7 @@ func (m *ModelManager) PreloadModels(list []string) error {
 }
 
 func (m *ModelManager) loadModel(modelAddress string) error {
-	m.status = "loading model " + modelAddress
+	m.status = "loading"
 	client, err := ethclient.Dial(m.rpc)
 	if err != nil {
 		return err
@@ -149,8 +151,9 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	inst := &ModelInstance{
 		ModelInfo: *modelInfo,
 
-		ModelPath: filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
-		Port:      fmt.Sprintf("%v", randPort()),
+		ModelPath:  filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
+		Port:       fmt.Sprintf("%v", randPort()),
+		DisableGPU: m.disableGPU,
 	}
 
 	log.Println("Model path: ", inst.ModelPath)
@@ -179,7 +182,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		}
 	}
 
-	m.status = "model " + modelAddress + " loaded"
+	m.status = "loaded"
 	return nil
 }
 
