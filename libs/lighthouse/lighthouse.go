@@ -15,6 +15,16 @@ import (
 	"strconv"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/ipfs/boxo/blockservice"
+	blockstore "github.com/ipfs/boxo/blockstore"
+	chunker "github.com/ipfs/boxo/chunker"
+	offline "github.com/ipfs/boxo/exchange/offline"
+	"github.com/ipfs/boxo/ipld/merkledag"
+	"github.com/ipfs/boxo/ipld/unixfs/importer/balanced"
+	uih "github.com/ipfs/boxo/ipld/unixfs/importer/helpers"
+	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore"
+	dsync "github.com/ipfs/go-datastore/sync"
 	"github.com/pkg/errors"
 )
 
@@ -145,6 +155,10 @@ type FileInfo struct {
 	FileName        string `json:"fileName"`
 	MimeType        string `json:"mimeType"`
 	TxHash          string `json:"txHash"`
+	Error           struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 func GetFileInfo(hash string) (*FileInfo, error) {
@@ -169,10 +183,24 @@ func GetFileInfo(hash string) (*FileInfo, error) {
 		return nil, errors.WithStack(err)
 	}
 
+	if respBody.Error.Code != 0 {
+		return &respBody, errors.New(respBody.Error.Message)
+	}
+
 	return &respBody, nil
 }
 
 func UploadData(apikey, fileName string, data []byte) (string, error) {
+
+	cid, exist, err := fileExistOnNetwork(data)
+	if err != nil {
+		return "", err
+	}
+
+	if exist {
+		return cid, nil
+	}
+
 	urlLink := "https://node.lighthouse.storage/api/v0/add"
 
 	var b bytes.Buffer
@@ -331,4 +359,75 @@ func getCurrentDir() string {
 	}
 	exPath := filepath.Dir(ex)
 	return exPath
+}
+
+// func Cid(data []byte) string {
+// 	// Create an IPLD UnixFS chunker with size 1 MiB
+// 	chunks := chunker.NewSizeSplitter(bytes.NewReader(data), 1024*1024)
+
+// 	// Concatenate the chunks to build the DAG
+// 	var buf bytes.Buffer
+// 	for {
+// 		chunk, err := chunks.NextBytes()
+// 		if err == io.EOF {
+// 			break
+// 		} else if err != nil {
+// 			panic(err)
+// 		}
+
+// 		buf.Write(chunk)
+// 	}
+
+// 	// Calculate the CID for the DAG
+// 	hash, err := mh.Sum(buf.Bytes(), mh.SHA2_256, -1)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Create a CID version 1 (with multibase encoding base58btc)
+// 	c := cid.NewCidV0(hash)
+
+// 	// Print the CID as a string
+// 	fmt.Println("IPFS CID in Golang:", c.String())
+
+// 	return c.String()
+// }
+
+func Cid(data []byte) string {
+	ds := dsync.MutexWrap(datastore.NewNullDatastore())
+	bs := blockstore.NewBlockstore(ds)
+	bs = blockstore.NewIdStore(bs)
+	bsrv := blockservice.New(bs, offline.Exchange(bs))
+	dsrv := merkledag.NewDAGService(bsrv)
+	ufsImportParams := uih.DagBuilderParams{
+		Maxlinks:   uih.BlockSizeLimit, // Default max of 174 links per block
+		RawLeaves:  false,
+		CidBuilder: cid.V0Builder{},
+		Dagserv:    dsrv,
+		NoCopy:     false,
+	}
+	reader := bytes.NewReader(data)
+	ufsBuilder, err := ufsImportParams.New(chunker.NewSizeSplitter(reader, chunker.DefaultBlockSize)) // 256KiB chunks
+	if err != nil {
+		return cid.Undef.String()
+	}
+	nd, err := balanced.Layout(ufsBuilder)
+	if err != nil {
+		return cid.Undef.String()
+	}
+	return nd.Cid().String()
+}
+
+func fileExistOnNetwork(data []byte) (string, bool, error) {
+	cid := Cid(data)
+
+	fileInfo, err := GetFileInfo(cid)
+	if err != nil {
+		if fileInfo.Error.Code == 404 {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+
+	return cid, true, nil
 }
