@@ -233,7 +233,9 @@ func (m UIinstance) View() string {
 
 	if hasNewVer, newVer := m.taskManager.HasNewVersion(); hasNewVer {
 		s += "\n "
-		s += fmt.Sprintf("%s %s %s", colorToStyle("warning").Render(m.newVersionSpinner.View()), colorToStyle("warning").Render("New version available:"), colorToStyle("warning-bg").Render(newVer))
+		s += fmt.Sprintf("%s %s %s", colorToStyle("warning").Render(m.newVersionSpinner.View()), colorToStyle("warning").Render("New version available:"), colorToStyle("warning-bg").Bold(true).Render(newVer))
+		s += fmt.Sprintf("\n\n")
+		s += colorToStyle("warning-bg").Render(fmt.Sprintf("stop and start the program to update to the new version"))
 		// s += colorToStyle("warning-bg").Render(fmt.Sprintf(" %s New version available:%s%s", m.newVersionSpinner.View(), " ", textStyle(newVer)))
 		s += "\n"
 	}

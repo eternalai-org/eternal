@@ -2,8 +2,10 @@ package github
 
 import (
 	"encoding/json"
+	"eternal-infer-worker/libs/file"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -106,4 +108,27 @@ func GetLatestRelease() (*GithubReleaseInfo, error) {
 
 	return latestRelease, nil
 
+}
+
+func DownloadLatestRelease(filename string) error {
+	latestRelease, err := GetLatestRelease()
+	if err != nil {
+		return err
+	}
+
+	_, err = file.DownloadChunkedDataDest(latestRelease.Assets[0].BrowserDownloadURL, filename)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WriteFile(filePath string, data []byte, perm os.FileMode) error {
+	err := os.WriteFile(filePath, data, perm)
+	if err != nil {
+		return err
+	}
+	return nil
 }

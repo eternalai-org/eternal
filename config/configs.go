@@ -15,14 +15,15 @@ type CmdType struct {
 }
 
 type Config struct {
-	Port          int    `json:"port"`
-	ModelsDir     string `json:"models_dir"`
-	RPC           string `json:"rpc"`
-	NodeMode      string `json:"node_mode"`
-	WorkerHub     string `json:"worker_hub"`
-	Account       string `json:"account"`
-	LighthouseAPI string `json:"lighthouse_api"`
-	DisableGPU    bool   `json:"disable_gpu"`
+	Port                 int    `json:"port"`
+	ModelsDir            string `json:"models_dir"`
+	RPC                  string `json:"rpc"`
+	NodeMode             string `json:"node_mode"`
+	WorkerHub            string `json:"worker_hub"`
+	Account              string `json:"account"`
+	LighthouseAPI        string `json:"lighthouse_api"`
+	DisableGPU           bool   `json:"disable_gpu"`
+	DisableUpdateOnStart bool   `json:"disable_update_on_start"`
 }
 
 const (
@@ -43,6 +44,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	port := flag.Int("port", 0, "(optional) port of the server")
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
 	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
+	noUpdateOnStart := flag.Bool("no-update-on-start", false, "(optional) disable update on start")
 
 	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
@@ -84,6 +86,9 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	if *noGPU {
 		cfg.DisableGPU = true
+	}
+	if *noUpdateOnStart {
+		cfg.DisableUpdateOnStart = true
 	}
 
 	if *workerHub != "" {

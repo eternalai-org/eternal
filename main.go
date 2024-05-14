@@ -5,6 +5,8 @@ import (
 	"eternal-infer-worker/apis"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/dockercmd"
+	"eternal-infer-worker/libs/file"
+	"eternal-infer-worker/libs/github"
 	"eternal-infer-worker/libs/logger"
 	_ "eternal-infer-worker/libs/logger"
 	"eternal-infer-worker/manager"
@@ -37,6 +39,9 @@ func main() {
 		}
 	}()
 
+	logger.DefaultLogger.SetTermPrinter(func(text string) {
+		fmt.Println(text)
+	})
 	var err error
 	cfg, cmd, err := config.ReadConfig()
 	if err != nil {
@@ -44,6 +49,44 @@ func main() {
 		panic(err)
 	}
 
+	releaseInfo, err := github.GetLatestRelease()
+	if err != nil {
+		fmt.Println("Error getting latest release info: ", err)
+	} else {
+		if releaseInfo.TagName != VersionTag {
+			fmt.Println("New version available: ", releaseInfo.TagName)
+
+			fmt.Println("Release notes: ", releaseInfo.Body)
+			willUpdate := false
+			if cfg.DisableUpdateOnStart {
+				fmt.Println("Update on start is disabled")
+				fmt.Println("Please update the program manually (this message will disappear in 5 seconds)")
+				time.Sleep(5 * time.Second)
+			} else {
+				willUpdate = true
+			}
+			if willUpdate {
+				fmt.Println("Removing old binary...")
+				err = file.RemoveFile("eternal")
+				if err != nil {
+					fmt.Println("Error removing old binary: ", err)
+					os.Exit(1)
+				}
+				fmt.Println("Downloading latest release...")
+				err = github.DownloadLatestRelease("eternal")
+				if err != nil {
+					fmt.Println("Error downloading latest release: ", err)
+					os.Exit(1)
+				} else {
+					fmt.Println("Downloaded latest release")
+					fmt.Println("Please restart the program")
+					os.Exit(0)
+				}
+			}
+		} else {
+			fmt.Println("You are using the latest version")
+		}
+	}
 	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
@@ -55,9 +98,6 @@ func main() {
 	}
 
 	if cmd != nil {
-		logger.DefaultLogger.SetTermPrinter(func(text string) {
-			fmt.Println(text)
-		})
 		// fmt.Println("Command: ", cmd)
 		switch cmd.Cmd {
 		case "wallet":

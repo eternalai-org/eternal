@@ -71,8 +71,26 @@ func getFileSizeFromLink(link string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if resp.Header.Get("Content-Length") != "" {
+		size, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return size, nil
+	}
 
-	size, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	contentRange := resp.Header.Get("Content-Range")
+
+	if contentRange == "" {
+		return 0, errors.New("Content-Range not found")
+	}
+
+	parts := strings.Split(contentRange, "/")
+	if len(parts) < 2 {
+		return 0, errors.New("Content-Range not found")
+	}
+
+	size, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
 		return 0, err
 	}

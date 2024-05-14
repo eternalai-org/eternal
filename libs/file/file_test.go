@@ -86,3 +86,34 @@ func TestMergeFiles(t *testing.T) {
 		})
 	}
 }
+
+func Test_getFileSizeFromLink(t *testing.T) {
+	type args struct {
+		link string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int64
+		wantErr bool
+	}{
+		{
+			name: "get file size from link success",
+			args: args{
+				link: "https://github.com/eternalai-org/eternal/releases/download/v0.8.1/eternal-linux-amd64",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getFileSizeFromLink(tt.args.link)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getFileSizeFromLink() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getFileSizeFromLink() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

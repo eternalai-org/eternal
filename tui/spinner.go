@@ -9,7 +9,7 @@ import (
 
 var (
 	pulseDot = spinner.Spinner{
-		Frames: []string{"○", "◎", "●", "◎"},
+		Frames: []string{"○", "◎", "◉", "●", "◉", "◎", "○"},
 		FPS:    time.Second / 7,
 	}
 
@@ -45,7 +45,7 @@ func (m *UIinstance) resetSpinner() {
 
 	m.loadingSpinner = spinner.New()
 	m.loadingSpinner.Style = colorToStyle("warning")
-	m.loadingSpinner.Spinner = spinners[6]
+	m.loadingSpinner.Spinner = spinners[2]
 }
 
 func (m *UIinstance) setStatusSpinnerStyle(style lipgloss.Style) {
