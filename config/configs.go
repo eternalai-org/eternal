@@ -27,8 +27,10 @@ type Config struct {
 }
 
 const (
-	defaultRPC       = "https://eternal-ai3.tc.l2aas.com/rpc"
-	defaultWorkerHub = "0xb0F6c20163170958f9935121378a3ed3E8d6263d"
+	defaultRPC       = "https://node.eternalai.org"
+	defaultWorkerHub = "0x05726BF187938c06d6C832dc493E3Df70fe735c8"
+	// defaultRPC    = "https://eternal-ai3.tc.l2aas.com/rpc" //Testnet
+	// defaultWorkerHub = "0xb0F6c20163170958f9935121378a3ed3E8d6263d" //Testnet
 	defaultModelsDir = "./models"
 	defaultPort      = 5656
 )
@@ -189,13 +191,13 @@ func (c *Config) save() error {
 }
 
 func (c *Config) setDefaultValue() {
-	if c.RPC == "" {
-		c.RPC = defaultRPC
-	}
+	// if c.RPC == "" {
+	c.RPC = defaultRPC
+	// }
 
-	if c.WorkerHub == "" {
-		c.WorkerHub = defaultWorkerHub
-	}
+	// if c.WorkerHub == "" {
+	c.WorkerHub = defaultWorkerHub
+	// }
 
 	if c.ModelsDir == "" {
 		c.ModelsDir = defaultModelsDir
