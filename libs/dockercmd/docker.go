@@ -334,6 +334,18 @@ func WaitForContainerToReady(containerID string) error {
 		if info.State.Running {
 			return nil
 		}
+
+		if info.State.Dead || info.State.Status == "exited" {
+			var errInfo = struct {
+				Message string `json:"message"`
+				Code    int    `json:"code"`
+			}{
+				Message: info.State.Error,
+				Code:    info.State.ExitCode,
+			}
+			return fmt.Errorf("Container exited with code %d: %s", errInfo.Code, errInfo.Message)
+		}
+
 		time.Sleep(1 * time.Second)
 	}
 
