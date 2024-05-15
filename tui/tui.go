@@ -131,6 +131,14 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}()
 		case "ctrl+e":
 			go func() {
+				err := m.taskManager.Restake()
+				if err != nil {
+					m.Print("Error: " + err.Error())
+					return
+				}
+			}()
+		case "e":
+			go func() {
 				err := m.taskManager.ClaimMiningReward()
 				if err != nil {
 					m.Print("Error: " + err.Error())
@@ -219,6 +227,7 @@ func (m UIinstance) View() string {
 			if unstakeAmount != "0" {
 				s += fmt.Sprintf("\n %s Pending unstake:%s%s EAI available to claim at %s\n", ">", " ", textStyle(unstakeAmount), textStyle(unstakeTime.Format("2006-01-02 15:04:05")))
 				s += "   Press 'ctrl+r' to reclaim stake\n"
+				s += "   Press 'ctrl+e' to restake and start mining again\n"
 			}
 
 			hubInfo, err := m.taskManager.GetHubGlobalInfo()

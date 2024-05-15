@@ -128,7 +128,6 @@ func (tskw *TaskWatcher) Start() {
 	if err != nil {
 		log.Println("preload models error: ", err)
 		panic(err)
-		return
 	}
 
 	if tskw.mode == "miner" {
@@ -281,6 +280,7 @@ func (tskw *TaskWatcher) findRequestTxhash(ctx context.Context, requestID string
 	if err != nil {
 		return "", err
 	}
+
 	requestIDInt, ok := new(big.Int).SetString(requestID, 10)
 	if !ok {
 		return "", errors.New("invalid request id")
@@ -291,7 +291,7 @@ func (tskw *TaskWatcher) findRequestTxhash(ctx context.Context, requestID string
 			End:     &currentBlock,
 			Context: ctx,
 		}
-		iter, err := workerHub.WorkerHubFilterer.FilterNewInference(opts, []*big.Int{requestIDInt}, nil)
+		iter, err := workerHub.WorkerHubFilterer.FilterNewInference(opts, []*big.Int{requestIDInt}, nil, nil)
 		if err != nil {
 			return "", err
 		}
@@ -758,7 +758,8 @@ func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
 			err = tskw.stakeForWorker()
 			if err != nil {
 				log.Println("stakeForWorker error: ", err)
-				return err
+				// return err
+				time.Sleep(5 * time.Second)
 			}
 		}
 
@@ -881,6 +882,71 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
 	log.Println("staking success")
+
+	return nil
+}
+
+func (tskw *TaskWatcher) Restake() error {
+	ctx := context.Background()
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
+
+	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	minStake, err := workerHub.WorkerHubCaller.MinerMinimumStake(nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting minimum stake"))
+	}
+
+	log.Printf("start staking for %v with value: %v\n", address.String(), minStake.String())
+
+	nonce, err := ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := ethClient.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = uint64(0)  // in units
+	auth.GasPrice = gasPrice
+
+	tx, err := workerHub.WorkerHubTransactor.RestakeForMiner(auth, 1)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while re-staking"))
+	}
+
+	log.Println("restake tx: ", tx.Hash().Hex())
+
+	err = eth.WaitForTx(ethClient, tx.Hash())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
+	log.Println("restaking success")
 
 	return nil
 }

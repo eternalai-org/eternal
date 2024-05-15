@@ -18,6 +18,7 @@ type TaskManagerI interface {
 	GetUnstakeInfo() (string, time.Time)
 	ReclaimStake() error
 	ClaimMiningReward() error
+	Restake() error
 	GetMiningReward() string
 	GetHubGlobalInfo() (*types.HubGlobalInfo, error)
 	HasNewVersion() (bool, string)

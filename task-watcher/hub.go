@@ -68,6 +68,10 @@ func (tskw *TaskWatcher) getGlobalInfo() {
 		fmt.Println(err)
 	}
 
+	// for idx, v := range miners {
+	// 	log.Println("miner: ", idx, v.WorkerAddress.String())
+	// }
+
 	tskw.globalInfo = types.HubGlobalInfo{
 		TotalValidators: uint64(len(validators)),
 		TotalMiners:     uint64(len(miners)),
