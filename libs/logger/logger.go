@@ -8,7 +8,10 @@ import (
 )
 
 func init() {
-	lg := NewLogger()
+	lg, err := NewLogger()
+	if err != nil {
+		panic(err)
+	}
 	DefaultLogger = lg
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetOutput(lg)
@@ -21,14 +24,14 @@ type LoggerInst struct {
 	printFunc func(string)
 }
 
-func NewLogger() *LoggerInst {
+func NewLogger() (*LoggerInst, error) {
 	logDir := "./log"
 	err := os.MkdirAll(logDir, os.ModePerm)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &LoggerInst{logDir: logDir}
+	return &LoggerInst{logDir: logDir}, nil
 }
 
 func (l *LoggerInst) Write(p []byte) (n int, err error) {

@@ -191,13 +191,13 @@ func (c *Config) save() error {
 }
 
 func (c *Config) setDefaultValue() {
-	// if c.RPC == "" {
-	c.RPC = defaultRPC
-	// }
+	if c.RPC == "" {
+		c.RPC = defaultRPC
+	}
 
-	// if c.WorkerHub == "" {
-	c.WorkerHub = defaultWorkerHub
-	// }
+	if c.WorkerHub == "" {
+		c.WorkerHub = defaultWorkerHub
+	}
 
 	if c.ModelsDir == "" {
 		c.ModelsDir = defaultModelsDir
