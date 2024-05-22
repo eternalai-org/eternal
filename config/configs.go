@@ -52,7 +52,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	help := flag.Bool("help", false, "show help")
 
-	lighthouseAPI := flag.String("lighthouse-api", "", "(*REQUIRE) lighthouse api")
+	lighthouseAPI := flag.String("lighthouse", "", "(*REQUIRE) lighthouse api")
 
 	flag.Parse()
 	mode := "miner"
