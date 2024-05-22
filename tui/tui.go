@@ -85,7 +85,6 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.logLines = m.logLines[1:]
 		}
 		return m, tea.Batch(
-			waitForActivity(m.sub),
 			waitForActivityLog(m.sublog),
 		)
 	case UIMessageData:
@@ -96,14 +95,10 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.setStatusSpinnerStyle(colorToStyle(msg.Color))
 			return m, tea.Batch(
 				waitForActivity(m.sub),
-				waitForActivityLog(m.sublog),
 			)
 		}
 
-		return m, tea.Batch(
-			waitForActivity(m.sub),
-			waitForActivityLog(m.sublog),
-		)
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -148,10 +143,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "l":
 			m.expandLog = !m.expandLog
 		}
-		return m, tea.Batch(
-			waitForActivity(m.sub),
-			waitForActivityLog(m.sublog),
-		)
+		return m, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		var cmd2 tea.Cmd
@@ -162,8 +154,6 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmd,
 			cmd2,
 			cmd3,
-			waitForActivity(m.sub),
-			waitForActivityLog(m.sublog),
 		)
 	}
 

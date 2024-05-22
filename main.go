@@ -19,6 +19,8 @@ import (
 
 	"eternal-infer-worker/tui"
 
+	_ "net/http/pprof"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -42,6 +44,7 @@ func main() {
 	logger.DefaultLogger.SetTermPrinter(func(text string) {
 		fmt.Println(text)
 	})
+
 	var err error
 	cfg, cmd, err := config.ReadConfig()
 	if err != nil {
@@ -181,7 +184,6 @@ func main() {
 					}
 					time.Sleep(1 * time.Second)
 					os.Exit(0)
-				case <-time.After(1 * time.Second):
 				}
 			}
 		}()
@@ -198,7 +200,6 @@ func main() {
 						time.Sleep(1 * time.Second)
 						os.Exit(0)
 					}
-				case <-time.After(1 * time.Second):
 				}
 			}
 		}()

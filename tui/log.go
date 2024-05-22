@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"sync"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -14,10 +12,10 @@ func waitForActivityLog(sub chan UILogText) tea.Cmd {
 	}
 }
 
-var logLck sync.Mutex
+// var logLck sync.Mutex
 
 func (m *UIinstance) Print(msg string) {
-	logLck.Lock()
-	defer logLck.Unlock()
+	// logLck.Lock()
+	// defer logLck.Unlock()
 	m.sublog <- UILogText(msg)
 }
