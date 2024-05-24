@@ -104,7 +104,8 @@ func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*M
 
 	//for testing on testnet
 	if strings.EqualFold(modelAddr, "0x874eab97ace45563861cbdbc7fbee0cc04a64221") {
-		newModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/QmcFYMYpVodkpT6t1fVmWNjPnUnnQbXvwpqyheXvPGKUr8"
+		newModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/QmfKxyFbvTEF3XyyeYzEq7ysUqTJbVM5QxGYbEts8AJjRX"
+		newModelInfo.Metadata.ModelFileHash = "2ee8c8d423f5ad46034359f5d04825a44018a93689a4fd88ce7ec3287f1e7cf4"
 	}
 
 	return newModelInfo, nil
