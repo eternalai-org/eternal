@@ -5,6 +5,7 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -214,6 +215,12 @@ func (m *ModelInstance) StartDocker() error {
 		log.Println("Create and start container got error", err)
 		return err
 	}
+
+	existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
+	if err != nil {
+		return err
+	}
+	m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
 
 	log.Println("Container ID:", ctnInfo.ID)
 	m.containerID = ctnInfo.ID

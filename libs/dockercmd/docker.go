@@ -368,6 +368,7 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 		a := container.ContainerCreateCreatedBody{
 			ID: existedContainer.ID,
 		}
+
 		return &a, nil
 	}
 	apiClient, err := client.NewClientWithOpts(client.FromEnv)
