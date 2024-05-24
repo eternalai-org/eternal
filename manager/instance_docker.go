@@ -58,7 +58,7 @@ func (m *ModelInstance) SetupDocker() error {
 	defer m.actionLock.Unlock()
 	filePath := ""
 	var err error
-
+	targetImageName := m.ModelInfo.ModelAddr
 	fileExistValid := false
 	exist := checkModelFileExist(m.ModelPath + "/model.zip")
 	if exist {
@@ -77,6 +77,7 @@ func (m *ModelInstance) SetupDocker() error {
 				log.Println("Remove model file got error", err)
 				return err
 			}
+			dockercmd.RemoveImage(targetImageName)
 		}
 	}
 
@@ -115,7 +116,7 @@ func (m *ModelInstance) SetupDocker() error {
 		log.Println("Model file already exist")
 	}
 
-	err = dockercmd.LoadLocalImageWithCustomName(filePath, m.ModelInfo.ModelAddr)
+	err = dockercmd.LoadLocalImageWithCustomName(filePath, targetImageName)
 	if err != nil {
 		log.Println("Load local image got error", err)
 		return err

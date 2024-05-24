@@ -109,7 +109,7 @@ func (m UIinstance) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.SetStatusText("Unstaking and quitting")
 			m.setStatusSpinnerStyle(colorToStyle("danger"))
 			go func() {
-				err := m.taskManager.UnregisterAndQuit()
+				err := m.taskManager.Unregister()
 				if err != nil {
 					m.Print("Error: " + err.Error())
 					return

@@ -104,7 +104,10 @@ func RemoveImage(imageName string) error {
 	}
 	defer apiClient.Close()
 
-	_, err = apiClient.ImageRemove(context.Background(), imageName, types.ImageRemoveOptions{})
+	_, err = apiClient.ImageRemove(context.Background(), imageName, types.ImageRemoveOptions{
+		Force:         true,
+		PruneChildren: true,
+	})
 	if err != nil {
 		return err
 	}

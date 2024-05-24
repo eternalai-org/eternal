@@ -88,9 +88,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 		cfg.NodeMode = mode
 	}
 
-	if *silentMode {
-		cfg.SilentMode = *silentMode
-	}
+	cfg.SilentMode = *silentMode
 
 	if *noGPU {
 		cfg.DisableGPU = true

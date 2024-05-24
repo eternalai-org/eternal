@@ -55,26 +55,6 @@ const (
 )
 
 func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*ModelInfoContract, error) {
-
-	// fakeModel := &ModelInfoContract{
-	// 	ModelID:   new(big.Int).SetInt64(1),
-	// 	ModelAddr: strings.ToLower(modelAddr),
-	// 	Metadata: ModelMetadata{
-	// 		Version:   1,
-	// 		ModelName: "Fake Model",
-	// 		ModelType: "text",
-	// 		// ModelURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
-	// 		// ModelFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
-	// 		ModelURL:         "https://gateway.lighthouse.storage/ipfs/QmcFYMYpVodkpT6t1fVmWNjPnUnnQbXvwpqyheXvPGKUr8",
-	// 		ModelFileHash:    "7f1f29cb884c5b2f4d072b99afcb87f32cbe4adc88cffedab15ffc9fd30887ae",
-	// 		MinHardwareTier:  HardwareTier_1,
-	// 		VerifierURL:      "https://gateway.lighthouse.storage/ipfs/QmdkKEjx2fauzbPh1j5bUiQXrUG5Ft36pJGHS8awrN89Dc",
-	// 		VerifierFileHash: "492b2b3dea3003d359fe1b2cee77a22777d8a9faf942ab6dee81e6bfadaadec4",
-	// 	},
-	// }
-
-	// return fakeModel, nil
-
 	addr := common.HexToAddress(modelAddr)
 
 	modelContract, err := NewHybridModel(addr, ethClient)
@@ -121,6 +101,11 @@ func GetModelInfoFromContract(modelAddr string, ethClient *ethclient.Client) (*M
 	}
 
 	newModelInfo.OwnerAddr = strings.ToLower(owner.String())
+
+	//for testing on testnet
+	if strings.EqualFold(modelAddr, "0x874eab97ace45563861cbdbc7fbee0cc04a64221") {
+		newModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/QmcFYMYpVodkpT6t1fVmWNjPnUnnQbXvwpqyheXvPGKUr8"
+	}
 
 	return newModelInfo, nil
 

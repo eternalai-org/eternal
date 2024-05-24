@@ -1094,6 +1094,8 @@ func (tskw *TaskWatcher) ReclaimStake() error {
 }
 
 func (tskw *TaskWatcher) Unregister() error {
+	tskw.unstakeLock.Lock()
+	defer tskw.unstakeLock.Unlock()
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -1148,25 +1150,8 @@ func (tskw *TaskWatcher) Unregister() error {
 	}
 
 	log.Println("unregister success")
-
-	return nil
-}
-
-func (tskw *TaskWatcher) UnregisterAndQuit() error {
-	tskw.unstakeLock.Lock()
-	defer tskw.unstakeLock.Unlock()
-	err := tskw.Unregister()
-	if err != nil {
-		return err
-	}
 	tskw.status.stakeStatus = "not staked"
 
-	// for testnet only
-	// time.Sleep(61 * time.Second)
-	// err = tskw.ReclaimStake()
-	// if err != nil {
-	// 	return err
-	// }
 	return nil
 }
 
