@@ -109,12 +109,21 @@ func (rt *Router) Stats(c *gin.Context) {
 		return
 	}
 
+	stakedStatus, err := rt.watcher.GetStakeStatus()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, APIResponse{
+			Error:  err.Error(),
+			Status: http.StatusBadRequest,
+		})
+		return
+	}
+
 	stats := Stats{
 		AssignedModel:  rt.watcher.GetAssignedModel(),
 		ModelStatus:    rt.watcher.GetModelStatus(),
 		WorkerAddress:  rt.watcher.GetWorkerAddress(),
 		WorkerBalance:  rt.watcher.GetWorkerBalance(),
-		StakeStatus:    rt.watcher.GetStakedAmount(),
+		StakeStatus:    stakedStatus,
 		StakedAmount:   rt.watcher.GetStakedAmount(),
 		SessionEarning: rt.watcher.GetSessionEarning(),
 		ProcessedTasks: rt.watcher.GetProcessedTasks(),
@@ -124,7 +133,6 @@ func (rt *Router) Stats(c *gin.Context) {
 		TotalModels:    int(globalInfo.TotalModels),
 		TotalMiners:    int(globalInfo.TotalMiners),
 		Version:        rt.version,
-		// TotalMiners:
 	}
 
 	c.JSON(http.StatusOK, APIResponse{
