@@ -1268,7 +1268,7 @@ func (tskw *TaskWatcher) GetAssignedModel() string {
 }
 
 func (tskw *TaskWatcher) GetModelStatus() string {
-	return tskw.status.modelStatus
+	return tskw.modelManager.GetStatus()
 }
 
 func (tskw *TaskWatcher) StakeStatus() string {
