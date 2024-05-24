@@ -36,6 +36,7 @@ type Router struct {
 
 func InitRouter(port int, watcher *watcher.TaskWatcher, version string) *Router {
 	return &Router{
+		version: version,
 		port:    port,
 		watcher: watcher,
 	}
