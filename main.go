@@ -73,7 +73,6 @@ func main() {
 				err = file.RemoveFile("eternal")
 				if err != nil {
 					fmt.Println("Error removing old binary: ", err)
-					os.Exit(1)
 				}
 				fmt.Println("Downloading latest release...")
 				err = github.DownloadLatestRelease("eternal")
@@ -149,67 +148,67 @@ func main() {
 		}
 
 		stopChn := make(chan struct{}, 1)
+		if !cfg.SilentMode {
+			ui := tui.InitialModel(VersionTag, cfg.NodeMode, stopChn, newTaskWatcher, modelManager)
+			tui.UI = &ui
 
-		ui := tui.InitialModel(VersionTag, cfg.NodeMode, stopChn, newTaskWatcher, modelManager)
-		tui.UI = &ui
-
-		logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
-		go func() {
-			p := tea.NewProgram(ui, tea.WithAltScreen())
-			if _, err := p.Run(); err != nil {
-				fmt.Printf("Alas, there's been an error: %v", err)
-				os.Exit(1)
-			}
-		}()
-		ui.UpdateSectionText(tui.UIMessageData{
-			Section: tui.UISectionStatusText,
-			Color:   "waiting",
-			Text:    "Starting server...",
-		})
-		time.Sleep(1 * time.Second)
-
-		shutdownEmitted := false
-		go func() {
-			for {
-				select {
-				case <-stopChn:
-					shutdownEmitted = true
-					tui.UI.UpdateSectionText(tui.UIMessageData{
-						Section: tui.UISectionStatusText,
-						Color:   "danger",
-						Text:    "Shutting down..."})
-					err = modelManager.RemoveAllInstanceDocker()
-					if err != nil {
-						panic(err)
-					}
-					time.Sleep(1 * time.Second)
-					os.Exit(0)
+			logger.DefaultLogger.SetTermPrinter(tui.UI.Print)
+			go func() {
+				p := tea.NewProgram(ui, tea.WithAltScreen())
+				if _, err := p.Run(); err != nil {
+					fmt.Printf("Alas, there's been an error: %v", err)
+					os.Exit(1)
 				}
-			}
-		}()
+			}()
+			ui.UpdateSectionText(tui.UIMessageData{
+				Section: tui.UISectionStatusText,
+				Color:   "waiting",
+				Text:    "Starting server...",
+			})
+			time.Sleep(1 * time.Second)
 
-		go func() {
-			for {
-				select {
-				case <-stopChn:
-					if shutdownEmitted {
+			shutdownEmitted := false
+			go func() {
+				for {
+					select {
+					case <-stopChn:
+						shutdownEmitted = true
 						tui.UI.UpdateSectionText(tui.UIMessageData{
 							Section: tui.UISectionStatusText,
 							Color:   "danger",
-							Text:    "Force shutting down..."})
+							Text:    "Shutting down..."})
+						err = modelManager.RemoveAllInstanceDocker()
+						if err != nil {
+							panic(err)
+						}
 						time.Sleep(1 * time.Second)
 						os.Exit(0)
 					}
 				}
-			}
-		}()
+			}()
 
+			go func() {
+				for {
+					select {
+					case <-stopChn:
+						if shutdownEmitted {
+							tui.UI.UpdateSectionText(tui.UIMessageData{
+								Section: tui.UISectionStatusText,
+								Color:   "danger",
+								Text:    "Force shutting down..."})
+							time.Sleep(1 * time.Second)
+							os.Exit(0)
+						}
+					}
+				}
+			}()
+		}
 		// go modelManager.WatchAndPreloadModels()
 
 		go newTaskWatcher.Start()
 
 		go func() {
-			err = apis.InitRouter(cfg.Port, newTaskWatcher).StartRouter()
+			err = apis.InitRouter(cfg.Port, newTaskWatcher, VersionTag).StartRouter()
 			if err != nil {
 				panic(err)
 			}

@@ -42,6 +42,7 @@ type TaskWatcherStatus struct {
 	pendingUnstakeUnlockAt time.Time
 	assignModel            string
 	miningRewardAmount     *big.Int
+	modelStatus            string
 }
 
 type TaskWatcher struct {
@@ -108,25 +109,22 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account, mo
 func (tskw *TaskWatcher) Start() {
 
 	log.Println("start task watcher")
-	tui.UI.UpdateSectionText(tui.UIMessageData{
-		Section: tui.UISectionStatusText,
-		Color:   "normal",
-		Text:    "starting task watcher...",
-	})
+	if tui.UI != nil {
+		tui.UI.UpdateSectionText(tui.UIMessageData{
+			Section: tui.UISectionStatusText,
+			Color:   "normal",
+			Text:    "starting task watcher...",
+		})
+	}
 	go tskw.executeTasks()
 	go tskw.watchWorkerInfo()
 	go tskw.watchHubGlobalInfo()
 	go tskw.watchNewVersion()
-
-	err := tskw.checkRegisteredAndStaked()
-	if err != nil {
-		log.Println("check registered and staked error: ", err)
-		return
-	}
-
+	tskw.GetWorkerInfo()
+	var err error
 	err = tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
 	if err != nil {
-		log.Println("preload models error: ", err)
+		log.Println("preload models error: ", tskw.status.assignModel, err)
 		panic(err)
 	}
 
@@ -236,11 +234,13 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 	// watch and assign task to model
 	maxConcurrentTask := 1
 
-	tui.UI.UpdateSectionText(tui.UIMessageData{
-		Section: tui.UISectionStatusText,
-		Text:    "running...",
-		Color:   "normal",
-	})
+	if tui.UI != nil {
+		tui.UI.UpdateSectionText(tui.UIMessageData{
+			Section: tui.UISectionStatusText,
+			Text:    "running...",
+			Color:   "normal",
+		})
+	}
 	for {
 		time.Sleep(2 * time.Second)
 		tskw.CleanupRunners()
@@ -742,35 +742,13 @@ func (tskw *TaskWatcher) GetMiningReward() string {
 	return rewardAmount.String()
 }
 
-func (tskw *TaskWatcher) checkRegisteredAndStaked() error {
+func (tskw *TaskWatcher) GetUnskateAmount() (string, error) {
 
-	for {
-		time.Sleep(1 * time.Second)
-		staked, err := tskw.isStaked()
-		if err != nil {
-			log.Println("isStaked error: ", err)
-			continue
-		}
+	pendingUnstakeAmount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
+	pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
 
-		if !staked {
-			tskw.status.stakeStatus = "not staked"
-			tskw.status.assignModel = "-"
-			err = tskw.stakeForWorker()
-			if err != nil {
-				log.Println("stakeForWorker error: ", err)
-				// return err
-				time.Sleep(5 * time.Second)
-			}
-		}
+	return pendingUnstakeAmount.String(), nil
 
-		if staked {
-			tskw.status.stakeStatus = "staked"
-			break
-		}
-
-	}
-
-	return nil
 }
 
 func (tskw *TaskWatcher) isStaked() (bool, error) {
@@ -1273,11 +1251,24 @@ func (tskw *TaskWatcher) GetStakedAmount() string {
 	return amount.String()
 }
 
+func (tskw *TaskWatcher) GetStakeStatus() (string, error) {
+	_, err := tskw.isStaked()
+	if err != nil {
+		return "", err
+	}
+	return tskw.status.stakeStatus, nil
+
+}
+
 func (tskw *TaskWatcher) GetAssignedModel() string {
 	if tskw.status.assignModel == "" {
 		return "-"
 	}
 	return tskw.status.assignModel
+}
+
+func (tskw *TaskWatcher) GetModelStatus() string {
+	return tskw.status.modelStatus
 }
 
 func (tskw *TaskWatcher) StakeStatus() string {

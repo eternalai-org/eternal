@@ -24,6 +24,7 @@ type Config struct {
 	LighthouseAPI        string `json:"lighthouse_api"`
 	DisableGPU           bool   `json:"disable_gpu"`
 	DisableUpdateOnStart bool   `json:"disable_update_on_start"`
+	SilentMode           bool   `json:"silent_mode"`
 }
 
 const (
@@ -47,6 +48,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
 	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
 	noUpdateOnStart := flag.Bool("no-update-on-start", false, "(optional) disable update on start")
+	silentMode := flag.Bool("silent", false, "(optional) silent mode")
 
 	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
@@ -84,6 +86,10 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	if mode != "" {
 		cfg.NodeMode = mode
+	}
+
+	if *silentMode {
+		cfg.SilentMode = *silentMode
 	}
 
 	if *noGPU {
