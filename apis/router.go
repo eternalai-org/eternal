@@ -99,6 +99,8 @@ func (rt *Router) Stats(c *gin.Context) {
 		TotalModels    int    `json:"total_models"`
 		TotalMiners    int    `json:"total_miners"`
 		Version        string `json:"version"`
+		HasNewVersion  bool   `json:"has_new_version"`
+		NewVersion     string `json:"new_version"`
 	}
 
 	unstakeAmount, unstakeTime := rt.watcher.GetUnstakeInfo()
@@ -121,6 +123,8 @@ func (rt *Router) Stats(c *gin.Context) {
 		return
 	}
 
+	hasNewVersion, newVersion := rt.watcher.HasNewVersion()
+
 	stats := Stats{
 		AssignedModel:  rt.watcher.GetAssignedModel(),
 		ModelStatus:    rt.watcher.GetModelStatus(),
@@ -136,6 +140,8 @@ func (rt *Router) Stats(c *gin.Context) {
 		TotalModels:    int(globalInfo.TotalModels),
 		TotalMiners:    int(globalInfo.TotalMiners),
 		Version:        rt.version,
+		HasNewVersion:  hasNewVersion,
+		NewVersion:     newVersion,
 	}
 
 	c.JSON(http.StatusOK, APIResponse{
