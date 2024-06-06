@@ -44,12 +44,12 @@ func (m *ModelManager) setStatus(text string) {
 	m.status = text
 }
 
-func (m *ModelManager) GetLoadeModels() []string {
+func (m *ModelManager) GetLoadeModels() map[string]*ModelInstance {
 	m.lck.RLock()
 	defer m.lck.RUnlock()
-	var res []string
-	for k := range m.currentModels {
-		res = append(res, k)
+	res := make(map[string]*ModelInstance)
+	for k, v := range m.currentModels {
+		res[k] = v
 	}
 	return res
 }
@@ -137,14 +137,23 @@ func (m *ModelManager) PreloadModels(list []string) error {
 }
 
 func (m *ModelManager) loadModel(modelAddress string) error {
+	var loadErr error
+	defer func() {
+		if loadErr != nil {
+			m.currentModels[strings.ToLower(modelAddress)] = nil
+			m.status = "failed"
+		}
+	}()
 	m.status = "loading"
 	client, err := ethclient.Dial(m.rpc)
 	if err != nil {
+		loadErr = err
 		return err
 	}
 
 	modelInfo, err := eaimodel.GetModelInfoFromContract(modelAddress, client)
 	if err != nil {
+		loadErr = err
 		return err
 	}
 
@@ -162,22 +171,26 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 
 	err = inst.SetupDocker()
 	if err != nil {
+		loadErr = err
 		return err
 	}
 
 	err = inst.StartDocker()
 	if err != nil {
+		loadErr = err
 		return err
 	}
 
 	if m.nodeMode == "validator" {
 		err = inst.SetupDockerVerifier()
 		if err != nil {
+			loadErr = err
 			return err
 		}
 
 		err = inst.StartDockerVerifier()
 		if err != nil {
+			loadErr = err
 			return err
 		}
 	}
@@ -284,7 +297,7 @@ func (m *ModelManager) MakeReady(modelAddress string) error {
 	}
 
 	modelAddress = strings.ToLower(modelAddress)
-	_, ok := m.currentModels[modelAddress]
+	modelInst, ok := m.currentModels[modelAddress]
 	if !ok {
 		err := m.loadModel(modelAddress)
 		if err != nil {
@@ -293,10 +306,12 @@ func (m *ModelManager) MakeReady(modelAddress string) error {
 		}
 	}
 
-	err = m.startModelInst(modelAddress)
-	if err != nil {
-		log.Println("Start model error: ", err)
-		return err
+	if !modelInst.Ready || (!modelInst.VerifierReady && m.nodeMode == "validator") {
+		err = m.startModelInst(modelAddress)
+		if err != nil {
+			log.Println("Start model error: ", err)
+			return err
+		}
 	}
 
 	return nil

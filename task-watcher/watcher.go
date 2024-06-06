@@ -121,12 +121,13 @@ func (tskw *TaskWatcher) Start() {
 	go tskw.watchHubGlobalInfo()
 	go tskw.watchNewVersion()
 	tskw.GetWorkerInfo()
+	go tskw.watchAssignedModel()
 	var err error
-	err = tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
-	if err != nil {
-		log.Println("preload models error: ", tskw.status.assignModel, err)
-		panic(err)
-	}
+	// err = tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
+	// if err != nil {
+	// 	log.Println("preload models error: ", tskw.status.assignModel, err)
+	// 	panic(err)
+	// }
 
 	if tskw.mode == "miner" {
 		err = tskw.joinForMinting()
@@ -137,6 +138,25 @@ func (tskw *TaskWatcher) Start() {
 	}
 
 	tskw.watchAndAssignTask()
+}
+
+func (tskw *TaskWatcher) watchAssignedModel() {
+	for {
+		time.Sleep(2 * time.Second)
+		if tskw.status.assignModel == "" || tskw.status.assignModel == "-" || tskw.status.assignModel == "0x0000000000000000000000000000000000000000" {
+			continue
+		}
+		currentLoadedModels := tskw.modelManager.GetLoadeModels()
+		if _, ok := currentLoadedModels[tskw.status.assignModel]; ok {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		err := tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
+		if err != nil {
+			log.Println("preload models error: ", tskw.status.assignModel, err)
+			continue
+		}
+	}
 }
 
 func (tskw *TaskWatcher) watchWorkerInfo() {
@@ -244,6 +264,9 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 	for {
 		time.Sleep(2 * time.Second)
 		tskw.CleanupRunners()
+		if tskw.modelManager.GetStatus() != "ready" {
+
+		}
 
 		tasks, err := tskw.getPendingTaskFromContract()
 		if err != nil {

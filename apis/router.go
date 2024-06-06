@@ -74,6 +74,8 @@ func (rt *Router) StartRouter() error {
 	apiv1.GET("/health", rt.health)
 	apiv1.GET("/stats", rt.Stats)
 
+	apiv1.GET("/unstake", rt.Unstake)
+
 	err := r.Run("0.0.0.0:" + fmt.Sprintf("%d", rt.port))
 	if err != nil {
 		return err
@@ -322,5 +324,21 @@ func (rt *Router) GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, APIResponse{
 		Data:   rt.watcher.GetAllTasks(),
 		Status: http.StatusOK,
+	})
+}
+
+func (rt *Router) Unstake(c *gin.Context) {
+	err := rt.watcher.Unregister()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, APIResponse{
+			Error:  err.Error(),
+			Status: http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, APIResponse{
+		Message: "unstake requested",
+		Status:  http.StatusOK,
 	})
 }
