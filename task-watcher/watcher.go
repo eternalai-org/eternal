@@ -872,7 +872,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while getting chain ID"))
 	}
 
-	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	_, err = ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting gas price"))
 	}
@@ -883,7 +883,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = minStake     // in wei
 	auth.GasLimit = uint64(0) // in units
-	auth.GasPrice = gasPrice
+	auth.GasPrice = big.NewInt(150000005)
 	log.Printf("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
 
 	tx, err := workerHub.WorkerHubTransactor.RegisterMiner(auth, 1)
