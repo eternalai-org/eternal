@@ -854,8 +854,12 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting minimum stake"))
 	}
-
-	log.Printf("start staking for %v with value: %v\n", address.String(), minStake.String())
+	// Get the balance
+	balance, err := ethClient.BalanceAt(context.Background(), *address, nil)
+	if err != nil {
+		log.Fatalf("Failed to get balance: %v", err)
+	}
+	log.Printf("Start staking for address %v - Balance %v with value: %v\n", address.String(), balance.String(), minStake.String())
 
 	nonce, err := ethClient.NonceAt(ctx, *address, nil)
 	if err != nil {
