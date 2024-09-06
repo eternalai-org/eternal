@@ -130,6 +130,14 @@ func (tskw *TaskWatcher) Start() {
 	// }
 
 	if tskw.mode == "miner" {
+		staked, _ := tskw.isStaked()
+		if !staked {
+			err = tskw.stakeForWorker()
+			if err != nil {
+				log.Println("register error: ", err)
+				//return
+			}
+		}
 		err = tskw.joinForMinting()
 		if err != nil {
 			log.Println("join for minting error: ", err)
