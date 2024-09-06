@@ -27,6 +27,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+const DEFAULT_GAS_LIMIT = 200_000_000
+
 type NetworkConfig struct {
 	RPC string
 	WS  string
@@ -216,8 +218,8 @@ func (tskw *TaskWatcher) joinForMinting() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(0)                // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.JoinForMinting(auth)
@@ -637,8 +639,8 @@ func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error 
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(DEFAULT_GAS_LIMIT) // in wei
+	auth.GasLimit = uint64(0)                  // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.SubmitSolution(auth, assignmentIDBig, result)
@@ -873,7 +875,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while getting chain ID"))
 	}
 
-	_, err = ethClient.SuggestGasPrice(context.Background())
+	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting gas price"))
 	}
@@ -882,9 +884,9 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = minStake     // in wei
-	auth.GasLimit = uint64(0) // in units
-	auth.GasPrice = big.NewInt(150000005)
+	auth.Value = minStake                     // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
+	auth.GasPrice = gasPrice
 	log.Printf("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
 
 	tx, err := workerHub.WorkerHubTransactor.RegisterMiner(auth, 1)
@@ -948,8 +950,8 @@ func (tskw *TaskWatcher) Restake() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(0)                // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.RestakeForMiner(auth, 1)
@@ -1026,8 +1028,8 @@ func (tskw *TaskWatcher) SubmitTask(task *types.TaskSubmitRequest) error {
 	// }
 
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = value        // in wei
-	auth.GasLimit = uint64(0) // in units
+	auth.Value = value                        // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	data := []byte(task.Params)
@@ -1111,8 +1113,8 @@ func (tskw *TaskWatcher) ReclaimStake() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(0)                // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.UnstakeForMiner(auth)
@@ -1172,8 +1174,8 @@ func (tskw *TaskWatcher) Unregister() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(0)                // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.UnregisterMiner(auth)
@@ -1232,8 +1234,8 @@ func (tskw *TaskWatcher) ClaimMiningReward() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  // in units
+	auth.Value = big.NewInt(0)                // in wei
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
 	tx, err := workerHub.WorkerHubTransactor.ClaimReward(auth, *address)
