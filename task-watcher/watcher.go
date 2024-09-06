@@ -761,7 +761,9 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	tskw.status.stakeStatus = stakeStatus
 	tskw.status.stakedAmount = info.Stake
 	tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
-	tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+	if tskw.status.pendingUnstakeAmount.Cmp(new(big.Int).SetUint64(0)) > 0 {
+		tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+	}
 	tskw.status.assignModel = strings.ToLower(info.ModelAddress.Hex())
 	tskw.status.miningRewardAmount = rewardToClaim
 	tskw.status.balance = bal
@@ -825,7 +827,9 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 	}
 
 	tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
-	tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+	if tskw.status.pendingUnstakeAmount.Cmp(new(big.Int).SetUint64(0)) > 0 {
+		tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+	}
 
 	tskw.status.assignModel = workerInfo.ModelAddress.Hex()
 	tskw.status.stakedAmount = workerInfo.Stake
