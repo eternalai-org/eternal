@@ -844,6 +844,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return err
 	}
 
+	log.Printf("private key: %v \n", tskw.account)
 	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting account info"))
@@ -862,6 +863,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	chainID, err := ethClient.NetworkID(context.Background())
+	log.Printf("RPC: %v ---- ChainID: %v\n", tskw.networkCfg.RPC, chainID)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting chain ID"))
 	}
