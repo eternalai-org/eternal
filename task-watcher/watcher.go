@@ -884,6 +884,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	auth.Value = minStake     // in wei
 	auth.GasLimit = uint64(0) // in units
 	auth.GasPrice = gasPrice
+	log.Printf("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
 
 	tx, err := workerHub.WorkerHubTransactor.RegisterMiner(auth, 1)
 	if err != nil {
