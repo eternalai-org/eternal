@@ -838,6 +838,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	hubAddress := common.HexToAddress(tskw.taskContract)
+	log.Printf("workerhub contract addr: %v \n", tskw.taskContract)
 
 	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
