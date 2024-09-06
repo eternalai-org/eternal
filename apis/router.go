@@ -74,7 +74,10 @@ func (rt *Router) StartRouter() error {
 	apiv1.GET("/health", rt.health)
 	apiv1.GET("/stats", rt.Stats)
 
+	apiv1.GET("/claim-reward", rt.ClaimReward)
+
 	apiv1.GET("/unstake", rt.Unstake)
+	apiv1.GET("/claim-unstake", rt.ClaimUnstake)
 
 	err := r.Run("0.0.0.0:" + fmt.Sprintf("%d", rt.port))
 	if err != nil {
@@ -345,6 +348,38 @@ func (rt *Router) Unstake(c *gin.Context) {
 
 	c.JSON(http.StatusOK, APIResponse{
 		Message: "unstake requested",
+		Status:  http.StatusOK,
+	})
+}
+
+func (rt *Router) ClaimReward(c *gin.Context) {
+	err := rt.watcher.ClaimMiningReward()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, APIResponse{
+			Error:  err.Error(),
+			Status: http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, APIResponse{
+		Message: "claimed reward",
+		Status:  http.StatusOK,
+	})
+}
+
+func (rt *Router) ClaimUnstake(c *gin.Context) {
+	err := rt.watcher.ReclaimStake()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, APIResponse{
+			Error:  err.Error(),
+			Status: http.StatusBadRequest,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, APIResponse{
+		Message: "claimed reward",
 		Status:  http.StatusOK,
 	})
 }
