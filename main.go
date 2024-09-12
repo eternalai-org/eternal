@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"eternal-infer-worker/apis"
 	"eternal-infer-worker/config"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/github"
@@ -56,7 +57,10 @@ func main() {
 	if err != nil {
 		fmt.Println("Error getting latest release info: ", err)
 	} else {
-		if releaseInfo.TagName != VersionTag {
+		_willUpdate, _ := file.WillUpdateVersion(releaseInfo.TagName)
+
+		fmt.Println("'[Info] current version: ", releaseInfo.TagName)
+		if _willUpdate {
 			fmt.Println("New version available: ", releaseInfo.TagName)
 
 			fmt.Println("Release notes: ", releaseInfo.Body)
@@ -67,6 +71,7 @@ func main() {
 				time.Sleep(5 * time.Second)
 			} else {
 				willUpdate = true
+				VersionTag = releaseInfo.TagName
 			}
 			if willUpdate {
 				fmt.Println("Removing old binary...")
@@ -74,6 +79,13 @@ func main() {
 				if err != nil {
 					fmt.Println("Error removing old binary: ", err)
 				}
+
+				//remove current version's log
+				errRemove := file.RemoveFile(libs.VERSION_FILENAME)
+				if err != nil {
+					fmt.Println("Error removing version log: ", errRemove)
+				}
+
 				fmt.Println("Downloading latest release...")
 				err = github.DownloadLatestRelease("eternal")
 				if err != nil {
@@ -82,6 +94,15 @@ func main() {
 				} else {
 					fmt.Println("Downloaded latest release")
 					fmt.Println("Please restart the program")
+
+					//log the downloaded version to file
+					err1 := file.UpdateVersionLog(VersionTag)
+					if err1 != nil {
+
+						//only log error
+						fmt.Println("[Error] error update version.txt: ", err1)
+					}
+
 					os.Exit(0)
 				}
 			}

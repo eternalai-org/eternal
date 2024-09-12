@@ -2,6 +2,7 @@ package file
 
 import (
 	"archive/zip"
+	"eternal-infer-worker/libs"
 	"fmt"
 	"io"
 	"log"
@@ -354,6 +355,46 @@ func MergeFiles(files []string, output string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func ReadFile(fn string) ([]byte, error) {
+	_b, err := os.ReadFile(fn)
+	if err != nil {
+		return nil, err
+	}
+	return _b, nil
+}
+
+func WillUpdateVersion(releaseVersion string) (bool, error) {
+	willUpdate := false
+	_b, err := ReadFile(libs.VERSION_FILENAME)
+	if err != nil {
+		//code will be updated if log is not created.
+		return true, err
+	}
+
+	str := string(_b)
+	if !strings.EqualFold(releaseVersion, str) {
+		willUpdate = true
+	}
+
+	return willUpdate, nil
+}
+
+func UpdateVersionLog(releaseVersion string) error {
+	f, err := os.Create(libs.VERSION_FILENAME)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	_, err = f.WriteString(releaseVersion)
+	if err != nil {
+		return err
 	}
 
 	return nil
