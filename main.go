@@ -51,7 +51,6 @@ func main() {
 		fmt.Println("Error reading config file: ", err)
 		panic(err)
 	}
-	VersionTag = cfg.Version
 
 	releaseInfo, err := github.GetLatestRelease()
 	if err != nil {

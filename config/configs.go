@@ -25,7 +25,6 @@ type Config struct {
 	DisableGPU           bool   `json:"disable_gpu"`
 	DisableUpdateOnStart bool   `json:"disable_update_on_start"`
 	SilentMode           bool   `json:"silent_mode"`
-	Version              string `json:"version"`
 }
 
 const (
