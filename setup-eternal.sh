@@ -26,8 +26,10 @@ fi
 
 if [ $# -eq 0 ]; then
   SOURCE_URI="https://github.com/eternalai-org/eternal/releases/latest/download/eternal-${target}"
+  SOURCE_URI="https://github.com/eternalai-org/eternal/releases/latest/download/cfg.json"
 else
   SOURCE_URI="https://github.com/eternalai-org/eternal/releases/download/${1}/eternal-${target}"
+  SOURCE_URI="https://github.com/eternalai-org/eternal/releases/download/${1}/cfg.json"
 fi
 
 echo
