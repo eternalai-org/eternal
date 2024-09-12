@@ -51,12 +51,13 @@ func main() {
 		fmt.Println("Error reading config file: ", err)
 		panic(err)
 	}
+	VersionTag = cfg.Version
 
 	releaseInfo, err := github.GetLatestRelease()
 	if err != nil {
 		fmt.Println("Error getting latest release info: ", err)
 	} else {
-		if releaseInfo.TagName != cfg.Version {
+		if releaseInfo.TagName != VersionTag {
 			fmt.Println("New version available: ", releaseInfo.TagName)
 
 			fmt.Println("Release notes: ", releaseInfo.Body)
@@ -85,8 +86,6 @@ func main() {
 					os.Exit(0)
 				}
 			}
-			VersionTag = releaseInfo.TagName
-			cfg.Version = VersionTag
 		} else {
 			fmt.Println("You are using the latest version")
 		}
