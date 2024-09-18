@@ -106,11 +106,13 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 	destDir := filepath.Dir(dest)
 	err := os.MkdirAll(destDir, os.ModePerm)
 	if err != nil {
+		log.Println("[DownloadChunkedDataDest][Err][MkdirAll] ", link, " ,dest: ", dest, " ,err: ", err)
 		return "", err
 	}
 
 	fileSize, err := getFileSizeFromLink(link)
 	if err != nil {
+		log.Println("[DownloadChunkedDataDest][Err][getFileSizeFromLink] ", link, " ,dest: ", dest, " ,err: ", err)
 		return "", err
 	}
 
@@ -147,13 +149,14 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 		if chunkLeft < maxConcurrentChunk {
 			maxConcurrentChunk = chunkLeft
 		}
+
+		log.Println("[DownloadChunkedDataDest] - link: ", link, "maxConcurrentChunk: ", maxConcurrentChunk)
 		if maxConcurrentChunk == 0 {
 			break
 		}
 		startPart := part
 
 		//log.Println("maxConcurrentChunk: ", maxConcurrentChunk)
-		log.Println("[DownloadChunkedDataDest] - link: ", link, "maxConcurrentChunk: ", maxConcurrentChunk)
 		wg.Add(int(maxConcurrentChunk))
 		for i := int64(0); i < maxConcurrentChunk; i++ {
 			go func(fpart int64) {
@@ -169,11 +172,12 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 				log.Println("[DownloadChunkedDataDest] - download  - link: ", link, " ,fpart: ", fpart, "bytes: ", start, "-", end)
 				data, err := downloadChunkedData(link, int(start), int(end)-1)
 				if err != nil {
-					log.Println("Download chunked data got error", err)
+					//log.Println("Download chunked data got error", err)
+					log.Println("[DownloadChunkedDataDest][downloadChunkedData][Err] - download  - link: ", link, " ,fpart: ", fpart, "bytes: ", start, "-", end, " ,error: ", err)
 					return
 				}
 				if len(data) == 0 {
-					log.Println("Empty data", fpart)
+					log.Println("[DownloadChunkedDataDest][downloadChunkedData][Err] - download  - link: ", link, " ,fpart: ", fpart, "bytes: ", start, "-", end, " ,error: empty part")
 					return
 				}
 
@@ -192,11 +196,16 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 		var data []byte
 
 		if len(dataBuffer) == 0 {
-			return "", errors.New("No data downloaded")
+			err = errors.New("No data downloaded")
+
+			log.Println("[DownloadChunkedDataDest][downloadChunkedData][Err] - download  - link: ", link, " ,error: ", err)
+			return "", err
 		}
 
 		if len(dataBuffer) != int(maxConcurrentChunk) {
-			return "", errors.New("Missing data")
+			err = errors.New("Missing data")
+			log.Println("[DownloadChunkedDataDest][downloadChunkedData][Err] - download  - link: ", link, " ,error: ", err)
+			return "", err
 		}
 
 		for i := int64(startPart); i < part; i++ {
@@ -208,6 +217,7 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 
 		err = WriteFile(filePath, data, os.ModePerm)
 		if err != nil {
+			log.Println("[DownloadChunkedDataDest][downloadChunkedData][Err] - download  - link: ", link, " ,error: ", err)
 			return "", err
 		}
 
