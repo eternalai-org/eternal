@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
@@ -118,26 +119,27 @@ func (m *ModelInstance) SetupDocker() error {
 
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, filePath)
 		if err != nil {
-			log.Println("Check model file hash got error", err)
+			log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
 			return err
 		}
 
 		if !match {
-			log.Println("Model file hash not match")
+			err = errors.New("Model file hash not match")
+			log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
 			return err
 		}
 	} else {
-		log.Println("Model file already exist")
+		log.Println("[SetupDocker] Model file already exist")
 	}
 
 	err = dockercmd.LoadLocalImageWithCustomName(filePath, targetImageName)
 	if err != nil {
-		log.Println("Load local image got error", err)
+		log.Println("[SetupDocker][Err]  Load local image got error", err)
 		return err
 	}
 
 	m.Loaded = true
-
+	log.Println("[SetupDocker] - loaded")
 	return nil
 }
 
