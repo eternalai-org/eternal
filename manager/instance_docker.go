@@ -62,15 +62,18 @@ func (m *ModelInstance) SetupDocker() error {
 	var err error
 	targetImageName := m.ModelInfo.ModelAddr
 	fileExistValid := false
-	log.Println("[SetupDocker] -checkModelFileExist: ", m.ModelPath+"/model.zip")
+	log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName)
 	exist := checkModelFileExist(m.ModelPath + "/model.zip")
 	if exist {
+		log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist)
+
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, m.ModelPath+"/model.zip")
 		if err != nil {
 			log.Println("Check model file hash got error", err)
 			return err
 		}
 
+		log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " ,match: ", match)
 		if match {
 			fileExistValid = true
 			filePath = m.ModelPath + "/model.zip"
@@ -98,6 +101,7 @@ func (m *ModelInstance) SetupDocker() error {
 				return err
 			}
 		} else {
+			log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
 			filePath, err = downloadFile(urls, m.ModelPath+"/model.zip")
 			if err != nil {
 				log.Println("Download file with IPFS gateway got error", err)

@@ -100,6 +100,8 @@ func getFileSizeFromLink(link string) (int64, error) {
 }
 
 func DownloadChunkedDataDest(link string, dest string) (string, error) {
+	log.Println("[DownloadChunkedDataDest] - link: ", link, " ,dest: ", dest)
+
 	// check folder exist first, if not create
 	destDir := filepath.Dir(dest)
 	err := os.MkdirAll(destDir, os.ModePerm)
@@ -122,9 +124,10 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 	var end int64 = chunkSize
 
 	parts := fileSize/chunkSize + 1
-	log.Println("parts: ", parts)
+	//log.Println("parts: ", parts)
 	part := int64(0)
 
+	log.Println("[DownloadChunkedDataDest] - link: ", link, ", fileSize: ", fileSize, " ,chunkSize: ", chunkSize, " ,start: ", start, " ,end: ", end, " ,parts: ", parts, " ,part: ", part)
 	maxConcurrentChunk := int64(20)
 
 	_ = maxConcurrentChunk
@@ -149,7 +152,8 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 		}
 		startPart := part
 
-		log.Println("maxConcurrentChunk: ", maxConcurrentChunk)
+		//log.Println("maxConcurrentChunk: ", maxConcurrentChunk)
+		log.Println("[DownloadChunkedDataDest] - link: ", link, "maxConcurrentChunk: ", maxConcurrentChunk)
 		wg.Add(int(maxConcurrentChunk))
 		for i := int64(0); i < maxConcurrentChunk; i++ {
 			go func(fpart int64) {
@@ -161,7 +165,8 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 					end = fileSize
 				}
 
-				log.Println("part: ", fpart, "/", parts, end-start, "bytes", start, end)
+				//log.Println("part: ", fpart, "/", parts, end-start, "bytes", start, end)
+				log.Println("[DownloadChunkedDataDest] - download  - link: ", link, " ,fpart: ", fpart, "bytes: ", start, "-", end)
 				data, err := downloadChunkedData(link, int(start), int(end)-1)
 				if err != nil {
 					log.Println("Download chunked data got error", err)
@@ -175,6 +180,7 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 				dataBufferLck.Lock()
 				dataBuffer[fpart] = data
 				dataBufferLck.Unlock()
+				log.Println("[DownloadChunkedDataDest] - download  - link: ", link, "- done!!")
 
 			}(part)
 
@@ -206,8 +212,7 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 		}
 
 		downloadedSize += int64(len(data))
-
-		log.Println("downloadedSize: ", downloadedSize, "fileSize: ", fileSize)
+		log.Println("[DownloadChunkedDataDest] - link: ", link, " ,fileSize/ downloadedSize", fileSize, "/", downloadedSize)
 
 		// ----
 
