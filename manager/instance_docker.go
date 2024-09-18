@@ -31,6 +31,11 @@ func downloadFile(url, dest string) (string, error) {
 	return file.DownloadChunkedDataDest(url, dest)
 }
 
+func downloadSingleFile(url, dest string) (string, error) {
+	log.Println("[downloadSingleFile] url: ", url, " ,dest: ", dest)
+	return file.DownloadFile(url, dest)
+}
+
 func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 	urls := strings.Split(url, ",")
 	var filePaths []string
@@ -102,7 +107,9 @@ func (m *ModelInstance) SetupDocker() error {
 			}
 		} else {
 			log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
-			filePath, err = downloadFile(urls, m.ModelPath+"/model.zip")
+
+			//filePath, err = downloadFile(urls, m.ModelPath+"/model.zip") //old
+			filePath, err = downloadSingleFile(urls, m.ModelPath+"/model.zip") //new
 			if err != nil {
 				log.Println("Download file with IPFS gateway got error", err)
 				return err

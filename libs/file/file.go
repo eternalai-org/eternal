@@ -251,6 +251,49 @@ func DownloadChunkedDataDest(link string, dest string) (string, error) {
 	return filePath, nil
 }
 
+func DownloadFile(link string, dest string) (string, error) {
+	log.Println("[DownloadFile] - link: ", link, " ,dest: ", dest)
+
+	// check folder exist first, if not create
+	destDir := filepath.Dir(dest)
+	err := os.MkdirAll(destDir, os.ModePerm)
+	if err != nil {
+		log.Println("[DownloadFile][Err][MkdirAll] ", link, " ,dest: ", dest, " ,err: ", err)
+		return "", err
+	}
+
+	filePath := path.Join(dest)
+	if _, err = os.Stat(filePath); err == nil {
+		return filePath, nil
+	}
+
+	//download here
+	resp, err := http.Get(link)
+	if err != nil {
+		log.Println("[DownloadFile][Err][http.Get] ", link, " ,dest: ", dest, " ,err: ", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	//end download here
+	out, err := os.Create(filePath)
+	if err != nil {
+		log.Println("[DownloadFile][Err][os.Create] ", link, " ,dest: ", dest, " ,filePath: ", filePath, " ,err: ", err)
+		return "", err
+	}
+
+	defer out.Close()
+
+	n, err := io.Copy(out, resp.Body)
+	if err != nil {
+		log.Println("[DownloadFile][Err][io.Copy] ", link, " ,dest: ", dest, " ,filePath: ", filePath, " ,err: ", err)
+		return "", err
+	}
+
+	log.Println("[DownloadFile] - link: ", link, " ,dest: ", dest, " ,filePath: ", filePath, " ,n: ", n)
+	return filePath, nil
+}
+
 func DownloadChunkedData(link string, dir string) (string, error) {
 	// check folder exist first, if not create
 	err := os.MkdirAll(dir, os.ModePerm)
