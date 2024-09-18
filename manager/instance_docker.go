@@ -75,7 +75,7 @@ func (m *ModelInstance) SetupDocker() error {
 
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, m.ModelPath+"/model.zip")
 		if err != nil {
-			log.Println("Check model file hash got error", err)
+			log.Println("[SetupDocker] Check model file hash got error", err)
 			return err
 		}
 
@@ -86,10 +86,14 @@ func (m *ModelInstance) SetupDocker() error {
 		} else {
 			err = file.RemoveFile(m.ModelPath + "/model.zip")
 			if err != nil {
-				log.Println("Remove model file got error", err)
+				log.Println("[SetupDocker][Err] Remove model file got error", err)
 				return err
 			}
-			dockercmd.RemoveImage(targetImageName)
+
+			err1 := dockercmd.RemoveImage(targetImageName)
+			if err1 != nil {
+				log.Println("[SetupDocker][Err] RemoveImage err: ", err)
+			}
 		}
 	}
 
@@ -103,16 +107,16 @@ func (m *ModelInstance) SetupDocker() error {
 		if isMultiParts {
 			filePath, err = downloadMultiPartsModelDest(urls, m.ModelPath, "model.zip")
 			if err != nil {
-				log.Println("Download multi parts model got error", err)
+				log.Println("[SetupDocker][Err] Download multi parts model got error", err)
 				return err
 			}
 		} else {
-			log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
+			log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
 
 			//filePath, err = downloadFile(urls, m.ModelPath+"/model.zip") //old
 			filePath, err = downloadSingleFile(urls, m.ModelPath+"/model.zip") //new
 			if err != nil {
-				log.Println("Download file with IPFS gateway got error", err)
+				log.Println("[SetupDocker][Err] Download file with IPFS gateway got error", err)
 				return err
 			}
 		}
