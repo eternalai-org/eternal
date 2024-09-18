@@ -27,6 +27,7 @@ func isMultiPartsModelURL(url string) bool {
 }
 
 func downloadFile(url, dest string) (string, error) {
+	log.Println("[downloadFile] url: ", url, " ,dest: ", dest)
 	return file.DownloadChunkedDataDest(url, dest)
 }
 

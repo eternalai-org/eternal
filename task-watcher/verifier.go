@@ -51,6 +51,7 @@ func (tskw *TaskWatcher) retrieveRequestResult(requestID string) (*eaimodel.Task
 
 func downloadInferResult(resultURI string, filePath string) (string, error) {
 	resultURI = strings.ReplaceAll(resultURI, "ipfs://", lighthouse.IPFSGateway)
+	log.Println("[downloadInferResult] resultURI: ", resultURI, " ,filePath: ", filePath)
 	return file.DownloadChunkedDataDest(resultURI, filePath)
 }
 
