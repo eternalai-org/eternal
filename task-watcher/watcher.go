@@ -156,11 +156,14 @@ func (tskw *TaskWatcher) watchAssignedModel() {
 		if tskw.status.assignModel == "" || tskw.status.assignModel == "-" || tskw.status.assignModel == "0x0000000000000000000000000000000000000000" {
 			continue
 		}
+
+		log.Println("[watchAssignedModel].watchAssignedModel - assignModel ", tskw.status.assignModel)
 		currentLoadedModels := tskw.modelManager.GetLoadeModels()
 		if _, ok := currentLoadedModels[tskw.status.assignModel]; ok {
 			time.Sleep(5 * time.Second)
 			continue
 		}
+
 		err := tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
 		if err != nil {
 			log.Println("preload models error: ", tskw.status.assignModel, err)

@@ -126,6 +126,7 @@ func (m *ModelManager) PreloadModels(list []string) error {
 		// 	Text:   "Preloading model " + modelAddress,
 		// })
 
+		log.Println("[ModelManager].PreloadModels - modelAddress: ", modelAddress)
 		err := m.loadModel(modelAddress)
 		if err != nil {
 			return err
