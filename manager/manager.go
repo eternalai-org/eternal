@@ -165,8 +165,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		DisableGPU: m.disableGPU,
 	}
 
-	log.Println("Model path: ", inst.ModelPath)
-
+	log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
 	m.currentModels[strings.ToLower(modelAddress)] = inst
 
 	err = inst.SetupDocker()

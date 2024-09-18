@@ -61,6 +61,7 @@ func (m *ModelInstance) SetupDocker() error {
 	var err error
 	targetImageName := m.ModelInfo.ModelAddr
 	fileExistValid := false
+	log.Println("[SetupDocker] -checkModelFileExist: ", m.ModelPath+"/model.zip")
 	exist := checkModelFileExist(m.ModelPath + "/model.zip")
 	if exist {
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, m.ModelPath+"/model.zip")
