@@ -441,20 +441,22 @@ func (tskw *TaskWatcher) GetCurrentPendingTasks() []types.TaskRunnerInfo {
 }
 
 func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
+	log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
 	tskw.taskQueue <- task
 }
 
 func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
-
+	log.Println("[TaskWatcher].AssignTask")
 	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, &task)
 	if err != nil {
 		log.Println("create runner error: ", err)
 		return err
 	}
 
+	log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
 	err = tskw.AddRunner(task.TaskID, newRunner)
 	if err != nil {
-		log.Println("add runner error: ", err)
+		log.Println("[TaskWatcher].AssignTask - add runner error: ", err)
 		return err
 	}
 
@@ -494,15 +496,17 @@ func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, er
 }
 
 func (tskw *TaskWatcher) executeTasks() {
+	log.Println("[TaskWatcher].executeTasks")
 	for {
 		task := <-tskw.taskQueue
-
+		log.Println("[TaskWatcher].executeTasks - received task")
 		newRunner := tskw.GetRunner(task.TaskID)
 		if newRunner == nil {
 			log.Println("runner not found", task.TaskID)
 			continue
 		}
 
+		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
 		err := tskw.modelManager.MakeReady(task.ModelContract)
 		if err != nil {
 			log.Println("make ready error: ", err)
@@ -523,14 +527,14 @@ func (tskw *TaskWatcher) executeTasks() {
 			if isCompleted {
 				newRunner.SetDone()
 
-				log.Println("task already completed: ", task.TaskID)
-				log.Println("task done: ", task.TaskID)
+				log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
+				log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 				continue
 			}
 			// assign task to worker
 			err = tskw.executeWorkerTask(task)
 			if err != nil {
-				log.Println("execute worker task error: ", err)
+				log.Println("[TaskWatcher].executeTasks - execute worker task error: ", err)
 				time.Sleep(10 * time.Second)
 				newRunner.SetDone()
 				continue
@@ -540,7 +544,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			// assign task to validator
 			err := tskw.executeVerifierTask(task)
 			if err != nil {
-				log.Println("execute validator task error: ", err)
+				log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
 				time.Sleep(10 * time.Second)
 			}
 		}
@@ -553,7 +557,7 @@ func (tskw *TaskWatcher) executeTasks() {
 
 		newRunner.SetDone()
 
-		log.Println("task done: ", task.TaskID)
+		log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 		// tskw.RemoveRunner(task.TaskID)
 	}
 }
