@@ -283,7 +283,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 
 		tasks, err := tskw.getPendingTaskFromContract()
 		if err != nil {
-			log.Println("get pending task error: ", err)
+			log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
 			continue
 		}
 
@@ -294,17 +294,18 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			return taskAid.Cmp(taskBid) > 0
 		})
 
-		log.Println("pending tasks: ", len(tasks))
+		log.Println("[watchAndAssignTask] pending tasks: ", len(tasks))
 
 		for _, task := range tasks {
 			if len(tskw.currentRunner) >= maxConcurrentTask {
-				log.Println("worker is full")
+				log.Println("[watchAndAssignTask] worker is full, current tasks: ", len(tskw.currentRunner))
 				break
 			}
-			log.Println("assign task: ", task.TaskID, task.ModelContract, task.Params)
+
+			log.Println("[watchAndAssignTask] assign task: ", task.TaskID, task.ModelContract, task.Params)
 			err = tskw.AssignTask(task)
 			if err != nil {
-				log.Println("assign task error: ", err)
+				log.Println("[watchAndAssignTask] assign task error: ", err)
 			}
 		}
 
