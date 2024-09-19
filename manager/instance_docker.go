@@ -229,20 +229,21 @@ func (m *ModelInstance) StartDocker() error {
 	resultMountDir := filepath.Join(getCurrentDir(), "infer-results/"+m.ModelInfo.ModelAddr)
 	err := os.MkdirAll(resultMountDir, os.ModePerm)
 	if err != nil {
-		log.Printf("[StartDocker][ERR] ModelAddress: %v, took: %v, resultMountDir: %s,  err: %v  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir, err)
+		log.Printf("[StartDocker][ERR] ModelAddress: %v, resultMountDir: %s,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, err)
 		return err
 	}
 
-	log.Printf("[StartDocker][Success] ModelAddress: %v, took: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir)
+	log.Printf("[StartDocker][DEBUG][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
 	ctnInfo, err := dockercmd.CreateAndStartContainer(m.ModelInfo.ModelAddr, m.ModelInfo.ModelAddr, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
-		log.Printf("[StartDocker][ERR] ModelAddress: %v, took: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir, m.DisableGPU, err)
+		log.Printf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
 		return err
 	}
 
+	log.Printf("[StartDocker][DEBUG][GetContainerByName] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
 	existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
 	if err != nil {
-		log.Printf("[StartDocker][ERR] ModelAddress: %v, took: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir, m.DisableGPU, err)
+		log.Printf("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
 		return err
 	}
 
@@ -250,15 +251,15 @@ func (m *ModelInstance) StartDocker() error {
 	m.containerID = ctnInfo.ID
 	m.ResultDir = resultMountDir
 
-	log.Printf("[StartDocker][DEBUG] ModelAddress: %v, took: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir, m.Port, m.DisableGPU, m.containerID)
+	log.Printf("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 	err = dockercmd.WaitForContainerToReady(m.containerID)
 	if err != nil {
-		log.Printf("[StartDocker][ERR] ModelAddress: %v, took: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, time.Since(t), resultMountDir, m.Port, m.DisableGPU, m.containerID, err)
+		log.Printf("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID, err)
 		return err
 	}
 
 	m.Ready = true
-
+	log.Printf("[StartDocker][Success] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 	return nil
 }
 

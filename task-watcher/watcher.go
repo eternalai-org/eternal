@@ -166,7 +166,7 @@ func (tskw *TaskWatcher) watchAssignedModel() {
 
 		err := tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
 		if err != nil {
-			log.Println("preload models error: ", tskw.status.assignModel, err)
+			log.Println("[watchAssignedModel][Err] preload models error: ", tskw.status.assignModel, err)
 			continue
 		}
 	}

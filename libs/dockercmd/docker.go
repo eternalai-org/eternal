@@ -395,7 +395,8 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 
 	gpuOpts := opts.GpuOpts{}
 	if !disableGPU {
-		gpuOpts.Set("all")
+		//FOR debug purpose
+		//gpuOpts.Set("all")
 	}
 
 	hostConfig := &container.HostConfig{
