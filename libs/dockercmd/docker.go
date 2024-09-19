@@ -116,19 +116,23 @@ func RemoveImage(imageName string) error {
 }
 
 func LoadLocalImageWithCustomName(imagePath, imageName string) error {
-
+	log.Println("[SetupDocker][LoadLocalImageWithCustomName] - imagePath: ", imagePath, " ,imageName: ", imageName)
 	loadedImg, err := loadLocalImage(imagePath)
 	if err != nil {
+		log.Println("[SetupDocker][LoadLocalImageWithCustomName][Err] - imagePath: ", imagePath, " ,imageName: ", imageName, " ,error:", err)
 		return err
 	}
 
+	log.Println("[SetupDocker][LoadLocalImageWithCustomName] - imagePath: ", imagePath, " ,imageName: ", imageName, " ,loadedImg: ", loadedImg)
 	err = RenameImage(loadedImg, imageName)
 	if err != nil {
+		log.Println("[SetupDocker][LoadLocalImageWithCustomName][Err] - imagePath: ", imagePath, " ,imageName: ", imageName, " ,error:", err)
 		return err
 	}
 
 	err = RemoveImage(loadedImg)
 	if err != nil {
+		log.Println("[SetupDocker][LoadLocalImageWithCustomName][Err] - imagePath: ", imagePath, " ,imageName: ", imageName, " ,error:", err)
 		return err
 	}
 	return nil
