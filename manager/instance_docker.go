@@ -143,7 +143,7 @@ func (m *ModelInstance) SetupDocker() error {
 	}
 
 	m.Loaded = true
-	log.Println("[SetupDocker] - loaded")
+	log.Println("[SetupDocker] - loaded - filePath", filePath)
 	return nil
 }
 
