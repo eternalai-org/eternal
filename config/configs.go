@@ -25,6 +25,11 @@ type Config struct {
 	DisableGPU           bool   `json:"disable_gpu"`
 	DisableUpdateOnStart bool   `json:"disable_update_on_start"`
 	SilentMode           bool   `json:"silent_mode"`
+
+	ZKSync           bool   `json:"zk_sync"`
+	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
+	PaymasterAddress string `json:"paymaster_address"`
+	PaymasterToken   string `json:"paymaster_token"`
 }
 
 const (
