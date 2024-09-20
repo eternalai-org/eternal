@@ -54,6 +54,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
 	noUpdateOnStart := flag.Bool("no-update-on-start", false, "(optional) disable update on start")
 	silentMode := flag.Bool("silent", false, "(optional) silent mode")
+	zkSync := flag.Bool("zk", false, "(optional) zk")
 
 	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
@@ -77,6 +78,12 @@ func ReadConfig() (*Config, *CmdType, error) {
 		return nil, nil, err
 	}
 
+	cfg.ZKSync = *zkSync
+	if cfg.ZKSync {
+		cfg.PaymasterToken = strings.ToLower("0xCDbE9D69d5d9a98D85384C05b462D16A588B53FA")
+		cfg.PaymasterAddress = strings.ToLower("0xF40A14473F649d15Cd63D38f3CA68c4cbc301F3c")
+	}
+
 	if *port != 0 {
 		cfg.Port = *port
 	}
@@ -87,6 +94,9 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	if *rpc != "" {
 		cfg.RPC = *rpc
+		if cfg.ZKSync {
+			cfg.RPC = "https://rpc.eternalai.bvm.network/"
+		}
 	}
 
 	if mode != "" {
@@ -108,6 +118,9 @@ func ReadConfig() (*Config, *CmdType, error) {
 			return nil, nil, fmt.Errorf("invalid worker hub address")
 		}
 		cfg.WorkerHub = *workerHub
+		if cfg.ZKSync {
+			cfg.WorkerHub = strings.ToLower("0xfd6D21E8f0fA2D2c39017f55F9fD8FE4d250833A")
+		}
 	}
 
 	if *account != "" {
