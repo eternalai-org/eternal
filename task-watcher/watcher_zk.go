@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strings"
+	"time"
 )
 
 func (tskw *TaskWatcher) approveErc20Zk() error {
@@ -224,4 +225,61 @@ func (tskw *TaskWatcher) UnregisterZk() error {
 	}
 
 	return nil
+}
+
+func (tskw *TaskWatcher) RestakeZk() error {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return err
+	}
+
+	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return err
+	}
+
+	contractAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := zkabi.NewWorkerHub(contractAddress, zkClient)
+	if err != nil {
+		return err
+	}
+	_ = workerHub
+
+	unstake, err := workerHub.WorkerHubCaller.MinerUnstakeRequests(nil, *pbkHex)
+	if err == nil {
+		if unstake.UnlockAt != nil && unstake.Stake.Cmp(new(big.Int).SetInt64(0)) > 0 {
+			unstakeAt := time.Unix(unstake.UnlockAt.Int64(), 0).UTC()
+			if time.Now().Before(unstakeAt) {
+				instanceABI, err := abi.JSON(strings.NewReader(zkabi.WorkerHubABI))
+				if err != nil {
+					return err
+				}
+				//workerHub.RestakeForMiner()
+				dataBytes, err := instanceABI.Pack(
+					"restakeForMiner", 1,
+				)
+				if err != nil {
+					return err
+				}
+
+				_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			} else {
+				return errors.New("can not restake: unstakeAt after")
+			}
+		} else {
+			return errors.New("can not restake: unstake.Stake <= 0")
+		}
+	} else {
+		return err
+	}
 }

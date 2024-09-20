@@ -943,6 +943,9 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 }
 
 func (tskw *TaskWatcher) Restake() error {
+	if tskw.zkSync {
+		return tskw.RestakeZk()
+	}
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
