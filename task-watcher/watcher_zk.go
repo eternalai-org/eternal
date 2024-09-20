@@ -183,3 +183,45 @@ func (tskw *TaskWatcher) ClaimMiningRewardZk() error {
 
 	return nil
 }
+
+func (tskw *TaskWatcher) UnregisterZk() error {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return err
+	}
+
+	contractAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := zkabi.NewWorkerHub(contractAddress, zkClient)
+	if err != nil {
+		return err
+	}
+	_ = workerHub
+
+	instanceABI, err := abi.JSON(strings.NewReader(zkabi.WorkerHubABI))
+	if err != nil {
+		return err
+	}
+	//workerHub.UnregisterMiner()
+	dataBytes, err := instanceABI.Pack(
+		"unregisterMiner",
+	)
+	if err != nil {
+		return err
+	}
+
+	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return err
+	}
+	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -1172,6 +1172,9 @@ func (tskw *TaskWatcher) ReclaimStake() error {
 }
 
 func (tskw *TaskWatcher) Unregister() error {
+	if tskw.zkSync {
+		return tskw.UnregisterZk()
+	}
 	tskw.unstakeLock.Lock()
 	defer tskw.unstakeLock.Unlock()
 	ctx := context.Background()
