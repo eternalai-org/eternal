@@ -621,6 +621,9 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 }
 
 func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error {
+	if tskw.zkSync {
+		return tskw.SubmitResultZk(assignmentID, result)
+	}
 	// submit result to contract
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
