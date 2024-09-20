@@ -150,29 +150,14 @@ func (tskw *TaskWatcher) Start() {
 	if tskw.mode == "miner" {
 		staked, _ := tskw.isStaked()
 		if !staked {
-			if !tskw.zkSync {
-				err = tskw.stakeForWorker()
-			} else {
-				err = tskw.approveErc20Zk()
-				if err != nil {
-					log.Println("register error: ", err)
-					//return
-				}
-				err = tskw.stakeForWorkerZk()
-			}
+			err = tskw.stakeForWorker()
 			if err != nil {
 				log.Println("register error: ", err)
-				//return
 			}
 		}
-		if !tskw.zkSync {
-			err = tskw.joinForMinting()
-		} else {
-			err = tskw.joinForMintingZk()
-		}
+		err = tskw.joinForMinting()
 		if err != nil {
 			log.Println("join for minting error: ", err)
-			// return
 		}
 	}
 
@@ -213,6 +198,9 @@ func (tskw *TaskWatcher) watchWorkerInfo() {
 }
 
 func (tskw *TaskWatcher) joinForMinting() error {
+	if tskw.zkSync {
+		return tskw.joinForMintingZk()
+	}
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -874,6 +862,14 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 }
 
 func (tskw *TaskWatcher) stakeForWorker() error {
+	if tskw.zkSync {
+		err := tskw.approveErc20Zk()
+		if err != nil {
+			log.Println("register error: ", err)
+			return err
+		}
+		return tskw.stakeForWorkerZk()
+	}
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -1238,6 +1234,9 @@ func (tskw *TaskWatcher) Unregister() error {
 }
 
 func (tskw *TaskWatcher) ClaimMiningReward() error {
+	if tskw.zkSync {
+		return tskw.ClaimMiningRewardZk()
+	}
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
