@@ -115,7 +115,11 @@ func main() {
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: cfg.RPC,
 		// WS:  *ws,
-	}, VersionTag, cfg.WorkerHub, cfg.Account, cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode, 1, 1, modelManager, nil)
+	}, VersionTag,
+		cfg.WorkerHub, cfg.Account,
+		cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode,
+		1, 1, modelManager, nil,
+		cfg.ZKSync)
 	if err != nil {
 		panic(err)
 	}

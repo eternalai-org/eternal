@@ -71,9 +71,15 @@ type TaskWatcher struct {
 
 	hasNewVersion bool
 	newVersion    string
+
+	zkSync bool
 }
 
-func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account, modelsDir, lighthouseAPI, mode string, id, numOfWorker int, modelManager *manager.ModelManager, coordinator *coordinator.Coordinator) (*TaskWatcher, error) {
+func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
+	modelsDir, lighthouseAPI, mode string, id, numOfWorker int,
+	modelManager *manager.ModelManager,
+	coordinator *coordinator.Coordinator,
+	zkSycn bool) (*TaskWatcher, error) {
 
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
@@ -81,6 +87,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account, mo
 	}
 
 	return &TaskWatcher{
+		zkSync:       zkSycn,
 		networkCfg:   networkCfg,
 		modelsDir:    modelsDir,
 		version:      version,
