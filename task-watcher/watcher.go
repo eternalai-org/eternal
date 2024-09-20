@@ -1116,6 +1116,9 @@ func (tskw *TaskWatcher) GetWorkerBalance() string {
 }
 
 func (tskw *TaskWatcher) ReclaimStake() error {
+	if tskw.zkSync {
+		return tskw.ReclaimStakeZk()
+	}
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
