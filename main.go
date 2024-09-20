@@ -119,7 +119,7 @@ func main() {
 		cfg.WorkerHub, cfg.Account,
 		cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode,
 		1, 1, modelManager, nil,
-		cfg.ZKSync)
+		cfg.ZKSync, cfg.PaymasterAddress, cfg.PaymasterToken, true)
 	if err != nil {
 		panic(err)
 	}

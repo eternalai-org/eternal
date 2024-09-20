@@ -72,14 +72,20 @@ type TaskWatcher struct {
 	hasNewVersion bool
 	newVersion    string
 
-	zkSync bool
+	zkSync           bool
+	paymasterAddr    string
+	paymasterToken   string
+	paymasterFeeZero bool
 }
 
 func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 	modelsDir, lighthouseAPI, mode string, id, numOfWorker int,
 	modelManager *manager.ModelManager,
 	coordinator *coordinator.Coordinator,
-	zkSycn bool) (*TaskWatcher, error) {
+	zkSycn bool,
+	paymasterAddr string,
+	paymasterToken string,
+	paymasterZeroFee bool) (*TaskWatcher, error) {
 
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
@@ -87,13 +93,16 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 	}
 
 	return &TaskWatcher{
-		zkSync:       zkSycn,
-		networkCfg:   networkCfg,
-		modelsDir:    modelsDir,
-		version:      version,
-		account:      account,
-		address:      strings.ToLower(address),
-		taskContract: taskContract,
+		zkSync:           zkSycn,
+		paymasterAddr:    paymasterAddr,
+		paymasterToken:   paymasterToken,
+		paymasterFeeZero: paymasterZeroFee,
+		networkCfg:       networkCfg,
+		modelsDir:        modelsDir,
+		version:          version,
+		account:          account,
+		address:          strings.ToLower(address),
+		taskContract:     taskContract,
 		// watcherID:     id,
 		// numOfWorker:   numOfWorker,
 		modelManager:  modelManager,

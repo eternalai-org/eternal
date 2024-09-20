@@ -30,6 +30,7 @@ type Config struct {
 	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
 	PaymasterAddress string `json:"paymaster_address"`
 	PaymasterToken   string `json:"paymaster_token"`
+	PaymasterZeroFee bool   `json:"paymaster_zero_fee"`
 }
 
 const (
@@ -82,6 +83,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	if cfg.ZKSync {
 		cfg.PaymasterToken = strings.ToLower("0xCDbE9D69d5d9a98D85384C05b462D16A588B53FA")
 		cfg.PaymasterAddress = strings.ToLower("0xF40A14473F649d15Cd63D38f3CA68c4cbc301F3c")
+		cfg.PaymasterZeroFee = true
 	}
 
 	if *port != 0 {
