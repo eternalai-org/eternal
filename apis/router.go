@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"eternal-infer-worker/config"
 	watcher "eternal-infer-worker/task-watcher"
 	"eternal-infer-worker/types"
 	"fmt"
@@ -66,6 +67,8 @@ func (rt *Router) StartRouter() error {
 
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	apiv1 := r.Group("/api")
+
+	apiv1.GET("/chains", rt.GetChains)
 
 	apiv1.POST("/infer", rt.Infer)
 	apiv1.GET("/tasks", rt.GetTasks)
@@ -332,6 +335,13 @@ func (rt *Router) Infer(c *gin.Context) {
 func (rt *Router) GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, APIResponse{
 		Data:   rt.watcher.GetAllTasks(),
+		Status: http.StatusOK,
+	})
+}
+
+func (rt *Router) GetChains(c *gin.Context) {
+	c.JSON(http.StatusOK, APIResponse{
+		Data:   config.ChainConfigs,
 		Status: http.StatusOK,
 	})
 }

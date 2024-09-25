@@ -9,6 +9,52 @@ import (
 	"strings"
 )
 
+type ChainConfig struct {
+	ChainId          string `json:"chain_id"`
+	Rpc              string `json:"rpc"`
+	Explorer         string `json:"explorer"`
+	EaiErc20         string `json:"eai_erc20"`
+	Name             string `json:"name"`
+	NftAddress       string `json:"nft_address"`
+	PaymasterAddress string `json:"paymaster_address"`
+	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
+	PaymasterToken   string `json:"paymaster_token"`
+	WorkerhubAddress string `json:"workerhub_address"`
+	ZkSync           bool   `json:"zk_sync"`
+	EaiNative        bool   `json:"eai_native"`
+}
+
+var ChainConfigs = map[string]ChainConfig{
+	"43338": {
+		ChainId:          "43338",
+		Rpc:              "https://node.eternalai.org/",
+		Explorer:         "https://explorer.eternalai.org",
+		EaiErc20:         "EAI Subnet",
+		Name:             "",
+		NftAddress:       "",
+		PaymasterAddress: "",
+		PaymasterFeeZero: false,
+		PaymasterToken:   "",
+		WorkerhubAddress: "",
+		ZkSync:           false,
+		EaiNative:        false,
+	},
+	"222672": {
+		ChainId:          "222672",
+		Rpc:              "https://rpc.eternalai.bvm.network",
+		Explorer:         "https://explorer.eternalai.bvm.network",
+		EaiErc20:         "",
+		Name:             "Llama 405B Subnet",
+		NftAddress:       "0xf21ae831ae7d41b2f06023a99a914f511c2f7a34",
+		PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
+		PaymasterFeeZero: true,
+		PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
+		WorkerhubAddress: "0x26d854efc058a7a552c94297757fcee361b6a524",
+		ZkSync:           true,
+		EaiNative:        true,
+	},
+}
+
 type CmdType struct {
 	Cmd  string
 	Args []string
@@ -55,7 +101,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
 	noUpdateOnStart := flag.Bool("no-update-on-start", false, "(optional) disable update on start")
 	silentMode := flag.Bool("silent", false, "(optional) silent mode")
-	zkSync := flag.Bool("zk", false, "(optional) zk")
+	chain := flag.String("chain", "43338", "(optional) chain")
 
 	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
@@ -79,11 +125,12 @@ func ReadConfig() (*Config, *CmdType, error) {
 		return nil, nil, err
 	}
 
-	cfg.ZKSync = *zkSync
+	chainConfig := ChainConfigs[*chain]
+	cfg.ZKSync = chainConfig.ZkSync
 	if cfg.ZKSync {
-		cfg.PaymasterToken = strings.ToLower("0xCDbE9D69d5d9a98D85384C05b462D16A588B53FA")
-		cfg.PaymasterAddress = strings.ToLower("0xF40A14473F649d15Cd63D38f3CA68c4cbc301F3c")
-		cfg.PaymasterZeroFee = true
+		cfg.PaymasterToken = chainConfig.PaymasterToken
+		cfg.PaymasterAddress = chainConfig.PaymasterAddress
+		cfg.PaymasterZeroFee = chainConfig.PaymasterFeeZero
 	}
 
 	if *port != 0 {
@@ -97,7 +144,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	if *rpc != "" {
 		cfg.RPC = *rpc
 		if cfg.ZKSync {
-			cfg.RPC = "https://rpc.eternalai.bvm.network/"
+			cfg.RPC = chainConfig.Rpc
 		}
 	}
 
