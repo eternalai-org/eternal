@@ -866,11 +866,11 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 
 func (tskw *TaskWatcher) stakeForWorker() error {
 	if tskw.zkSync {
-		err := tskw.approveErc20Zk()
-		if err != nil {
-			log.Println("register error: ", err)
-			return err
-		}
+		//err := tskw.approveErc20Zk()
+		//if err != nil {
+		//	log.Println("register error: ", err)
+		//	return err
+		//}
 		return tskw.stakeForWorkerZk()
 	}
 	ctx := context.Background()

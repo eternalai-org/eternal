@@ -83,7 +83,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 	}
 	//workerHub.RegisterMiner()
 	dataBytes, err := instanceABI.Pack(
-		"registerMiner", 1, minStake,
+		"registerMiner", 1,
 	)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 	if err != nil {
 		return err
 	}
-	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, minStake, dataBytes)
 	if err != nil {
 		return err
 	}
