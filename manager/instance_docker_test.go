@@ -7,6 +7,10 @@ import (
 	"testing"
 )
 
+func TestModelInstance_SetupDocker2(t *testing.T) {
+
+}
+
 func TestModelInstance_SetupDocker(t *testing.T) {
 	type fields struct {
 		ModeID        string
