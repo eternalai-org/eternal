@@ -431,3 +431,33 @@ func fileExistOnNetwork(data []byte) (string, bool, error) {
 
 	return cid, true, nil
 }
+
+func DownloadToFile(hash string, filePath string) error {
+	dir := filepath.Dir(filePath)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Stat(filePath); err == nil {
+		return nil
+	}
+	data, _, err := DownloadDataSimple(hash)
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(data)
+	if err != nil {
+		f.Close()
+		os.Remove(filePath)
+		return err
+	}
+	err = f.Close()
+	if err != nil {
+		os.Remove(filePath)
+	}
+	return nil
+}

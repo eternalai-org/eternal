@@ -1,9 +1,9 @@
 package zip_hf_model_to_light_house
 
 import (
-	"aidojo/libs/lighthouse"
 	"bufio"
 	"encoding/json"
+	"eternal-infer-worker/libs/lighthouse"
 	"fmt"
 	"log"
 	"os"
@@ -153,38 +153,6 @@ func getListZipFile(modelFolder string, hfDir string) ([]string, error) {
 	return listFile, nil
 }
 
-func uploadListZipFileToLightHouse(modelFolder string, hfDir string, apiKey string) (*HFModelInLightHouse, error) {
-	listFile, err := getListZipFile(modelFolder, hfDir)
-	if err != nil {
-		return nil, err
-	}
-	if len(listFile) == 0 {
-		return nil, fmt.Errorf("no files pattern %v.zip.part-*  found in folder %v", modelFolder, hfDir)
-	}
-	result := HFModelInLightHouse{
-		Model:     modelFolder,
-		NumOfFile: len(listFile),
-		Files:     make([]HFModelZipFile, 0),
-	}
-	for i, file := range listFile {
-		log.Println("Start upload model ", modelFolder, "chunk", i, "file", file)
-		for j := 0; j < 10; i++ {
-			cid, err := lighthouse.UploadFile(apiKey, file, fmt.Sprintf("%v/%v", hfDir, file))
-			if err != nil {
-				log.Println("Error when upload model ", modelFolder, "retry", j, "chunk", i, "file", file, "err", err)
-				time.Sleep(2 * time.Minute)
-				continue
-				return nil, err
-			} else {
-				log.Println("Finish upload model ", modelFolder, "chunk", i, "file", file, "==> hash", cid)
-				result.Files = append(result.Files, HFModelZipFile{File: file, Hash: cid})
-				break
-			}
-		}
-	}
-	return &result, nil
-}
-
 func uploadHFModelResultToLightHouse(info *HFModelInLightHouse, apiKey string) (string, error) {
 	data, _ := json.Marshal(info)
 	cid, err := lighthouse.UploadData(apiKey, info.Model, data)
@@ -277,40 +245,4 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string) error {
 	}
 	log.Println("Success unzip list files")
 	return nil
-}
-
-func ZipAndUploadHFModelFromLightHouse(modelFolder string, hfDir string, apiKey string) (string, error) {
-	scriptFile, err := getScriptZipFile(modelFolder, hfDir)
-	if err != nil {
-		return "", fmt.Errorf("error when get script zip file:%v ", err)
-	}
-	log.Println("Start compress model")
-	output, err := ExecuteCommand(scriptFile)
-	if err != nil {
-		return "", fmt.Errorf("error when execute file:%v , output:%v", err, string(output))
-	}
-	log.Println("Finish compress model . Start upload model")
-	result, err := uploadListZipFileToLightHouse(modelFolder, hfDir, apiKey)
-	if err != nil {
-		return "", fmt.Errorf("error when upload list zip file to light house :%v ", err)
-	}
-	hash, err := uploadHFModelResultToLightHouse(result, apiKey)
-	if err != nil {
-		return "", fmt.Errorf("error when upload model result to light house :%v ", err)
-	}
-	return hash, nil
-}
-
-func UploadHFModelFromLightHouse(modelFolder string, hfDir string, apiKey string) (string, error) {
-	log.Println("Start upload model")
-	result, err := uploadListZipFileToLightHouse(modelFolder, hfDir, apiKey)
-	if err != nil {
-		return "", fmt.Errorf("error when upload list zip file to light house :%v ", err)
-	}
-
-	hash, err := uploadHFModelResultToLightHouse(result, apiKey)
-	if err != nil {
-		return "", fmt.Errorf("error when upload model result to light house :%v ", err)
-	}
-	return hash, nil
 }
