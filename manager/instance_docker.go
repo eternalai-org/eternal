@@ -62,14 +62,6 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 }
 
 func (m *ModelInstance) SetupDocker() error {
-	if m.TrainingRequest.ZKSync == true {
-		//TODO - implement me
-		log.Println("[SetupDocker] - m.TrainingRequest.ZKSync", m.TrainingRequest.ZKSync)
-
-		//break here
-		return nil
-	}
-
 	t := time.Now()
 	defer func() {
 		log.Printf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
@@ -77,7 +69,7 @@ func (m *ModelInstance) SetupDocker() error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 
-	if true {
+	if !m.TrainingRequest.ZKSync {
 		filePath := ""
 		var err error
 		targetImageName := m.ModelInfo.ModelAddr

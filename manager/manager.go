@@ -137,6 +137,10 @@ func (m *ModelManager) PreloadModels(list []string) error {
 	return nil
 }
 
+func (m *ModelManager) LoadModelTest(modelAddress string) error {
+	return m.loadModel(modelAddress)
+}
+
 func (m *ModelManager) loadModel(modelAddress string) error {
 	var loadErr error
 	defer func() {
