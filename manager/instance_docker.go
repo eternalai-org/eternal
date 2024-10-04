@@ -1,13 +1,16 @@
 package manager
 
 import (
+	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -58,9 +61,17 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 }
 
 func (m *ModelInstance) SetupDocker() error {
+	if m.TrainingRequest.ZKSync == true {
+		//TODO - implement me
+		log.Println("[SetupDocker] - m.TrainingRequest.ZKSync", m.TrainingRequest.ZKSync)
+
+		//break here
+		return nil
+	}
+
 	t := time.Now()
 	defer func() {
-		log.Printf("SetupDocker %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
+		log.Printf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
 	}()
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
@@ -483,4 +494,34 @@ func (m *ModelInstance) IsVerifierRunning() (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func (m *ModelInstance) GetTrainingRequest() error {
+	url := fmt.Sprintf("%s/api/dojo/model-info-by-model-address/%s", "https://api-dojo2.eternalai.org", m.ModelInfo.ModelAddr)
+	log.Println("[GetTrainingRequest] - url: ", url)
+
+	response, err := http.Get(url)
+	if err != nil {
+		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		return err
+	}
+	defer response.Body.Close() // Ensure the response body is closed
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		return err
+	}
+
+	data := &TrainingRequest{}
+	err = json.Unmarshal(body, data)
+	if err != nil {
+		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		return err
+	}
+
+	m.TrainingRequest = data
+	log.Println("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
+	return nil
 }

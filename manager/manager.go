@@ -157,7 +157,6 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		loadErr = err
 		return err
 	}
-	// TODO call api get training_request
 
 	inst := &ModelInstance{
 		ModelInfo:       *modelInfo,
@@ -165,6 +164,12 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		ModelPath:       filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
 		Port:            fmt.Sprintf("%v", randPort()),
 		DisableGPU:      m.disableGPU,
+	}
+
+	err = inst.GetTrainingRequest()
+	if err != nil {
+		loadErr = err
+		return err
 	}
 
 	log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
