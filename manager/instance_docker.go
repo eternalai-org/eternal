@@ -45,7 +45,7 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 	urls := strings.Split(url, ",")
 	var filePaths []string
 	for idx, u := range urls {
-		partPath := path + "/" + filename + "_" + string(idx)
+		partPath := path + "/" + filename + "_" + fmt.Sprintf("%d", idx)
 		filePath, err := downloadFile(lighthouse.IPFSGateway+u, partPath)
 		if err != nil {
 			return "", err
@@ -513,14 +513,14 @@ func (m *ModelInstance) GetTrainingRequest() error {
 		return err
 	}
 
-	data := &TrainingRequest{}
+	data := &APIResponse{}
 	err = json.Unmarshal(body, data)
 	if err != nil {
 		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
 		return err
 	}
 
-	m.TrainingRequest = data
+	m.TrainingRequest = &data.Data
 	log.Println("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
 	return nil
 }

@@ -35,8 +35,6 @@ type TrainingRequestERC20Info struct {
 	TokenPriceNumber     float64   `json:"token_price_number" bson:"token_price_number"`
 	TokenMarketCap       string    `json:"token_market_cap" bson:"token_market_cap"`
 	TokenMarketCapNumber float64   `json:"token_market_cap_number" bson:"token_market_cap_number"`
-	CirculatingSupply    string    `json:"circulating_supply" bson:"circulating_supply"`
-	CirculatingSupplyNum float64   `json:"circulating_supply_num" bson:"circulating_supply_num"`
 
 	CurrentDonate   string `json:"current_donate" bson:"current_donate"`
 	TotalInvestment string `json:"total_investment" bson:"-"`
@@ -46,13 +44,17 @@ type TrainingRequestERC20Info struct {
 	ERC20Owner      string `json:"erc20_owner" bson:"erc20_owner"`
 }
 
+type APIResponse struct {
+	Status int             `json:"status"`
+	Data   TrainingRequest `json:"data"`
+}
+
 type TrainingRequest struct {
 	ModelID          string                `json:"model_id" bson:"model_id"`
 	Params           string                `json:"params" bson:"params"`
 	Status           TrainingRequestStatus `json:"status" bson:"status"`
 	ModelCheckingLog string                `json:"model_checking_log" bson:"model_checking_log"`
 	Result           string                `json:"result" bson:"result"`
-	Creator          string                `json:"creator" bson:"creator"`
 	IsOnchain        bool                  `json:"is_onchain" bson:"is_onchain"`
 	Description      string                `json:"description" bson:"description"`
 
@@ -70,7 +72,7 @@ type TrainingRequest struct {
 	//LastPredict         *ModelPredictHistory `json:"last_predict" bson:"-"`
 	Category string `json:"category" bson:"category"`
 	//CurrentListing      *ModelMarket         `json:"current_listing" bson:"-"`
-	Owner               string `json:"owner" bson:"owner"`
+
 	LastUpdatedBlock    uint64 `json:"last_updated_block" bson:"last_updated_block"`
 	Thumbnail           string `json:"thumbnail" bson:"thumbnail"`
 	ClaimedDeployReward bool   `json:"claimed_deploy_reward" bson:"claimed_deploy_reward"`
