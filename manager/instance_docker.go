@@ -6,6 +6,7 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
+	"eternal-infer-worker/libs/zip_hf_model_to_light_house"
 	"fmt"
 	"log"
 	"os"
@@ -151,6 +152,12 @@ func (m *ModelInstance) SetupDocker() error {
 		m.Loaded = true
 		log.Println("[SetupDocker] - loaded - filePath", filePath)
 	} else {
+		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
+		hash := temp[len(temp)-1]
+		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelInfo.Metadata.ModelFileHash)
+		if err != nil {
+			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
+		}
 	}
 
 	return nil
