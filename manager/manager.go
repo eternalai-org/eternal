@@ -157,13 +157,14 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		loadErr = err
 		return err
 	}
+	// TODO call api get training_request
 
 	inst := &ModelInstance{
-		ModelInfo: *modelInfo,
-
-		ModelPath:  filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
-		Port:       fmt.Sprintf("%v", randPort()),
-		DisableGPU: m.disableGPU,
+		ModelInfo:       *modelInfo,
+		TrainingRequest: nil,
+		ModelPath:       filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
+		Port:            fmt.Sprintf("%v", randPort()),
+		DisableGPU:      m.disableGPU,
 	}
 
 	log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
@@ -181,7 +182,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	if m.nodeMode == "validator" {
+	/*if m.nodeMode == "validator" {
 		err = inst.SetupDockerVerifier()
 		if err != nil {
 			loadErr = err
@@ -193,7 +194,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 			loadErr = err
 			return err
 		}
-	}
+	}*/
 
 	m.status = "loaded"
 	return nil

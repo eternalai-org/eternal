@@ -30,6 +30,8 @@ type ModelInstance struct {
 	Loaded         bool
 	VerifierLoaded bool
 	DisableGPU     bool
+
+	TrainingRequest interface{}
 }
 
 // func setupCondaEnv(name, envFile string) error {

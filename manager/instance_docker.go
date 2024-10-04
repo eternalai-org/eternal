@@ -58,6 +58,9 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 }
 
 func (m *ModelInstance) SetupDocker() error {
+	//if m.TrainingRequest["ZKSync"] == true {
+	//	// TODO
+	//} else {}
 	t := time.Now()
 	defer func() {
 		log.Printf("SetupDocker %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
@@ -219,6 +222,10 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 }
 
 func (m *ModelInstance) StartDocker() error {
+	//if m.TrainingRequest["ZKSync"] == true {
+	//	// TODO
+	//} else {}
+
 	t := time.Now()
 	defer func() {
 		log.Printf("[StartDocker] %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
