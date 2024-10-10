@@ -182,7 +182,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 		}
 		cfg.WorkerHub = *workerHub
 		if cfg.ZKSync {
-			cfg.WorkerHub = strings.ToLower("0xfd6D21E8f0fA2D2c39017f55F9fD8FE4d250833A")
+			cfg.WorkerHub = strings.ToLower(chainConfig.WorkerhubAddress)
 		}
 	}
 
