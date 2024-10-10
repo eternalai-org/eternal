@@ -53,6 +53,20 @@ var ChainConfigs = map[string]ChainConfig{
 		ZkSync:           true,
 		EaiNative:        true,
 	},
+	"222673": {
+		ChainId:          "222673",
+		Rpc:              "https://rpc.fluxchain.eternalai.org",
+		Explorer:         "https://explorer.fluxchain.eternalai.org",
+		EaiErc20:         "",
+		Name:             "Flux Subnet",
+		NftAddress:       "0x747d9e388d71c11f1e69b556e10f50dbbe4c2d3b",
+		PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
+		PaymasterFeeZero: true,
+		PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
+		WorkerhubAddress: "0x430583bdff80c5be1536ed82f9c8090eef68e2f6",
+		ZkSync:           true,
+		EaiNative:        true,
+	},
 }
 
 type CmdType struct {
