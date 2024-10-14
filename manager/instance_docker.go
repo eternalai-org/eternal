@@ -164,7 +164,18 @@ func (m *ModelInstance) SetupDocker() error {
 		}
 
 		//TODO - rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
-		data := make(map[string]interface{})
+		type IndexJson struct {
+			SchemaVersion int    `json:"schemaVersion"`
+			MediaType     string `json:"mediaType"`
+			Manifests     []struct {
+				MediaType   string            `json:"mediaType"`
+				Digest      string            `json:"digest"`
+				Size        int               `json:"size"`
+				Annotations map[string]string `json:"annotations"`
+			} `json:"manifests"`
+		}
+
+		data := new(IndexJson)
 
 		indexFile := fmt.Sprintf("%s/%s", m.ModelPath, "index.json")
 		_byte, err := os.ReadFile(indexFile)
@@ -173,21 +184,34 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		err = json.Unmarshal(_byte, &data)
+		err = json.Unmarshal(_byte, data)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  cannot parse data of: ", indexFile, " ,err: ", err)
 			return err
 		}
 
-		imageName, ok := data["rd.image.name"]
-		if !ok {
+		if len(data.Manifests) == 0 {
 			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: %s", indexFile)
 			log.Println(str)
 			err = errors.New(str)
 			return err
 		}
 
-		imageNameString := imageName.(string)
+		imageName := ""
+		for _, i := range data.Manifests {
+			iN, ok := i.Annotations["io.containerd.image.name"]
+			if ok {
+				imageName = iN
+			}
+		}
+
+		if imageName == "" {
+			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: %s (json data)", indexFile)
+			log.Println(str)
+			err = errors.New(str)
+			return err
+		}
+
 		log.Println("[SetupDocker][Debug] image name: ", indexFile, " ,imageNameString: ", imageNameString)
 
 	}
