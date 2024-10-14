@@ -13,7 +13,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -227,14 +226,12 @@ func (m *ModelInstance) SetupDocker() error {
 		oldName := imageNameTag[0]
 		tag := imageNameTag[1]
 
-		cmd := fmt.Sprintf("docker tag %s:%s %s:%s", oldName, tag, m.ModelInfo.ModelAddr, tag)
-		command := exec.Command(cmd)
-		out, err := command.Output()
+		nameName := fmt.Sprintf("%s:%s", m.ModelInfo.ModelAddr, tag)
+		err = dockercmd.RenameImage(oldName, nameName)
 		if err != nil {
-			log.Println("[SetupDocker][Err] cannot update image name via: ", cmd, " ,err: ", err)
+			log.Println("[SetupDocker][Err] cannot update image name", err)
 			return err
 		}
-		_ = out
 
 	}
 
