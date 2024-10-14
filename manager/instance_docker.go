@@ -212,7 +212,7 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		log.Println("[SetupDocker][Debug] image name: ", indexFile, " ,imageNameString: ", imageNameString)
+		log.Println("[SetupDocker][Debug] image name: ", indexFile, " ,imageNameString: ", imageName)
 
 	}
 
