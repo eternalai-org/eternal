@@ -228,7 +228,7 @@ func (m *ModelInstance) SetupDocker() error {
 		tag := imageNameTag[1]
 
 		cmd := fmt.Sprintf("docker tag %s:%s %s:%s", oldName, tag, m.ModelInfo.ModelAddr, tag)
-		command := exec.Command("/usr/bin/bash", cmd)
+		command := exec.Command(cmd)
 		out, err := command.Output()
 		if err != nil {
 			log.Println("[SetupDocker][Err] cannot update image name via: ", cmd, " ,err: ", err)
