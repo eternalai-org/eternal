@@ -359,6 +359,8 @@ func WaitForContainerToReady(containerID string) error {
 	return nil
 }
 
+// imageTag: 0xcnsnvcsnvk (model)
+// containerName: 0xcnsnvcsnvk
 func CreateAndStartContainer(imageTag string, containerName, containerPort, mountFolder string, disableGPU bool) (*container.ContainerCreateCreatedBody, error) {
 	existedContainer, err := GetContainerByName(containerName)
 	if err != nil {
