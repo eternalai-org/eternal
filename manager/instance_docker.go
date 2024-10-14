@@ -160,7 +160,36 @@ func (m *ModelInstance) SetupDocker() error {
 		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
+			return err
 		}
+
+		//TODO - rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
+		data := make(map[string]interface{})
+
+		indexFile := fmt.Sprintf("%s/%s", m.ModelPath, "index.json")
+		_byte, err := os.ReadFile(indexFile)
+		if err != nil {
+			log.Println("[SetupDocker][Err]  cannot read ", indexFile, " ,err: ", err)
+			return err
+		}
+
+		err = json.Unmarshal(_byte, data)
+		if err != nil {
+			log.Println("[SetupDocker][Err]  cannot parse data of: ", indexFile, " ,err: ", err)
+			return err
+		}
+
+		imageName, ok := data["rd.image.name"]
+		if !ok {
+			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: %s", indexFile)
+			log.Println(str)
+			err = errors.New(str)
+			return err
+		}
+
+		imageNameString := imageName.(string)
+		log.Println("[SetupDocker][Debug] image name: ", indexFile, " ,imageNameString: ", imageNameString)
+
 	}
 
 	return nil
