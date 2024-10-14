@@ -3,13 +3,17 @@ package zip_hf_model_to_light_house
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
+	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -188,6 +192,8 @@ func getHFModelResultFromLightHouse(hash string) (*HFModelInLightHouse, error) {
 func downloadZipFileFromLightHouse(info *HFModelInLightHouse, hfDir string) error {
 	input := make(chan HFModelZipFile)
 	errors := make(chan error)
+
+	log.Println("[downloadZipFileFromLightHouse]", "THREADS", THREADS)
 	for i := 0; i < THREADS; i++ {
 		go func() {
 			for file := range input {
@@ -210,6 +216,7 @@ func downloadZipFileFromLightHouse(info *HFModelInLightHouse, hfDir string) erro
 			}
 		}()
 	}
+
 	go func() {
 		for _, file := range info.Files {
 			input <- file
@@ -235,12 +242,18 @@ func downloadZipFileFromLightHouse(info *HFModelInLightHouse, hfDir string) erro
 	return nil
 }
 
+type DownloadFileChan struct {
+	Data HFModelZipFile
+	Msg  *string
+	Err  error
+}
+
 func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) error {
 	info, err := getHFModelResultFromLightHouse(hash)
 	if err != nil {
 		return fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
 	}
-	err = downloadZipFileFromLightHouse(info, hfDir)
+	err = downloadZipFileFromLightHouseNew(info, hfDir)
 	if err != nil {
 		return fmt.Errorf("error when download zip chunk file:%v ", err)
 	}
@@ -254,5 +267,77 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) err
 		return fmt.Errorf("error when execute file:%v , output:%v", err, string(output))
 	}
 	log.Println("Success unzip list files")
+	return nil
+}
+
+func DownloadHFFile(wg *sync.WaitGroup, hfFile HFModelZipFile, modelPath string, dlChan chan DownloadFileChan) {
+	defer wg.Done()
+	downloadedFilePath := new(string)
+	var err error
+	_dl := ""
+
+	defer func() {
+		dlChan <- DownloadFileChan{
+			Err:  err,
+			Data: hfFile,
+			Msg:  downloadedFilePath,
+		}
+	}()
+
+	url := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hfFile.Hash)
+	dest := fmt.Sprintf("%s/%s", modelPath, hfFile.File)
+
+	_dl, err = file.DownloadFile(url, dest)
+
+	downloadedFilePath = &_dl
+
+}
+
+func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) error {
+	//index downloaded files for sorting.
+	errorNum := 0
+	var wg sync.WaitGroup
+	total := info.NumOfFile
+	limit := 5 //10 process at once
+	lastPageItems := total % limit
+
+	_t := float64(total) / float64(limit)
+	totalPage := int(math.Ceil(_t))
+
+	for page := 1; page <= totalPage; page++ {
+		dlChan := make(chan DownloadFileChan)
+
+		offset := (page - 1) * limit
+		start := offset
+		end := offset + limit
+		if page != totalPage {
+			wg.Add(limit)
+		} else {
+			end = offset + lastPageItems
+			wg.Add(lastPageItems)
+		}
+
+		for i := start; i < end; i++ {
+			go DownloadHFFile(&wg, info.Files[i], hfDir, dlChan)
+		}
+
+		for i := start; i < end; i++ {
+			dFChan := <-dlChan
+			if dFChan.Err != nil {
+				errorNum++
+				log.Println("[DownloadFile][Error] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
+			} else {
+				log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
+			}
+		}
+		//download here
+		wg.Wait()
+		//time.Sleep(time.Second * 2)
+	}
+
+	if errorNum != 0 {
+		return errors.New("error while download file")
+	}
+
 	return nil
 }
