@@ -3,7 +3,6 @@ package zip_hf_model_to_light_house
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
 	"fmt"
@@ -295,11 +294,17 @@ func DownloadHFFile(wg *sync.WaitGroup, hfFile HFModelZipFile, modelPath string,
 
 func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) error {
 	//index downloaded files for sorting.
+	if info.NumOfFile == 0 {
+		return nil
+	}
+
 	errorNum := 0
 	var wg sync.WaitGroup
 	total := info.NumOfFile
 	limit := 5 //10 process at once
 	lastPageItems := total % limit
+
+	retryDownload := []HFModelZipFile{}
 
 	_t := float64(total) / float64(limit)
 	totalPage := int(math.Ceil(_t))
@@ -326,6 +331,7 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 			if dFChan.Err != nil {
 				errorNum++
 				log.Println("[DownloadFile][Error] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
+				retryDownload = append(retryDownload, dFChan.Data)
 			} else {
 				log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
 			}
@@ -336,7 +342,19 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 	}
 
 	if errorNum != 0 {
-		return errors.New("error while download file")
+		retryInfo := HFModelInLightHouse{
+			Model:     info.Model,
+			NumOfFile: len(retryDownload),
+			Files:     retryDownload,
+		}
+
+		//remove the error file
+		for _, i := range retryDownload {
+			os.Remove(fmt.Sprintf("%s/%s", hfDir, i.File))
+		}
+
+		return downloadZipFileFromLightHouseNew(&retryInfo, hfDir)
+		//return errors.New("error while download file")
 	}
 
 	return nil
