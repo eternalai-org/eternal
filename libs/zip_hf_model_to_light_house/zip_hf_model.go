@@ -92,10 +92,16 @@ func getScriptUnZipFile(modelFolder string, hfDir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error write file:%v", err)
 	}
-	_, err = file.WriteString(fmt.Sprintf("sudo cat %v.zip.part-* | sudo pigz -p %v -d | sudo tar -xf -", modelFolder, 2))
+
+	//TODO - update here
+	script := fmt.Sprintf("sudo cat %v.zip.part-* | sudo pigz -p %v -d | sudo tar -xf -", modelFolder, 2)
+	log.Println("[getScriptUnZipFile]", "modelFolder: ", modelFolder, " ,hfDir: ", hfDir, " ,script: ", script)
+
+	_, err = file.WriteString(script)
 	if err != nil {
 		return "", fmt.Errorf("error write file:%v", err)
 	}
+
 	return filePath, nil
 }
 

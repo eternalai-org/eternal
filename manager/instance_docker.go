@@ -157,7 +157,7 @@ func (m *ModelInstance) SetupDocker() error {
 	} else {
 		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 		hash := temp[len(temp)-1]
-		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelInfo.Metadata.ModelFileHash)
+		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
 		}
@@ -253,6 +253,7 @@ func (m *ModelInstance) StartDocker() error {
 	}
 
 	log.Printf("[StartDocker][DEBUG][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
+	//TODO - get image's name
 	ctnInfo, err := dockercmd.CreateAndStartContainer(m.ModelInfo.ModelAddr, m.ModelInfo.ModelAddr, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
 		log.Printf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
