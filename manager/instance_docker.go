@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -163,7 +164,7 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		//TODO - rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
+		//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
 		type IndexJson struct {
 			SchemaVersion int    `json:"schemaVersion"`
 			MediaType     string `json:"mediaType"`
@@ -212,7 +213,28 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		log.Println("[SetupDocker][Debug] image name: ", indexFile, " ,imageNameString: ", imageName)
+		log.Println("[SetupDocker][Debug] index.json: ", indexFile, " ,imageNameString: ", imageName)
+
+		//rename image to: model_address
+		imageNameTag := strings.Split(imageName, ":")
+		if len(imageNameTag) < 2 {
+			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name + tag: %s", imageName)
+			log.Println(str)
+			err = errors.New(str)
+			return err
+		}
+
+		oldName := imageNameTag[0]
+		tag := imageNameTag[1]
+
+		cmd := fmt.Sprintf("docker tag %s:%s %s:%s", oldName, tag, m.ModelInfo.ModelAddr, tag)
+		command := exec.Command("/usr/bin/bash", cmd)
+		out, err := command.Output()
+		if err != nil {
+			log.Println("[SetupDocker][Err] cannot update image name via: ", cmd, " ,err: ", err)
+			return err
+		}
+		_ = out
 
 	}
 
