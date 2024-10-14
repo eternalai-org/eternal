@@ -157,62 +157,28 @@ func (m *ModelInstance) SetupDocker() error {
 	} else {
 		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 		hash := temp[len(temp)-1]
-		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
+		out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
 			return err
 		}
 
 		//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
-		type IndexJson struct {
-			SchemaVersion int    `json:"schemaVersion"`
-			MediaType     string `json:"mediaType"`
-			Manifests     []struct {
-				MediaType   string            `json:"mediaType"`
-				Digest      string            `json:"digest"`
-				Size        int               `json:"size"`
-				Annotations map[string]string `json:"annotations"`
-			} `json:"manifests"`
-		}
-
-		data := new(IndexJson)
-
-		indexFile := fmt.Sprintf("%s/%s", m.ModelPath, "index.json")
-		_byte, err := os.ReadFile(indexFile)
-		if err != nil {
-			log.Println("[SetupDocker][Err]  cannot read ", indexFile, " ,err: ", err)
-			return err
-		}
-
-		err = json.Unmarshal(_byte, data)
-		if err != nil {
-			log.Println("[SetupDocker][Err]  cannot parse data of: ", indexFile, " ,err: ", err)
-			return err
-		}
-
-		if len(data.Manifests) == 0 {
-			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: %s", indexFile)
+		msg := string(out)
+		if !strings.Contains(msg, "Loaded image:") {
+			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
 			log.Println(str)
 			err = errors.New(str)
 			return err
 		}
 
-		imageName := ""
-		for _, i := range data.Manifests {
-			iN, ok := i.Annotations["io.containerd.image.name"]
-			if ok {
-				imageName = iN
-			}
-		}
-
+		imageName := strings.TrimSpace(strings.ReplaceAll(msg, "Loaded image:", ""))
 		if imageName == "" {
-			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: %s (json data)", indexFile)
+			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from string: %s", imageName)
 			log.Println(str)
 			err = errors.New(str)
 			return err
 		}
-
-		log.Println("[SetupDocker][Debug] index.json: ", indexFile, " ,imageNameString: ", imageName)
 
 		//rename image to: model_address
 		imageNameTag := strings.Split(imageName, ":")
@@ -232,6 +198,8 @@ func (m *ModelInstance) SetupDocker() error {
 			log.Println("[SetupDocker][Err] cannot update image name", err)
 			return err
 		}
+
+		log.Println("[SetupDocker][Success]  loaded and changed image name from: ", imageName, " ,to: ", nameName)
 
 	}
 

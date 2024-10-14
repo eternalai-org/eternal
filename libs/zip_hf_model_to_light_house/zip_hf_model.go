@@ -248,27 +248,28 @@ type DownloadFileChan struct {
 	Err  error
 }
 
-func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) error {
+func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) ([]byte, error) {
 	info, err := getHFModelResultFromLightHouse(hash)
 	if err != nil {
-		return fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
+		return nil, fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
 	}
 	err = downloadZipFileFromLightHouseNew(info, hfDir)
 	if err != nil {
-		return fmt.Errorf("error when download zip chunk file:%v ", err)
+		return nil, fmt.Errorf("error when download zip chunk file:%v ", err)
 	}
 	scriptFile, err := getScriptUnZipFile(info.Model, hfDir, isZkSync)
 	if err != nil {
-		return fmt.Errorf("error when get unzip script file:%v ", err)
+		return nil, fmt.Errorf("error when get unzip script file:%v ", err)
 	}
 
 	log.Println("Start unzip list files: ", scriptFile)
 	output, err := ExecuteCommand(scriptFile)
 	if err != nil {
-		return fmt.Errorf("error when execute file:%v , output:%v", err, string(output))
+		return nil, fmt.Errorf("error when execute file:%v , output:%v", err, string(output))
 	}
+
 	log.Println("Success unzip list files")
-	return nil
+	return output, nil
 }
 
 func DownloadHFFile(wg *sync.WaitGroup, hfFile HFModelZipFile, modelPath string, dlChan chan DownloadFileChan) {
