@@ -11,7 +11,7 @@ func TestManager_LoadModel(t *testing.T) {
 }
 
 func TestManager_LoadModelZkyncFalse(t *testing.T) {
-	modelManager := NewModelManager("./models", "https://node.eternalai.org/", "miner", "0x05726BF187938c06d6C832dc493E3Df70fe735c8", false)
+	modelManager := NewModelManager("/home/models", "https://node.eternalai.org/", "miner", "0x05726BF187938c06d6C832dc493E3Df70fe735c8", false)
 	err := modelManager.LoadModelTest("0x8901edfde509d2ddc462cde2cea65f6e8ef27216")
 	if err != nil {
 		return
