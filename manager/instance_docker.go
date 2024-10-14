@@ -173,7 +173,7 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		err = json.Unmarshal(_byte, data)
+		err = json.Unmarshal(_byte, &data)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  cannot parse data of: ", indexFile, " ,err: ", err)
 			return err
