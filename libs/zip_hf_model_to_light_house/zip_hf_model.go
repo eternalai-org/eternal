@@ -45,6 +45,7 @@ func ExecuteCommand(fileCmd string) ([]byte, error) {
 		return out, err
 	}
 	out, err = os.ReadFile(fileLog)
+	log.Println("[ExecuteCommand][Debug] out: ", string(out))
 	return out, err
 }
 
