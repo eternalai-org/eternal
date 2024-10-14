@@ -286,8 +286,14 @@ func DownloadHFFile(wg *sync.WaitGroup, hfFile HFModelZipFile, modelPath string,
 	url := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hfFile.Hash)
 	dest := fmt.Sprintf("%s/%s", modelPath, hfFile.File)
 
-	_dl, err = file.DownloadFile(url, dest)
+	f, err := os.Open(dest)
+	if err == nil && f != nil {
+		//skip if existed
+		downloadedFilePath = &dest
+		return
+	}
 
+	_dl, err = file.DownloadFile(url, dest)
 	downloadedFilePath = &_dl
 
 }
