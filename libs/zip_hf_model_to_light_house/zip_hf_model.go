@@ -99,7 +99,7 @@ func getScriptUnZipFile(modelFolder string, hfDir string, isZkSync bool) (string
 	script := fmt.Sprintf("sudo cat %v.zip.part-* | sudo pigz -p %v -d | sudo tar -xf -", modelFolder, 2)
 	if isZkSync {
 		//use the new cmd
-		script = fmt.Sprintf("sudo cat %v.zip.part* | pigz -d | docker load", modelFolder)
+		script = fmt.Sprintf("sudo cat %v.zip.part* | pigz -d | docker load ", modelFolder)
 	}
 
 	log.Println("[getScriptUnZipFile]", "modelFolder: ", modelFolder, " ,hfDir: ", hfDir, " ,script: ", script)
@@ -260,7 +260,8 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) err
 	if err != nil {
 		return fmt.Errorf("error when get unzip script file:%v ", err)
 	}
-	log.Println("Start unzip list files")
+
+	log.Println("Start unzip list files: ", scriptFile)
 	output, err := ExecuteCommand(scriptFile)
 	if err != nil {
 		return fmt.Errorf("error when execute file:%v , output:%v", err, string(output))
