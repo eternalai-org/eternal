@@ -189,11 +189,11 @@ func (m *ModelInstance) SetupDocker() error {
 			return err
 		}
 
-		oldName := imageNameTag[0]
+		//oldName := imageNameTag[0]
 		tag := imageNameTag[1]
 
 		nameName := fmt.Sprintf("%s:%s", m.ModelInfo.ModelAddr, tag)
-		err = dockercmd.RenameImage(oldName, nameName)
+		err = dockercmd.RenameImage(imageName, nameName)
 		if err != nil {
 			log.Println("[SetupDocker][Err] cannot update image name", err)
 			return err
