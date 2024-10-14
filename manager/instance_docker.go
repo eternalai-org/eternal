@@ -157,7 +157,7 @@ func (m *ModelInstance) SetupDocker() error {
 	} else {
 		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 		hash := temp[len(temp)-1]
-		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath)
+		err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
 		if err != nil {
 			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
 			return err
