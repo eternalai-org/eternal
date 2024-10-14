@@ -307,7 +307,7 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 	errorNum := 0
 	var wg sync.WaitGroup
 	total := info.NumOfFile
-	limit := 5 //10 process at once
+	limit := 8 //8 process at once
 	lastPageItems := total % limit
 
 	retryDownload := []HFModelZipFile{}
@@ -342,9 +342,9 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 				log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
 			}
 		}
-		//download here
+
 		wg.Wait()
-		//time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 2)
 	}
 
 	if errorNum != 0 {
