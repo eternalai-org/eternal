@@ -1,7 +1,6 @@
 package db
 
 import (
-	"encoding/json"
 	"eternal-infer-worker/model_structures"
 	"testing"
 )
@@ -54,17 +53,11 @@ func TestWrite(t *testing.T) {
 func TestRead(t *testing.T) {
 	data := []model_structures.ContractSyncState{}
 
-	_b, err := Read(model_structures.ContractSyncState{}.CollectionName())
+	err := Read(model_structures.ContractSyncState{}.CollectionName(), &data)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = json.Unmarshal(_b, &data)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	t.Log("OK")
+	t.Log(data)
 }
