@@ -6,6 +6,7 @@ import (
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
+	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
 	"fmt"
 	"log"
@@ -23,16 +24,24 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 		log.Println("get model instance error: ", err)
 		return err
 	}
-
+	// execute to get result
 	ext := modelInst.GetExt()
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-
 	err = newRunner.Run(output)
 	if err != nil {
 		log.Println("run task error: ", err)
 		return err
 	}
 
+	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
+		return tskw.executeWorkerTaskDefault(modelInst, task, ext)
+	} else {
+
+	}
+	return nil
+}
+
+func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
 	resultData, err := readResultFile(fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext))
 	if err != nil {
 		log.Println("read result file error: ", err)
@@ -57,12 +66,10 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	}
 
 	log.Printf("\nsubmitting result for task %v size %v\n", task.TaskID, len(resultData))
-
 	err = tskw.SubmitResult(task.AssignmentID, resultData)
 	if err != nil {
 		log.Println("submit result error: ", err)
 		return err
 	}
-
 	return nil
 }
