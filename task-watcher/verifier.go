@@ -57,7 +57,7 @@ func downloadInferResult(resultURI string, filePath string) (string, error) {
 }
 
 func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
-	if task.ZKSync {
+	if !task.ZKSync {
 		// retrieveInferResult and check if the result is correct
 
 		// downloadInferResult to verifier docker volume (orgResult)
