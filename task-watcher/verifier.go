@@ -57,65 +57,69 @@ func downloadInferResult(resultURI string, filePath string) (string, error) {
 }
 
 func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
-	// retrieveInferResult and check if the result is correct
+	if task.ZKSync {
+		// retrieveInferResult and check if the result is correct
 
-	// downloadInferResult to verifier docker volume (orgResult)
-	// retry infer locally and write result to verifier docker volume (verfResult)
+		// downloadInferResult to verifier docker volume (orgResult)
+		// retry infer locally and write result to verifier docker volume (verfResult)
 
-	requestResult, err := tskw.retrieveRequestResult(task.TaskID)
-	if err != nil {
-		log.Println("retrieve request result error: ", err)
-		return err
+		requestResult, err := tskw.retrieveRequestResult(task.TaskID)
+		if err != nil {
+			log.Println("retrieve request result error: ", err)
+			return err
+		}
+
+		newRunner := tskw.GetRunner(task.TaskID)
+		if newRunner == nil {
+			log.Println("runner not found", task.TaskID)
+			return errors.New("runner not found")
+		}
+
+		modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
+		if err != nil {
+			log.Println("get model instance error: ", err)
+			return err
+		}
+
+		finalResult := &bytes.Buffer{}
+		ext := modelInst.GetExt()
+		output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
+
+		err = newRunner.Run(output)
+		if err != nil {
+			log.Println("run task error: ", err)
+			return err
+		}
+
+		result := newRunner.GetResult()
+		resultData, err := readResultFile(result)
+		if err != nil {
+			log.Println("read result file error: ", err)
+			return err
+		}
+		finalResult = bytes.NewBuffer(resultData)
+
+		orgResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/org_result.%v", task.TaskID, ext)
+		verfResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/verf_result.%v", task.TaskID, ext)
+
+		_ = finalResult
+
+		_, err = downloadInferResult(requestResult.ResultURI, orgResultPath)
+		if err != nil {
+			log.Println("download infer result error: ", err)
+			return err
+		}
+
+		err = writeResultFile(verfResultPath, resultData)
+		if err != nil {
+			log.Println("write result file error: ", err)
+			return err
+		}
+
+		// run verifier
+		// TODO
+		return nil
+	} else {
+		return nil
 	}
-
-	newRunner := tskw.GetRunner(task.TaskID)
-	if newRunner == nil {
-		log.Println("runner not found", task.TaskID)
-		return errors.New("runner not found")
-	}
-
-	modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
-	if err != nil {
-		log.Println("get model instance error: ", err)
-		return err
-	}
-
-	finalResult := &bytes.Buffer{}
-	ext := modelInst.GetExt()
-	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-
-	err = newRunner.Run(output)
-	if err != nil {
-		log.Println("run task error: ", err)
-		return err
-	}
-
-	result := newRunner.GetResult()
-	resultData, err := readResultFile(result)
-	if err != nil {
-		log.Println("read result file error: ", err)
-		return err
-	}
-	finalResult = bytes.NewBuffer(resultData)
-
-	orgResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/org_result.%v", task.TaskID, ext)
-	verfResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/verf_result.%v", task.TaskID, ext)
-
-	_ = finalResult
-
-	_, err = downloadInferResult(requestResult.ResultURI, orgResultPath)
-	if err != nil {
-		log.Println("download infer result error: ", err)
-		return err
-	}
-
-	err = writeResultFile(verfResultPath, resultData)
-	if err != nil {
-		log.Println("write result file error: ", err)
-		return err
-	}
-
-	// run verifier
-	// TODO
-	return nil
 }
