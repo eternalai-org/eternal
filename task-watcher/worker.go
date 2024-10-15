@@ -1,7 +1,6 @@
 package watcher
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
@@ -25,14 +24,7 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 		return err
 	}
 
-	finalResult := &bytes.Buffer{}
-	ext := "png"
-	switch modelInst.ModelInfo.Metadata.ModelType {
-	case eaimodel.ModelTypeImage:
-		ext = "png"
-	case eaimodel.ModelTypeText:
-		ext = "txt"
-	}
+	ext := modelInst.GetExt()
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 
 	err = newRunner.Run(output)
@@ -41,24 +33,13 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 		return err
 	}
 
-	result := fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext)
-	resultData, err := readResultFile(result)
+	resultData, err := readResultFile(fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext))
 	if err != nil {
 		log.Println("read result file error: ", err)
 		return err
 	}
-
-	switch modelInst.ModelInfo.Metadata.ModelType {
-	case eaimodel.ModelTypeImage:
-		finalResult = bytes.NewBuffer(resultData)
-	case eaimodel.ModelTypeText:
-		finalResult = bytes.NewBuffer(resultData)
-		ext = "txt"
-	}
-
 	log.Println("uploading result: ", fmt.Sprintf("%v_result.%v", task.TaskID, ext))
-
-	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), finalResult.Bytes())
+	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), resultData)
 	if err != nil {
 		log.Println("upload data error: ", err)
 		return err

@@ -216,3 +216,14 @@ func (m *ModelInstance) VerifyResult(orgResult, verfResult string) (string, erro
 
 	return inferResp.Output.OutputPath, nil
 }
+
+func (m *ModelInstance) GetExt() string {
+	ext := "png"
+	switch m.ModelInfo.Metadata.ModelType {
+	case eaimodel.ModelTypeImage:
+		ext = "png"
+	case eaimodel.ModelTypeText:
+		ext = "txt"
+	}
+	return ext
+}
