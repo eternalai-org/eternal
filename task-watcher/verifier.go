@@ -81,13 +81,7 @@ func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
 	}
 
 	finalResult := &bytes.Buffer{}
-	ext := "png"
-	switch modelInst.ModelInfo.Metadata.ModelType {
-	case eaimodel.ModelTypeImage:
-		ext = "png"
-	case eaimodel.ModelTypeText:
-		ext = "txt"
-	}
+	ext := modelInst.GetExt()
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 
 	err = newRunner.Run(output)
@@ -102,14 +96,7 @@ func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
 		log.Println("read result file error: ", err)
 		return err
 	}
-
-	switch modelInst.ModelInfo.Metadata.ModelType {
-	case eaimodel.ModelTypeImage:
-		finalResult = bytes.NewBuffer(resultData)
-	case eaimodel.ModelTypeText:
-		finalResult = bytes.NewBuffer(resultData)
-		ext = "txt"
-	}
+	finalResult = bytes.NewBuffer(resultData)
 
 	orgResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/org_result.%v", task.TaskID, ext)
 	verfResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/verf_result.%v", task.TaskID, ext)
