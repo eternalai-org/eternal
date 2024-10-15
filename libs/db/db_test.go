@@ -114,3 +114,28 @@ func TestUpdate(t *testing.T) {
 
 	t.Log(data)
 }
+
+func TestQuery(t *testing.T) {
+	resp1 := []model_structures.ContractSyncState{}
+	c := func(v interface{}) interface{} {
+		resp := []model_structures.ContractSyncState{}
+
+		input := v.(*[]model_structures.ContractSyncState)
+		for _, i := range *input {
+			if i.ContractAddress == "ContractAddress_updated_2" {
+				resp = append(resp, i)
+			}
+		}
+
+		return resp
+	}
+
+	data, err := Query(model_structures.ContractSyncState{}.CollectionName(), c, &resp1)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(data)
+}

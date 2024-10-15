@@ -98,3 +98,12 @@ func Update(collectionName string, data interface{}) error {
 
 	return nil
 }
+
+func Query(collectionName string, condition func(int interface{}) interface{}, out interface{}) (interface{}, error) {
+	err := Read(collectionName, out)
+	if err != nil {
+		return nil, err
+	}
+	resp := condition(out)
+	return resp, nil
+}
