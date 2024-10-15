@@ -7,14 +7,15 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
 	"fmt"
 	"log"
 )
 
 func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
-	newRunner := tskw.GetRunner(task.TaskID)
-	if newRunner == nil {
+	runnerInst := tskw.GetRunner(task.TaskID)
+	if runnerInst == nil {
 		log.Println("runner not found", task.TaskID)
 		return errors.New("runner not found")
 	}
@@ -26,22 +27,21 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	}
 	// execute to get result from docker container
 	ext := modelInst.GetExt()
-	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-	err = newRunner.Run(output)
-	if err != nil {
-		log.Println("run task error: ", err)
-		return err
-	}
-
 	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
-		return tskw.executeWorkerTaskDefault(modelInst, task, ext)
+		return tskw.executeWorkerTaskDefault(modelInst, task, ext, runnerInst)
 	} else {
 		// TODO
 		return tskw.executeWorkerTaskDefaultZk(modelInst, task, ext)
 	}
 }
 
-func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
+func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
+	err := newRunner.Run(output)
+	if err != nil {
+		log.Println("run task error: ", err)
+		return err
+	}
 	resultData, err := readResultFile(fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext))
 	if err != nil {
 		log.Println("read result file error: ", err)
