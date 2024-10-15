@@ -179,11 +179,11 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
 	m.currentModels[strings.ToLower(modelAddress)] = inst
 
-	//err = inst.SetupDocker()
-	//if err != nil {
-	//	loadErr = err
-	//	return err
-	//}
+	err = inst.SetupDocker()
+	if err != nil {
+		loadErr = err
+		return err
+	}
 
 	err = inst.StartDocker()
 	if err != nil {
