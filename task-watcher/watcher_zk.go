@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	zktypes "github.com/zksync-sdk/zksync2-go/types"
 	"log"
 	"math/big"
 	"strings"
@@ -373,7 +374,7 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 	return nil
 }
 
-func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) error {
+func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receipt, error) {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
 		tskw.paymasterAddr,
@@ -381,38 +382,38 @@ func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) error {
 
 	zkClient, err := client.GetZkClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	contractAddress := common.HexToAddress(tskw.taskContract)
 	workerHub, err := zkabi.NewWorkerHub(contractAddress, zkClient)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	_ = workerHub
 
 	instanceABI, err := abi.JSON(strings.NewReader(zkabi.WorkerHubABI))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	//workerHub.SeizeMinerRole()
 	dataBytes, err := instanceABI.Pack(
 		"seizeMinerRole", _assignmentId,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	transact, err := client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return transact, nil
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
@@ -476,10 +477,22 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					Params:        string(requestInfo.Input),
 					Requestor:     strings.ToLower(requestInfo.Creator.Hex()),
 					Value:         assignment.Value.String(),
+					ZKSync:        true,
 				}
 				log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
-				err := tskw.seizeMinerRole(assignment.AssignmentId)
+				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil {
+					for _, txLog := range transact.Receipt.Logs {
+						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
+						if err != nil {
+							continue
+						}
+						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
+							task.AssignmentRole = MODE_MINER
+						} else {
+							task.AssignmentRole = MODE_VALIDATOR
+						}
+					}
 					tasks = append(tasks, task)
 				}
 				continue

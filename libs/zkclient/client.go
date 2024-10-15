@@ -12,6 +12,7 @@ import (
 	zktypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
+	"time"
 )
 
 type Client struct {
@@ -307,6 +308,32 @@ func (c *Client) signAndSendTx(prkHex string, pbkHex common.Address, transact *a
 		return nil, err
 	}
 	return tx, nil
+}
+
+func (c *Client) WaitMined(ctx context.Context, txHash common.Hash) (*zktypes.Receipt, error) {
+	zkClient, err := c.GetZkClient()
+	if err != nil {
+		return nil, err
+	}
+	queryTicker := time.NewTicker(time.Second)
+	defer queryTicker.Stop()
+	retry := 0
+	for {
+		retry++
+		receipt, err := zkClient.TransactionReceipt(ctx, txHash)
+		if err == nil && receipt != nil && receipt.BlockNumber != nil {
+			return receipt, nil
+		}
+		if retry > 30 {
+			return nil, fmt.Errorf("err:%v when find tx :%v at rpc :%v after %v (times) retries ", err, txHash.Hex(), c.BaseURL, retry)
+		}
+		// Wait for the next round.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-queryTicker.C:
+		}
+	}
 }
 
 func (c *Client) BlockByNumber(ctx context.Context, blockNumber uint64) (*zktypes.Block, error) {
