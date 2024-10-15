@@ -24,7 +24,7 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 		log.Println("get model instance error: ", err)
 		return err
 	}
-	// execute to get result
+	// execute to get result from docker container
 	ext := modelInst.GetExt()
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 	err = newRunner.Run(output)
