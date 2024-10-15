@@ -19,6 +19,8 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+const OUTPUT_RESULT_DIR = "/output"
+
 func CheckDockerExist() bool {
 	apiClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -406,7 +408,7 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 			{
 				Type:   mount.TypeBind,
 				Source: mountFolder,
-				Target: "/output",
+				Target: OUTPUT_RESULT_DIR,
 			},
 		},
 		PortBindings: nat.PortMap{
