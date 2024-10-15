@@ -406,7 +406,7 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 			{
 				Type:   mount.TypeBind,
 				Source: mountFolder,
-				Target: "/output",
+				Target: "/src/output",
 			},
 		},
 		PortBindings: nat.PortMap{
