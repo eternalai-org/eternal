@@ -38,7 +38,7 @@ func Read(collectionName string, out interface{}) error {
 	return nil
 }
 
-func Write(data interface{}, collectionName string) error {
+func Write(collectionName string, data interface{}) error {
 	_path := path(collectionName)
 	// Check if the folder exists
 	if _, err := os.Stat(DB_PATH); os.IsNotExist(err) {
@@ -54,6 +54,44 @@ func Write(data interface{}, collectionName string) error {
 	}
 
 	err = os.WriteFile(_path, _b, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Update(collectionName string, data interface{}) error {
+	_path := collectionName
+	_pathSwap := fmt.Sprintf("%s~swap", _path)
+	_pathOld := fmt.Sprintf("%s~old", _path)
+	var err error
+
+	defer func() {
+		_pathSwap = path(_pathSwap)
+		_path = path(_path)
+		_pathOld = path(_pathOld)
+
+		if err != nil {
+			os.Remove(_pathSwap)
+		} else {
+			//all done
+			//back up
+			os.Rename(_path, _pathOld)
+
+			//rename ~swap to path
+			err := os.Rename(_pathSwap, _path)
+			if err == nil {
+				//remove the old data
+				os.Remove(_pathOld)
+				os.Remove(_pathSwap)
+			}
+
+		}
+
+	}()
+
+	err = Write(_pathSwap, data)
 	if err != nil {
 		return err
 	}
