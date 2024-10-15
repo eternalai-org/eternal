@@ -5,6 +5,8 @@ import (
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/libs/zkclient"
+	"eternal-infer-worker/manager"
+	"eternal-infer-worker/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -365,5 +367,9 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 		return err
 	}
 
+	return nil
+}
+
+func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
 	return nil
 }

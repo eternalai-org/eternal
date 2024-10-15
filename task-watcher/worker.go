@@ -36,9 +36,9 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
 		return tskw.executeWorkerTaskDefault(modelInst, task, ext)
 	} else {
-
+		// TODO
+		return tskw.executeWorkerTaskDefaultZk(modelInst, task, ext)
 	}
-	return nil
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
