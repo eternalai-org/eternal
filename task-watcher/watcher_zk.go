@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"context"
 	"errors"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/zkabi"
@@ -8,7 +9,9 @@ import (
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"log"
 	"math/big"
 	"strings"
 	"time"
@@ -375,5 +378,67 @@ func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInst
 }
 
 func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {
-	return nil, errors.New("not support")
+	startBlock := uint64(0)
+	endBlock := startBlock
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return []types.TaskInfo{}, err
+	}
+	contract, err := zkabi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
+	if err != nil {
+		return nil, err
+	}
+	return tskw.filterZKEventNewInference(contract, startBlock, endBlock)
+}
+
+func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, startBlock uint64, endBlock uint64,
+) ([]types.TaskInfo, error) {
+	tasks := make([]types.TaskInfo, 0)
+	ctx := context.Background()
+	iter, err := whContract.FilterNewInference(&bind.FilterOpts{
+		Start:   startBlock,
+		End:     &endBlock,
+		Context: ctx,
+	}, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	models := tskw.modelManager.GetLoadeModels()
+	for iter.Next() {
+		requestId := iter.Event.InferenceId
+		if err != nil {
+			return nil, err
+		}
+		requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
+		if err != nil {
+			return nil, err
+		}
+		modelAddr := strings.ToLower(requestInfo.ModelAddress.Hex())
+		if models[modelAddr] == nil {
+			continue
+		}
+		assignments, err := whContract.GetMintingAssignmentsOfInference(nil, requestId)
+		if err != nil {
+			return nil, err
+		}
+		for _, assignment := range assignments {
+			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
+			if err != nil {
+				continue
+			}
+			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
+				task := types.TaskInfo{
+					TaskID:        assignment.InferenceId.String(),
+					AssignmentID:  assignment.AssignmentId.String(),
+					ModelContract: strings.ToLower(modelAddr),
+					Params:        string(requestInfo.Input),
+					Requestor:     strings.ToLower(requestInfo.Creator.Hex()),
+					Value:         assignment.Value.String(),
+				}
+				log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
+				tasks = append(tasks, task)
+			}
+		}
+	}
+	return tasks, nil
 }

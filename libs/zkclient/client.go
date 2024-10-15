@@ -308,3 +308,16 @@ func (c *Client) signAndSendTx(prkHex string, pbkHex common.Address, transact *a
 	}
 	return tx, nil
 }
+
+func (c *Client) BlockByNumber(ctx context.Context, blockNumber uint64) (*zktypes.Block, error) {
+	client, err := c.GetZkClient()
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := client.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumber))
+	if err != nil {
+		return nil, err
+	}
+	return block, nil
+}
