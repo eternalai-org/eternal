@@ -1,6 +1,7 @@
 package model_structures
 
 type ContractSyncState struct {
+	ID               int    `json:"id"`
 	ContractAddress  string `json:"contract_address"`
 	Job              string `json:"job"`
 	LastSyncedBlock  uint64 `json:"last_synced_block"`
