@@ -298,10 +298,20 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 
 		}
 
-		tasks, err := tskw.getPendingTaskFromContract()
-		if err != nil {
-			log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
-			continue
+		var tasks []types.TaskInfo
+		var err error
+		if tskw.zkSync {
+			tasks, err = tskw.getPendingTaskFromContractZk()
+			if err != nil {
+				log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
+				continue
+			}
+		} else {
+			tasks, err = tskw.getPendingTaskFromContract()
+			if err != nil {
+				log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
+				continue
+			}
 		}
 
 		// sort tasks by task id in descending order

@@ -373,3 +373,7 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
 	return nil
 }
+
+func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {
+	return nil, errors.New("not support")
+}
