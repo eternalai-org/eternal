@@ -549,50 +549,45 @@ func (tskw *TaskWatcher) executeTasks() {
 			continue
 		}
 
-		if tskw.mode == MODE_MINER {
-			isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
-			if err != nil {
-				log.Println("check task completed error: ", err)
-				newRunner.SetDone()
-				time.Sleep(1 * time.Second)
-				continue
-			}
+		switch tskw.mode {
+		case MODE_MINER:
+			{
+				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
+				if err != nil {
+					log.Println("check task completed error: ", err)
+					newRunner.SetDone()
+					time.Sleep(1 * time.Second)
+					continue
+				}
 
-			if isCompleted {
-				newRunner.SetDone()
+				if isCompleted {
+					newRunner.SetDone()
 
-				log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
-				log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
-				continue
+					log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
+					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
+					continue
+				}
+				// assign task to worker
+				err = tskw.executeWorkerTask(task)
+				if err != nil {
+					log.Println("[TaskWatcher].executeTasks - execute worker task error: ", err)
+					time.Sleep(10 * time.Second)
+					newRunner.SetDone()
+					continue
+				}
 			}
-			// assign task to worker
-			err = tskw.executeWorkerTask(task)
-			if err != nil {
-				log.Println("[TaskWatcher].executeTasks - execute worker task error: ", err)
-				time.Sleep(10 * time.Second)
-				newRunner.SetDone()
-				continue
+		case MODE_VALIDATOR:
+			{
+				// assign task to validator
+				err := tskw.executeVerifierTask(task)
+				if err != nil {
+					log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
+					time.Sleep(10 * time.Second)
+				}
 			}
 		}
-		if tskw.mode == MODE_VALIDATOR {
-			// assign task to validator
-			err := tskw.executeVerifierTask(task)
-			if err != nil {
-				log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
-				time.Sleep(10 * time.Second)
-			}
-		}
-
-		// err = tskw.modelManager.PauseInstance(task.ModelContract)
-		// if err != nil {
-		// 	log.Println("pause instance error: ", err)
-		// 	time.Sleep(1 * time.Second)
-		// }
-
 		newRunner.SetDone()
-
 		log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
-		// tskw.RemoveRunner(task.TaskID)
 	}
 }
 
