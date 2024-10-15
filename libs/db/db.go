@@ -1,7 +1,6 @@
 package db
 
 import (
-	"eternal-infer-worker/model_structures"
 	"fmt"
 	"github.com/goccy/go-json"
 	"os"
@@ -13,7 +12,7 @@ func path(collectionName string) string {
 	return fmt.Sprintf("%s/%s.json", DB_PATH, collectionName)
 }
 
-func Read(collectionName string) ([]byte, error) {
+func read(collectionName string) ([]byte, error) {
 	_path := path(collectionName)
 
 	_byte, err := os.ReadFile(_path)
@@ -24,9 +23,19 @@ func Read(collectionName string) ([]byte, error) {
 	return _byte, nil
 }
 
-func Query() (*model_structures.IModel, error) {
+func Read(collectionName string, out interface{}) error {
 
-	return nil, nil
+	_b, err := read(collectionName)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(_b, &out)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Write(data interface{}, collectionName string) error {
