@@ -7,6 +7,7 @@ import (
 	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/libs/zkclient"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -416,8 +417,8 @@ func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receip
 	return transact, nil
 }
 
-func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string) error {
-	return nil
+func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	return tskw.executeWorkerTaskDefault(modelInst, task, ext, newRunner)
 }
 
 func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {

@@ -30,8 +30,7 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
 		return tskw.executeWorkerTaskDefault(modelInst, task, ext, runnerInst)
 	} else {
-		// TODO
-		return tskw.executeWorkerTaskDefaultZk(modelInst, task, ext)
+		return tskw.executeWorkerTaskDefaultZk(modelInst, task, ext, runnerInst)
 	}
 }
 
