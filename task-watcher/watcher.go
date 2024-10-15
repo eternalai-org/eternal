@@ -536,7 +536,11 @@ func (tskw *TaskWatcher) executeTasks() {
 			continue
 		}
 
-		switch tskw.mode {
+		mode := tskw.mode
+		if task.ZKSync {
+			mode = task.AssignmentRole
+		}
+		switch mode {
 		case MODE_MINER:
 			{
 				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
