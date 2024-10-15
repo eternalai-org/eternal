@@ -285,7 +285,7 @@ func (m *ModelInstance) StartDocker() error {
 
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
-	resultMountDir := filepath.Join("/output/infer-results/" + m.ModelInfo.ModelAddr)
+	resultMountDir := filepath.Join("/home/eternal_ai/infer-results/" + m.ModelInfo.ModelAddr)
 	err := os.MkdirAll(resultMountDir, os.ModePerm)
 	if err != nil {
 		log.Printf("[StartDocker][ERR] ModelAddress: %v, resultMountDir: %s,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, err)
