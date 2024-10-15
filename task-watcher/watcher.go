@@ -394,20 +394,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 	tasks := make([]types.TaskInfo, 0)
 	// TODO @liam get verifier task to
 	if tskw.mode == MODE_VALIDATOR {
-		// requests, err := workerHub.WorkerHubCaller.GetModelUnresolvedInferences(nil, modelAddress)
-		// if err != nil {
-		// 	return []types.TaskInfo{}, err
-		// }
-		// for _, request := range requests {
-		// 	task := types.TaskInfo{
-		// 		TaskID:        request.RequestId.String(),
-		// 		Value:         request.Value.String(),
-		// 		ModelContract: strings.ToLower(request.Model.Hex()),
-		// 		Params:        string(request.Data),
-		// 		Requestor:     strings.ToLower(request.Creator.Hex()),
-		// 	}
-		// 	tasks = append(tasks, task)
-		// }
+		return nil, errors.New("not support validator")
 	} else {
 		// get unresolved claimed inference requests
 		requests, err := workerHub.WorkerHubCaller.GetMiningAssignments(&bind.CallOpts{
