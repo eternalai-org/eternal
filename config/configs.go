@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"eternal-infer-worker/libs/eth"
+	watcher "eternal-infer-worker/task-watcher"
 	"flag"
 	"fmt"
 	"os"
@@ -124,9 +125,9 @@ func ReadConfig() (*Config, *CmdType, error) {
 	lighthouseAPI := flag.String("lighthouse", "", "(*REQUIRE) lighthouse api")
 
 	flag.Parse()
-	mode := "miner"
+	mode := watcher.MODE_MINER
 	if *modeValidator {
-		mode = "validator"
+		mode = watcher.MODE_VALIDATOR
 	}
 
 	if *help {
@@ -293,7 +294,7 @@ func (c *Config) setDefaultValue() {
 	}
 
 	if c.NodeMode == "" {
-		c.NodeMode = "miner"
+		c.NodeMode = watcher.MODE_MINER
 	}
 
 	if c.Account == "" {

@@ -47,6 +47,9 @@ type TaskWatcherStatus struct {
 	modelStatus            string
 }
 
+const MODE_MINER = "miner"
+const MODE_VALIDATOR = "validator"
+
 type TaskWatcher struct {
 	version      string
 	modelManager *manager.ModelManager
@@ -147,7 +150,7 @@ func (tskw *TaskWatcher) Start() {
 	// 	panic(err)
 	// }
 
-	if tskw.mode == "miner" {
+	if tskw.mode == MODE_MINER {
 		staked, _ := tskw.isStaked()
 		if !staked {
 			err = tskw.stakeForWorker()
@@ -390,7 +393,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 
 	tasks := make([]types.TaskInfo, 0)
 	// TODO @liam get verifier task to
-	if tskw.mode == "validator" {
+	if tskw.mode == MODE_VALIDATOR {
 		// requests, err := workerHub.WorkerHubCaller.GetModelUnresolvedInferences(nil, modelAddress)
 		// if err != nil {
 		// 	return []types.TaskInfo{}, err
@@ -546,7 +549,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			continue
 		}
 
-		if tskw.mode == "miner" {
+		if tskw.mode == MODE_MINER {
 			isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 			if err != nil {
 				log.Println("check task completed error: ", err)
@@ -571,7 +574,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				continue
 			}
 		}
-		if tskw.mode == "validator" {
+		if tskw.mode == MODE_VALIDATOR {
 			// assign task to validator
 			err := tskw.executeVerifierTask(task)
 			if err != nil {
