@@ -48,7 +48,7 @@ chmod +x eternal
 echo "> Setup complete!"
 echo
 echo "> To start the miner run:"
-echo "  ./eternal -account <private-key> -lighthouse <lighthouse-api-key>"
+echo "  ./eternal -account <private-key> -lighthouse <lighthouse-api-key> -chain <option default:43338>"
 echo
 # echo "> To start the validator run:"
 # echo "  ./eternal -validator -account <private-key> -lighthouse <lighthouse-api-key>"
