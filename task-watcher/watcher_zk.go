@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	zktypes "github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
@@ -361,6 +362,66 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 	//workerHub.SubmitSolution()
 	dataBytes, err := instanceABI.Pack(
 		"submitSolution", assignmentID, result,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return err
+	}
+	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tskw *TaskWatcher) createCommitHash(nonce uint64, sender common.Address, data []byte) [32]byte {
+	// uint40
+	packedData := make([]byte, 5+common.AddressLength+len(data))
+	packedData[0] = byte(nonce >> 32)
+	packedData[1] = byte(nonce >> 24)
+	packedData[2] = byte(nonce >> 16)
+	packedData[3] = byte(nonce >> 8)
+	packedData[4] = byte(nonce)
+	//seder
+	copy(packedData[5:], sender.Bytes())
+	//data
+	copy(packedData[5+common.AddressLength:], data)
+	return crypto.Keccak256Hash(packedData[:])
+}
+
+func (tskw *TaskWatcher) Commit(task types.TaskInfo, data []byte) error {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return err
+	}
+
+	contractAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := zkabi.NewWorkerHub(contractAddress, zkClient)
+	if err != nil {
+		return err
+	}
+	_ = workerHub
+
+	instanceABI, err := abi.JSON(strings.NewReader(zkabi.WorkerHubABI))
+	if err != nil {
+		return err
+	}
+	//workerHub.Commit()
+	_commitment := tskw.createCommitHash(uint64(1), common.HexToAddress(task.Requestor), data)
+	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
+	_ = ok
+	dataBytes, err := instanceABI.Pack(
+		"commit", _assignmentId, _commitment,
 	)
 	if err != nil {
 		return err

@@ -56,6 +56,8 @@ func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstan
 
 	taskResult := eaimodel.TaskResult{
 		ResultURI: resultLink,
+		Data:      nil,
+		Storage:   eaimodel.LightHouseStorageType,
 	}
 
 	resultData, err = json.Marshal(taskResult)
