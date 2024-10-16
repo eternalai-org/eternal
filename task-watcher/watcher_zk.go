@@ -3,10 +3,12 @@ package watcher
 import (
 	"context"
 	"errors"
+	"eternal-infer-worker/libs/db"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/libs/zkclient"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/model_structures"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -422,17 +424,71 @@ func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInst
 }
 
 func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {
-	startBlock := uint64(0)
-	endBlock := startBlock
+	//TODO - update here
+	ctx := context.Background()
+	jobName := "getPendingTaskFromContractZk"
+	state, err := tskw.GetContractSyncState(tskw.taskContract, jobName)
+	if err != nil || state == nil {
+		state = &model_structures.ContractSyncState{
+			Job:             jobName,
+			ContractAddress: strings.ToLower(tskw.taskContract),
+			LastSyncedBlock: 0,
+			ResyncFromBlock: 0,
+		}
+		err = db.Write(model_structures.ContractSyncState{}.CollectionName(), state)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return []types.TaskInfo{}, err
 	}
-	contract, err := zkabi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
+
+	currentBlock, err := ethClient.BlockNumber(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return tskw.filterZKEventNewInference(contract, startBlock, endBlock)
+
+	startBlock := state.LastSyncedBlock
+	var endBlock uint64
+	tasks := []types.TaskInfo{}
+
+	for {
+		if endBlock >= currentBlock || startBlock >= currentBlock {
+			break
+		}
+
+		if currentBlock-startBlock > 1000 {
+			endBlock = startBlock + 1000
+		} else {
+			endBlock = currentBlock
+		}
+
+		state.LastSyncedBlock = endBlock
+
+		err = tskw.UpdateContractSyncStateByAddressAndJob(state)
+		if err != nil {
+			break
+		}
+
+		contract, err := zkabi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
+		if err != nil {
+			return nil, err
+		}
+
+		_tasks, err := tskw.filterZKEventNewInference(contract, startBlock, endBlock)
+		if err != nil {
+			return nil, err
+		}
+
+		state.LastSyncedBlock = endBlock
+		startBlock = endBlock + 1
+		tasks = append(tasks, _tasks...)
+	}
+
+	return tasks, nil
 }
 
 func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, startBlock uint64, endBlock uint64,
@@ -501,4 +557,38 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		}
 	}
 	return tasks, nil
+}
+
+func (tskw *TaskWatcher) GetContractSyncState(contractAddress string, jobName string) (*model_structures.ContractSyncState, error) {
+	c := func(v interface{}) interface{} {
+		resp := []model_structures.ContractSyncState{}
+		input := v.(*[]model_structures.ContractSyncState)
+		for _, i := range *input {
+			if strings.EqualFold(i.ContractAddress, contractAddress) && strings.EqualFold(i.Job, jobName) {
+				resp = append(resp, i)
+			}
+		}
+		return resp
+	}
+
+	data, err := db.Query(model_structures.ContractSyncState{}.CollectionName(), c, &[]model_structures.ContractSyncState{})
+	if err != nil {
+		return nil, err
+	}
+
+	_v := data.([]model_structures.ContractSyncState)
+	if len(_v) == 0 {
+		err = errors.New("no document")
+		return nil, err
+	}
+
+	return &_v[0], nil
+}
+
+func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state *model_structures.ContractSyncState) error {
+	err := db.Update(state.CollectionName(), state)
+	if err != nil {
+		return err
+	}
+	return nil
 }
