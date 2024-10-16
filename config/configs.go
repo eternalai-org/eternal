@@ -40,7 +40,7 @@ var ChainConfigs = map[string]ChainConfig{
 		ZkSync:           false,
 		EaiNative:        false,
 	},
-	"222672": {
+	/*"222672": {
 		ChainId:          "222672",
 		Rpc:              "https://rpc.eternalai.bvm.network",
 		Explorer:         "https://explorer.eternalai.bvm.network",
@@ -53,7 +53,7 @@ var ChainConfigs = map[string]ChainConfig{
 		WorkerhubAddress: "0x01cfa8f0d8467cd0b03c93d6232d355b0c588f74",
 		ZkSync:           true,
 		EaiNative:        true,
-	},
+	},*/
 	"222673": {
 		ChainId:          "222673",
 		Rpc:              "https://rpc.fluxchain.eternalai.org",
@@ -161,6 +161,8 @@ func ReadConfig() (*Config, *CmdType, error) {
 		if cfg.ZKSync {
 			cfg.RPC = chainConfig.Rpc
 		}
+	} else {
+		cfg.RPC = chainConfig.Rpc
 	}
 
 	if mode != "" {
@@ -185,6 +187,8 @@ func ReadConfig() (*Config, *CmdType, error) {
 		if cfg.ZKSync {
 			cfg.WorkerHub = strings.ToLower(chainConfig.WorkerhubAddress)
 		}
+	} else {
+		cfg.WorkerHub = strings.ToLower(chainConfig.WorkerhubAddress)
 	}
 
 	if *account != "" {
