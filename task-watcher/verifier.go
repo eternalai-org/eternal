@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
@@ -11,7 +10,6 @@ import (
 	"eternal-infer-worker/types"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"math/big"
 	"strings"
 )
 
@@ -60,116 +58,72 @@ func downloadInferResult(resultURI string, filePath string) (string, error) {
 
 func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
 	if !task.ZKSync {
-		// retrieveInferResult and check if the result is correct
-
-		// downloadInferResult to verifier docker volume (orgResult)
-		// retry infer locally and write result to verifier docker volume (verfResult)
-
-		requestResult, err := tskw.retrieveRequestResult(task.TaskID)
-		if err != nil {
-			log.Println("retrieve request result error: ", err)
-			return err
-		}
-
-		newRunner := tskw.GetRunner(task.TaskID)
-		if newRunner == nil {
-			log.Println("runner not found", task.TaskID)
-			return errors.New("runner not found")
-		}
-
-		modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
-		if err != nil {
-			log.Println("get model instance error: ", err)
-			return err
-		}
-
-		finalResult := &bytes.Buffer{}
-		ext := modelInst.GetExt()
-		output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-
-		err = newRunner.Run(output)
-		if err != nil {
-			log.Println("run task error: ", err)
-			return err
-		}
-
-		result := newRunner.GetResult()
-		resultData, err := readResultFile(result)
-		if err != nil {
-			log.Println("read result file error: ", err)
-			return err
-		}
-		finalResult = bytes.NewBuffer(resultData)
-
-		orgResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/org_result.%v", task.TaskID, ext)
-		verfResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/verf_result.%v", task.TaskID, ext)
-
-		_ = finalResult
-
-		_, err = downloadInferResult(requestResult.ResultURI, orgResultPath)
-		if err != nil {
-			log.Println("download infer result error: ", err)
-			return err
-		}
-
-		err = writeResultFile(verfResultPath, resultData)
-		if err != nil {
-			log.Println("write result file error: ", err)
-			return err
-		}
-
-		// run verifier
-		// TODO
-		return nil
+		return tskw.executeVerifierTaskDefault(task)
 	} else {
-		inferenceId, ok := new(big.Int).SetString(task.InferenceID, 10)
-		if !ok {
-			return errors.New("invalid task")
-		}
-		infer, err := tskw.getInferenceInfo(inferenceId)
-		if err != nil {
-			return err
-		} else {
-			task.Status = infer.Status
-			switch task.Status {
-			case ContractInferenceStatusCommit:
-				{
-					runnerInst := tskw.GetRunner(task.TaskID)
-					if runnerInst == nil {
-						log.Error("runner not found", task.TaskID)
-						return errors.New("runner not found")
-					}
-
-					modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
-					if err != nil {
-						log.Error("validator get model instance error: ", err)
-						return err
-					}
-					// execute to get result from docker container
-					ext := modelInst.GetExt()
-					taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst)
-					if err != nil {
-						log.Error("validator run docker get result error: ", err)
-						return err
-					}
-					resultData, err := json.Marshal(taskResult)
-					if err != nil {
-						log.Error("validator marshal result error: ", err)
-						return err
-					}
-					err = tskw.Commit(task, resultData)
-					if err != nil {
-						log.Error("validator commit result error: ", err)
-						return err
-					}
-					task.TaskResult = taskResult
-				}
-			case ContractInferenceStatusReveal:
-				{
-
-				}
-			}
-		}
-		return nil
+		return tskw.executeVerfifierTaskDefaultZk(task)
 	}
+}
+
+func (tskw *TaskWatcher) executeVerifierTaskDefault(task *types.TaskInfo) error {
+	// retrieveInferResult and check if the result is correct
+
+	// downloadInferResult to verifier docker volume (orgResult)
+	// retry infer locally and write result to verifier docker volume (verfResult)
+
+	requestResult, err := tskw.retrieveRequestResult(task.TaskID)
+	if err != nil {
+		log.Println("retrieve request result error: ", err)
+		return err
+	}
+
+	newRunner := tskw.GetRunner(task.TaskID)
+	if newRunner == nil {
+		log.Println("runner not found", task.TaskID)
+		return errors.New("runner not found")
+	}
+
+	modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
+	if err != nil {
+		log.Println("get model instance error: ", err)
+		return err
+	}
+
+	finalResult := &bytes.Buffer{}
+	ext := modelInst.GetExt()
+	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
+
+	err = newRunner.Run(output)
+	if err != nil {
+		log.Println("run task error: ", err)
+		return err
+	}
+
+	result := newRunner.GetResult()
+	resultData, err := readResultFile(result)
+	if err != nil {
+		log.Println("read result file error: ", err)
+		return err
+	}
+	finalResult = bytes.NewBuffer(resultData)
+
+	orgResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/org_result.%v", task.TaskID, ext)
+	verfResultPath := modelInst.VerifyDir + fmt.Sprintf("/%v/verf_result.%v", task.TaskID, ext)
+
+	_ = finalResult
+
+	_, err = downloadInferResult(requestResult.ResultURI, orgResultPath)
+	if err != nil {
+		log.Println("download infer result error: ", err)
+		return err
+	}
+
+	err = writeResultFile(verfResultPath, resultData)
+	if err != nil {
+		log.Println("write result file error: ", err)
+		return err
+	}
+
+	// run verifier
+	// TODO
+	return nil
 }

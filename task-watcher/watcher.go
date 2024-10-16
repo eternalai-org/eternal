@@ -569,12 +569,16 @@ func (tskw *TaskWatcher) executeTasks() {
 			{
 				// assign task to validator
 				err := tskw.executeVerifierTask(task)
-				if err != nil {
-					log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
-					time.Sleep(10 * time.Second)
+				if !task.ZKSync {
+					if err != nil {
+						log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
+						time.Sleep(10 * time.Second)
+					}
+					newRunner.SetDone()
+					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
+				} else {
+
 				}
-				newRunner.SetDone()
-				log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 			}
 		}
 	}

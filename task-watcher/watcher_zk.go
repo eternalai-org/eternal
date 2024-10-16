@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/db"
@@ -560,6 +561,58 @@ func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receip
 
 func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
 	return tskw.executeWorkerTaskDefault(modelInst, task, ext, newRunner)
+}
+
+func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) error {
+	inferenceId, ok := new(big.Int).SetString(task.InferenceID, 10)
+	if !ok {
+		return errors.New("invalid task")
+	}
+	infer, err := tskw.getInferenceInfo(inferenceId)
+	if err != nil {
+		return err
+	} else {
+		task.Status = infer.Status
+		switch task.Status {
+		case ContractInferenceStatusCommit:
+			{
+				runnerInst := tskw.GetRunner(task.TaskID)
+				if runnerInst == nil {
+					log.Error("runner not found", task.TaskID)
+					return errors.New("runner not found")
+				}
+
+				modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
+				if err != nil {
+					log.Error("validator get model instance error: ", err)
+					return err
+				}
+				// execute to get result from docker container
+				ext := modelInst.GetExt()
+				taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst)
+				if err != nil {
+					log.Error("validator run docker get result error: ", err)
+					return err
+				}
+				resultData, err := json.Marshal(taskResult)
+				if err != nil {
+					log.Error("validator marshal result error: ", err)
+					return err
+				}
+				err = tskw.Commit(task, resultData)
+				if err != nil {
+					log.Error("validator commit result error: ", err)
+					return err
+				}
+				task.TaskResult = taskResult
+			}
+		case ContractInferenceStatusReveal:
+			{
+
+			}
+		}
+	}
+	return nil
 }
 
 func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {
