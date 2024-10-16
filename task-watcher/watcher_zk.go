@@ -394,6 +394,50 @@ func (tskw *TaskWatcher) createCommitHash(nonce uint64, sender common.Address, d
 	return crypto.Keccak256Hash(packedData[:])
 }
 
+func (tskw *TaskWatcher) Reveal(task types.TaskInfo, data []byte) error {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return err
+	}
+
+	contractAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := zkabi.NewWorkerHub(contractAddress, zkClient)
+	if err != nil {
+		return err
+	}
+	_ = workerHub
+
+	instanceABI, err := abi.JSON(strings.NewReader(zkabi.WorkerHubABI))
+	if err != nil {
+		return err
+	}
+	//workerHub.Reveal()
+	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
+	_ = ok
+	dataBytes, err := instanceABI.Pack(
+		"reveal", _assignmentId, new(big.Int).SetInt64(1), data,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
+	if err != nil {
+		return err
+	}
+	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (tskw *TaskWatcher) Commit(task types.TaskInfo, data []byte) error {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
