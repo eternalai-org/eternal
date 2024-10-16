@@ -573,10 +573,10 @@ func (tskw *TaskWatcher) executeTasks() {
 					log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
 					time.Sleep(10 * time.Second)
 				}
+				newRunner.SetDone()
+				log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 			}
 		}
-		newRunner.SetDone()
-		log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 	}
 }
 

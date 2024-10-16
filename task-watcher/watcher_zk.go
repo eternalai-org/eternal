@@ -438,6 +438,39 @@ func (tskw *TaskWatcher) Reveal(task types.TaskInfo, data []byte) error {
 	return nil
 }
 
+func (tskw *TaskWatcher) getInferenceInfo(inferenceID *big.Int) (*zkabi.IWorkerHubInference, error) {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return nil, err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := zkabi.NewWorkerHub(hubAddress, zkClient)
+	if err != nil {
+		return nil, err
+	}
+	info, err := workerHub.GetInferenceInfo(nil, inferenceID)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+const (
+	ContractInferenceStatusNil = iota
+	ContractInferenceStatusSolving
+	ContractInferenceStatusCommit
+	ContractInferenceStatusReveal
+	ContractInferenceStatusProcessed
+	ContractInferenceStatusKilled
+)
+
 func (tskw *TaskWatcher) Commit(task types.TaskInfo, data []byte) error {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
@@ -641,6 +674,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					Requestor:     strings.ToLower(requestInfo.Creator.Hex()),
 					Value:         assignment.Value.String(),
 					ZKSync:        true,
+					InferenceID:   iter.Event.InferenceId.String(),
 				}
 				log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)

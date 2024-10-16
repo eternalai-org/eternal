@@ -10,6 +10,7 @@ import (
 	"eternal-infer-worker/types"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"math/big"
 	"strings"
 )
 
@@ -120,6 +121,26 @@ func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
 		// TODO
 		return nil
 	} else {
+		inferenceId, ok := new(big.Int).SetString(task.InferenceID, 10)
+		if !ok {
+			return errors.New("invalid task")
+		}
+		infer, err := tskw.getInferenceInfo(inferenceId)
+		if err != nil {
+			return err
+		} else {
+			status := infer.Status
+			switch status {
+			case ContractInferenceStatusCommit:
+				{
+
+				}
+			case ContractInferenceStatusReveal:
+				{
+
+				}
+			}
+		}
 		return nil
 	}
 }
