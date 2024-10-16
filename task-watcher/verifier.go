@@ -60,7 +60,7 @@ func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
 	if !task.ZKSync {
 		return tskw.executeVerifierTaskDefault(task)
 	} else {
-		return tskw.executeVerfifierTaskDefaultZk(task)
+		return tskw.executeVerifierTaskDefaultZk(task)
 	}
 }
 

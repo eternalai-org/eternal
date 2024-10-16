@@ -617,7 +617,7 @@ func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInst
 	return tskw.executeWorkerTaskDefault(modelInst, task, ext, newRunner)
 }
 
-func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) error {
+func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) error {
 	if ok := tskw.isMinerOfModel(common.HexToAddress(task.ModelContract)); !ok {
 		err := tskw.reJoinMinting(task.ModelContract)
 		if err != nil {
