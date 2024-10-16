@@ -2,8 +2,8 @@ package manager
 
 import (
 	"errors"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eaimodel"
-	watcher "eternal-infer-worker/task-watcher"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -241,7 +241,7 @@ func (m *ModelManager) pauseAllInstances(exception string) error {
 			log.Println("Pause model error: ", err)
 			return err
 		}
-		if m.nodeMode == watcher.MODE_VALIDATOR {
+		if m.nodeMode == libs.MODE_VALIDATOR {
 			err := modelInst.PauseVerifierDocker()
 			if err != nil {
 				log.Println("Pause model verifier error: ", err)
@@ -268,7 +268,7 @@ func (m *ModelManager) PauseInstance(modelAddress string) error {
 		log.Println("Pause model error: ", err)
 		return err
 	}
-	if m.nodeMode == watcher.MODE_VALIDATOR {
+	if m.nodeMode == libs.MODE_VALIDATOR {
 		err := modelInst.PauseVerifierDocker()
 		if err != nil {
 			log.Println("Pause model verifier error: ", err)
@@ -288,7 +288,7 @@ func (m *ModelManager) RemoveAllInstanceDocker() error {
 		if err != nil {
 			return err
 		}
-		if m.nodeMode == watcher.MODE_VALIDATOR {
+		if m.nodeMode == libs.MODE_VALIDATOR {
 			err := modelInst.RemoveVerifierDocker()
 			if err != nil {
 				return err
@@ -317,7 +317,7 @@ func (m *ModelManager) MakeReady(modelAddress string) error {
 		}
 	}
 
-	if !modelInst.Ready || (!modelInst.VerifierReady && m.nodeMode == watcher.MODE_VALIDATOR) {
+	if !modelInst.Ready || (!modelInst.VerifierReady && m.nodeMode == libs.MODE_VALIDATOR) {
 		err = m.startModelInst(modelAddress)
 		if err != nil {
 			log.Println("Start model error: ", err)
@@ -343,7 +343,7 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 		return err
 	}
 
-	if m.nodeMode == watcher.MODE_VALIDATOR {
+	if m.nodeMode == libs.MODE_VALIDATOR {
 		err := modelInst.StartDockerVerifier()
 		if err != nil {
 			log.Println("Start model verifier error: ", err)

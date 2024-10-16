@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"eternal-infer-worker/coordinator"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/abi"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/eth"
@@ -46,9 +47,6 @@ type TaskWatcherStatus struct {
 	miningRewardAmount     *big.Int
 	modelStatus            string
 }
-
-const MODE_MINER = "miner"
-const MODE_VALIDATOR = "validator"
 
 type TaskWatcher struct {
 	version      string
@@ -150,7 +148,7 @@ func (tskw *TaskWatcher) Start() {
 	// 	panic(err)
 	// }
 
-	if tskw.mode == MODE_MINER {
+	if tskw.mode == libs.MODE_MINER {
 		staked, _ := tskw.isStaked()
 		if !staked {
 			err = tskw.stakeForWorker()
@@ -393,7 +391,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContract() ([]types.TaskInfo, error) 
 
 	tasks := make([]types.TaskInfo, 0)
 	// TODO @liam get verifier task to
-	if tskw.mode == MODE_VALIDATOR {
+	if tskw.mode == libs.MODE_VALIDATOR {
 		return nil, errors.New("not support validator")
 	} else {
 		// get unresolved claimed inference requests
@@ -541,7 +539,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			mode = task.AssignmentRole
 		}
 		switch mode {
-		case MODE_MINER:
+		case libs.MODE_MINER:
 			{
 				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 				if err != nil {
@@ -567,7 +565,7 @@ func (tskw *TaskWatcher) executeTasks() {
 					continue
 				}
 			}
-		case MODE_VALIDATOR:
+		case libs.MODE_VALIDATOR:
 			{
 				// assign task to validator
 				err := tskw.executeVerifierTask(task)
