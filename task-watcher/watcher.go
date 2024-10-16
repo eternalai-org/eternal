@@ -571,13 +571,31 @@ func (tskw *TaskWatcher) executeTasks() {
 				err := tskw.executeVerifierTask(task)
 				if !task.ZKSync {
 					if err != nil {
-						log.Println("[TaskWatcher].executeTasks - execute validator task error: ", err)
+						log.Error("validator [TaskWatcher].executeTasks - execute validator task error: ", err)
 						time.Sleep(10 * time.Second)
 					}
 					newRunner.SetDone()
-					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
+					log.Println("validator [TaskWatcher].executeTasks - task done: ", task.TaskID)
 				} else {
-
+					switch task.Status {
+					case ContractInferenceStatusReveal:
+						{
+							if err == nil {
+								newRunner.SetDone()
+								log.Info("validator [TaskWatcher].executeTasks - task send reveal done: ", task.TaskID)
+							} else {
+								log.Info("validator [TaskWatcher].executeTasks - task send reveal error: ", task.TaskID, err)
+							}
+						}
+					case ContractInferenceStatusCommit:
+						{
+							if err == nil {
+								log.Info("validator [TaskWatcher].executeTasks - task send commit done: ", task.TaskID)
+							} else {
+								log.Info("validator [TaskWatcher].executeTasks - task send commit error: ", task.TaskID, err)
+							}
+						}
+					}
 				}
 			}
 		}
