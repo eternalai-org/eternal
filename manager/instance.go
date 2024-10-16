@@ -134,6 +134,7 @@ func (m *ModelInstance) Infer(prompt, outputPath string, seed uint64) (string, e
 	infer.Input.Seed = seed
 
 	url := fmt.Sprintf("http://0.0.0.0:%v/predictions", m.Port)
+	//url := "http://172.168.20.114:10757/predictions"
 
 	inferJSON, err := json.Marshal(infer)
 	if err != nil {
