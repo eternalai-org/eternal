@@ -14,7 +14,7 @@ import (
 	"eternal-infer-worker/tui"
 	"eternal-infer-worker/types"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"math/big"
 	"sort"
 	"strings"

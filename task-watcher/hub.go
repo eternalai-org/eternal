@@ -6,7 +6,7 @@ import (
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/types"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"

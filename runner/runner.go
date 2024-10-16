@@ -6,7 +6,7 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"math"
 	"math/big"
 )

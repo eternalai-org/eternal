@@ -5,7 +5,7 @@ import (
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
 	"sync"

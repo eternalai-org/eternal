@@ -6,7 +6,7 @@ import (
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"math"
 	"os"
 	"os/exec"

@@ -5,7 +5,7 @@ import (
 	watcher "eternal-infer-worker/task-watcher"
 	"eternal-infer-worker/types"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 

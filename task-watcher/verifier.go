@@ -9,7 +9,7 @@ import (
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/types"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 )
 
