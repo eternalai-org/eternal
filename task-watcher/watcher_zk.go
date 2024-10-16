@@ -572,10 +572,14 @@ func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) err
 	if err != nil {
 		return err
 	} else {
-		task.Status = infer.Status
-		switch task.Status {
+		switch infer.Status {
 		case ContractInferenceStatusCommit:
 			{
+				if task.Status == ContractInferenceStatusCommit {
+					if task.TaskResult != nil {
+						return nil
+					}
+				}
 				runnerInst := tskw.GetRunner(task.TaskID)
 				if runnerInst == nil {
 					log.Error("runner not found", task.TaskID)
@@ -605,9 +609,13 @@ func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) err
 					return err
 				}
 				task.TaskResult = taskResult
+				task.Status = infer.Status
 			}
 		case ContractInferenceStatusReveal:
 			{
+				if task.Status == ContractInferenceStatusReveal {
+					return nil
+				}
 				resultData, err := json.Marshal(task.TaskResult)
 				if err != nil {
 					log.Error("validator marshal result error: ", err)
@@ -618,6 +626,7 @@ func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) err
 					log.Error("validator reveal result error: ", err)
 					return err
 				}
+				task.Status = infer.Status
 			}
 		}
 	}
