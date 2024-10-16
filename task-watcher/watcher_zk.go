@@ -463,6 +463,43 @@ func (tskw *TaskWatcher) getInferenceInfo(inferenceID *big.Int) (*zkabi.IWorkerH
 	return &info, nil
 }
 
+func (tskw *TaskWatcher) isMinerOfModel(modelAddr common.Address) bool {
+	info, err := tskw.getMinerAddressesOfModel(modelAddr)
+	if err != nil {
+		return false
+	}
+	for _, v := range info {
+		if strings.ToLower(v.Hex()) == strings.ToLower(tskw.address) {
+			return true
+		}
+	}
+	return false
+}
+
+func (tskw *TaskWatcher) getMinerAddressesOfModel(modelAddr common.Address) ([]common.Address, error) {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return nil, err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := zkabi.NewWorkerHub(hubAddress, zkClient)
+	if err != nil {
+		return nil, err
+	}
+	info, err := workerHub.GetMinerAddressesOfModel(nil, modelAddr)
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
 const (
 	ContractInferenceStatusNil = iota
 	ContractInferenceStatusSolving
