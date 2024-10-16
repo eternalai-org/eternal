@@ -32,12 +32,12 @@ func isMultiPartsModelURL(url string) bool {
 }
 
 func downloadFile(url, dest string) (string, error) {
-	log.Println("[downloadFile] url: ", url, " ,dest: ", dest)
+	log.Info("[downloadFile] url: ", url, " ,dest: ", dest)
 	return file.DownloadChunkedDataDest(url, dest)
 }
 
 func downloadSingleFile(url, dest string) (string, error) {
-	log.Println("[downloadSingleFile] url: ", url, " ,dest: ", dest)
+	log.Info("[downloadSingleFile] url: ", url, " ,dest: ", dest)
 	return file.DownloadFile(url, dest)
 }
 
@@ -64,7 +64,7 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 func (m *ModelInstance) SetupDocker() error {
 	t := time.Now()
 	defer func() {
-		log.Printf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
+		log.Info("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
 	}()
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
@@ -74,31 +74,31 @@ func (m *ModelInstance) SetupDocker() error {
 		var err error
 		targetImageName := m.ModelInfo.ModelAddr
 		fileExistValid := false
-		log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName)
+		log.Info("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName)
 		exist := checkModelFileExist(m.ModelPath + "/model.zip")
 		if exist {
-			log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist)
+			log.Info("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist)
 
 			match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, m.ModelPath+"/model.zip")
 			if err != nil {
-				log.Println("[SetupDocker] Check model file hash got error", err)
+				log.Error("[SetupDocker] Check model file hash got error", err)
 				return err
 			}
 
-			log.Println("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " ,match: ", match)
+			log.Info("[SetupDocker] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " ,match: ", match)
 			if match {
 				fileExistValid = true
 				filePath = m.ModelPath + "/model.zip"
 			} else {
 				err = file.RemoveFile(m.ModelPath + "/model.zip")
 				if err != nil {
-					log.Println("[SetupDocker][Err] Remove model file got error", err)
+					log.Error("[SetupDocker][Err] Remove model file got error", err)
 					return err
 				}
 
 				err1 := dockercmd.RemoveImage(targetImageName)
 				if err1 != nil {
-					log.Println("[SetupDocker][Err] RemoveImage err: ", err)
+					log.Error("[SetupDocker][Err] RemoveImage err: ", err)
 				}
 			}
 		}
@@ -113,53 +113,53 @@ func (m *ModelInstance) SetupDocker() error {
 			if isMultiParts {
 				filePath, err = downloadMultiPartsModelDest(urls, m.ModelPath, "model.zip")
 				if err != nil {
-					log.Println("[SetupDocker][Err] Download multi parts model got error", err)
+					log.Error("[SetupDocker][Err] Download multi parts model got error", err)
 					return err
 				}
 			} else {
-				log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
+				log.Info("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , Downloading")
 
 				//filePath, err = downloadFile(urls, m.ModelPath+"/model.zip") //old
 				filePath, err = downloadSingleFile(urls, m.ModelPath+"/model.zip") //new
 				if err != nil {
-					log.Println("[SetupDocker][Err] Download file with IPFS gateway got error", err)
+					log.Error("[SetupDocker][Err] Download file with IPFS gateway got error", err)
 					return err
 				}
 			}
 
 			start := time.Now().UTC()
-			log.Println("[SetupDocker][DEBUG] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " , Starting...")
+			log.Info("[SetupDocker][DEBUG] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " , Starting...")
 			match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.ModelFileHash, filePath)
-			log.Println("[SetupDocker][DEBUG] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " , End: ", time.Now().UTC().Sub(start).Seconds(), " seconds")
+			log.Info("[SetupDocker][DEBUG] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " , End: ", time.Now().UTC().Sub(start).Seconds(), " seconds")
 
 			if err != nil {
-				log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
+				log.Error("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
 				return err
 			}
 
 			if !match {
 				err = errors.New("Model file hash not match")
-				log.Println("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
+				log.Error("[SetupDocker][Err] - checkModelFileExist: ", m.ModelPath+"/model.zip", " ,ModelFileHash: ", m.ModelInfo.Metadata.ModelFileHash, " ,targetImageName: ", targetImageName, " ,exist: ", exist, " , error ", err)
 				return err
 			}
 		} else {
-			log.Println("[SetupDocker] Model file already exist")
+			log.Warning("[SetupDocker] Model file already exist")
 		}
 
 		err = dockercmd.LoadLocalImageWithCustomName(filePath, targetImageName)
 		if err != nil {
-			log.Println("[SetupDocker][Err]  Load local image got error", err)
+			log.Error("[SetupDocker][Err]  Load local image got error", err)
 			return err
 		}
 
 		m.Loaded = true
-		log.Println("[SetupDocker] - loaded - filePath", filePath)
+		log.Info("[SetupDocker] - loaded - filePath", filePath)
 	} else {
 		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 		hash := temp[len(temp)-1]
 		out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
 		if err != nil {
-			log.Println("[SetupDocker][Err]  Download model zkchain got error", err)
+			log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
 			return err
 		}
 
@@ -167,7 +167,7 @@ func (m *ModelInstance) SetupDocker() error {
 		msg := string(out)
 		if !strings.Contains(msg, "Loaded image:") {
 			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
-			log.Println(str)
+			log.Warning(str)
 			err = errors.New(str)
 			return err
 		}
@@ -175,7 +175,7 @@ func (m *ModelInstance) SetupDocker() error {
 		imageName := strings.TrimSpace(strings.ReplaceAll(msg, "Loaded image:", ""))
 		if imageName == "" {
 			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from string: %s", imageName)
-			log.Println(str)
+			log.Warning(str)
 			err = errors.New(str)
 			return err
 		}
@@ -184,7 +184,7 @@ func (m *ModelInstance) SetupDocker() error {
 		imageNameTag := strings.Split(imageName, ":")
 		if len(imageNameTag) < 2 {
 			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name + tag: %s", imageName)
-			log.Println(str)
+			log.Warning(str)
 			err = errors.New(str)
 			return err
 		}
@@ -195,11 +195,11 @@ func (m *ModelInstance) SetupDocker() error {
 		nameName := fmt.Sprintf("%s:%s", m.ModelInfo.ModelAddr, "latest")
 		err = dockercmd.RenameImage(imageName, nameName)
 		if err != nil {
-			log.Println("[SetupDocker][Err] cannot update image name", err)
+			log.Error("[SetupDocker][Err] cannot update image name", err)
 			return err
 		}
 
-		log.Println("[SetupDocker][Success]  loaded and changed image name from: ", imageName, " ,to: ", nameName)
+		log.Info("[SetupDocker][Success]  loaded and changed image name from: ", imageName, " ,to: ", nameName)
 
 	}
 
