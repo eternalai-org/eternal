@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
 )
@@ -13,7 +13,11 @@ func init() {
 		panic(err)
 	}
 	DefaultLogger = lg
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	//log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:   true, // Force colors
+		FullTimestamp: true, // Show full timestamp
+	})
 	log.SetOutput(lg)
 }
 

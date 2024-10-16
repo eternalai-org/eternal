@@ -13,7 +13,7 @@ import (
 	"eternal-infer-worker/manager"
 	watcher "eternal-infer-worker/task-watcher"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"runtime/debug"
 	"time"
