@@ -3,6 +3,7 @@ package watcher
 import (
 	"context"
 	"errors"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/db"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/zkabi"
@@ -545,9 +546,9 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 							continue
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
-							task.AssignmentRole = MODE_MINER
+							task.AssignmentRole = libs.MODE_MINER
 						} else {
-							task.AssignmentRole = MODE_VALIDATOR
+							task.AssignmentRole = libs.MODE_VALIDATOR
 						}
 					}
 					tasks = append(tasks, task)
