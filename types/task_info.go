@@ -1,5 +1,7 @@
 package types
 
+import "eternal-infer-worker/libs/eaimodel"
+
 type TaskSubmitRequest struct {
 	ModelContract string `json:"model_contract"`
 	Params        string `json:"params"`
@@ -11,13 +13,16 @@ type TaskInfo struct {
 	// ModelAddress     string `json:"model_name"`
 	// ModelID       string `json:"model_id"`
 	AssignmentID   string `json:"assignment_id"`
-	InferenceID    string `json:"inference_id"`
 	ModelContract  string `json:"model_contract"`
 	Params         string `json:"params"`
-	Requestor      string `json:"requestor"`
 	Value          string `json:"value"`
 	AssignmentRole string `json:"assignment_role"`
-	ZKSync         bool   `json:"zk_sync"`
+
+	ZKSync      bool                 `json:"zk_sync"`
+	Requestor   string               `json:"requestor"`
+	InferenceID string               `json:"inference_id"`
+	TaskResult  *eaimodel.TaskResult `json:"task_result"`
+	Status      uint8                `json:"status"`
 }
 
 type TaskRunnerInfo struct {

@@ -471,7 +471,7 @@ const (
 	ContractInferenceStatusKilled
 )
 
-func (tskw *TaskWatcher) Commit(task types.TaskInfo, data []byte) error {
+func (tskw *TaskWatcher) Commit(task *types.TaskInfo, data []byte) error {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
 		tskw.paymasterAddr,

@@ -34,33 +34,40 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	}
 }
 
-func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) (*eaimodel.TaskResult, error) {
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 	err := newRunner.Run(output)
 	if err != nil {
 		log.Error("run task error: ", err)
-		return err
+		return nil, err
 	}
 	resultData, err := readResultFile(fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext))
 	if err != nil {
 		log.Error("read result file error: ", err)
-		return err
+		return nil, err
 	}
 	log.Info("uploading result: ", fmt.Sprintf("%v_result.%v", task.TaskID, ext))
 	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), resultData)
 	if err != nil {
 		log.Error("upload data error: ", err)
-		return err
+		return nil, err
 	}
 	resultLink := fmt.Sprintf("ipfs://%v", cid)
 
 	taskResult := eaimodel.TaskResult{
 		ResultURI: resultLink,
-		Data:      nil,
 		Storage:   eaimodel.LightHouseStorageType,
+		Data:      nil,
 	}
+	return &taskResult, nil
+}
 
-	resultData, err = json.Marshal(taskResult)
+func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner)
+	if err != nil {
+		return err
+	}
+	resultData, err := json.Marshal(taskResult)
 	if err != nil {
 		log.Error("marshal result error: ", err)
 		return err
