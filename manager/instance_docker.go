@@ -217,7 +217,7 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 	if exist {
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.VerifierFileHash, m.ModelPath+"/verifier.zip")
 		if err != nil {
-			log.Println("Check model file hash got error", err)
+			log.Error("Check model file hash got error", err)
 			return err
 		}
 
@@ -237,34 +237,34 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 		if isMultiParts {
 			filePath, err = downloadMultiPartsModelDest(urls, m.ModelPath, "verifier.zip")
 			if err != nil {
-				log.Println("Download multi parts model got error", err)
+				log.Error("Download multi parts model got error", err)
 				return err
 			}
 		} else {
 			filePath, err = downloadFile(urls, m.ModelPath+"/verifier.zip")
 			if err != nil {
-				log.Println("Download file with IPFS gateway got error", err)
+				log.Error("Download file with IPFS gateway got error", err)
 				return err
 			}
 		}
 
 		match, err := eaimodel.CheckModelFileHash(m.ModelInfo.Metadata.VerifierFileHash, filePath)
 		if err != nil {
-			log.Println("Check model file hash got error", err)
+			log.Error("Check model file hash got error", err)
 			return err
 		}
 
 		if !match {
-			log.Println("Model file hash not match")
+			log.Error("Model file hash not match")
 			return err
 		}
 	} else {
-		log.Println("Model file already exist")
+		log.Warning("Model file already exist")
 	}
 
 	err = dockercmd.LoadLocalImageWithCustomName(filePath, m.ModelInfo.ModelAddr+"_validator")
 	if err != nil {
-		log.Println("Load local image got error", err)
+		log.Error("Load local image got error", err)
 		return err
 	}
 
@@ -280,7 +280,7 @@ func (m *ModelInstance) StartDocker() error {
 
 	t := time.Now()
 	defer func() {
-		log.Printf("[StartDocker] %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
+		log.Infof("[StartDocker] %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
 	}()
 
 	m.actionLock.Lock()
@@ -296,14 +296,14 @@ func (m *ModelInstance) StartDocker() error {
 	//TODO - get image's name
 	ctnInfo, err := dockercmd.CreateAndStartContainer(m.ModelInfo.ModelAddr, m.ModelInfo.ModelAddr, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
-		log.Printf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
+		log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
 		return err
 	}
 
-	log.Printf("[StartDocker][DEBUG][GetContainerByName] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
+	log.Infof("[StartDocker][DEBUG][GetContainerByName] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
 	existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
 	if err != nil {
-		log.Printf("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
+		log.Error("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
 		return err
 	}
 
@@ -311,15 +311,15 @@ func (m *ModelInstance) StartDocker() error {
 	m.containerID = ctnInfo.ID
 	m.ResultDir = resultMountDir
 
-	log.Printf("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
+	log.Infof("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 	err = dockercmd.WaitForContainerToReady(m.containerID)
 	if err != nil {
-		log.Printf("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID, err)
+		log.Error("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID, err)
 		return err
 	}
 
 	m.Ready = true
-	log.Printf("[StartDocker][Success] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
+	log.Info("[StartDocker][Success] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 	return nil
 }
 
@@ -331,18 +331,18 @@ func (m *ModelInstance) StartDockerVerifier() error {
 
 	err := os.MkdirAll(resultMountDir, os.ModePerm)
 	if err != nil {
-		log.Println("Create model mount dir got error", err)
+		log.Error("Create model mount dir got error", err)
 		return err
 	}
 	containerName := m.ModelInfo.ModelAddr + "_validator"
 
 	ctnInfo, err := dockercmd.CreateAndStartContainer(containerName, containerName, m.Port, resultMountDir, m.DisableGPU)
 	if err != nil {
-		log.Println("Create and start container got error", err)
+		log.Error("Create and start container got error", err)
 		return err
 	}
 
-	log.Println("Container ID:", ctnInfo.ID)
+	log.Info("Container ID:", ctnInfo.ID)
 	m.verifierContainerID = ctnInfo.ID
 	m.VerifyDir = resultMountDir
 
@@ -369,7 +369,7 @@ func (m *ModelInstance) PauseDocker() error {
 
 	err = dockercmd.PauseContainer(m.containerID)
 	if err != nil {
-		log.Println("Pause container got error", err)
+		log.Error("Pause container got error", err)
 		return err
 	}
 
@@ -395,7 +395,7 @@ func (m *ModelInstance) PauseVerifierDocker() error {
 
 	err = dockercmd.PauseContainer(m.verifierContainerID)
 	if err != nil {
-		log.Println("Pause container got error", err)
+		log.Error("Pause container got error", err)
 		return err
 	}
 	m.VerifierReady = false
@@ -408,7 +408,7 @@ func (m *ModelInstance) UnpauseDocker() error {
 
 	containerStatus, err := dockercmd.GetContainerInfo(m.containerID)
 	if err != nil {
-		log.Println("Get container info got error", err)
+		log.Error("Get container info got error", err)
 		if !client.IsErrNotFound(err) {
 			return err
 		}
@@ -421,13 +421,13 @@ func (m *ModelInstance) UnpauseDocker() error {
 		case "exited", "dead":
 			err = dockercmd.RemoveContainer(m.containerID)
 			if err != nil {
-				log.Println("Remove container got error", err)
+				log.Error("Remove container got error", err)
 				return err
 			}
 		case "paused":
 			err = dockercmd.UnpauseContainer(m.containerID)
 			if err != nil {
-				log.Println("Unpause container got error", err)
+				log.Error("Unpause container got error", err)
 				return err
 			}
 			m.Ready = true
@@ -446,7 +446,7 @@ func (m *ModelInstance) UnpauseVerifierDocker() error {
 
 	containerStatus, err := dockercmd.GetContainerInfo(m.verifierContainerID)
 	if err != nil {
-		log.Println("Get container info got error", err)
+		log.Error("Get container info got error", err)
 		if !client.IsErrNotFound(err) {
 			return err
 		}
@@ -459,13 +459,13 @@ func (m *ModelInstance) UnpauseVerifierDocker() error {
 		case "exited", "dead":
 			err = dockercmd.RemoveContainer(m.verifierContainerID)
 			if err != nil {
-				log.Println("Remove container got error", err)
+				log.Error("Remove container got error", err)
 				return err
 			}
 		case "paused":
 			err = dockercmd.UnpauseContainer(m.verifierContainerID)
 			if err != nil {
-				log.Println("Unpause container got error", err)
+				log.Error("Unpause container got error", err)
 				return err
 			}
 			m.VerifierReady = true
@@ -482,7 +482,7 @@ func (m *ModelInstance) RemoveDocker() error {
 
 	err := dockercmd.RemoveContainer(m.containerID)
 	if err != nil {
-		log.Println("Remove container got error", err)
+		log.Error("Remove container got error", err)
 		return err
 	}
 
@@ -496,7 +496,7 @@ func (m *ModelInstance) RemoveVerifierDocker() error {
 
 	err := dockercmd.RemoveContainer(m.verifierContainerID)
 	if err != nil {
-		log.Println("Remove container got error", err)
+		log.Error("Remove container got error", err)
 		return err
 	}
 
@@ -507,7 +507,7 @@ func (m *ModelInstance) RemoveVerifierDocker() error {
 func (m *ModelInstance) IsRunning() (bool, error) {
 	containerStatus, err := dockercmd.GetContainerInfo(m.containerID)
 	if err != nil {
-		log.Println("Get container info got error", err)
+		log.Error("Get container info got error", err)
 		if !client.IsErrNotFound(err) {
 			return false, err
 		}
@@ -523,7 +523,7 @@ func (m *ModelInstance) IsRunning() (bool, error) {
 func (m *ModelInstance) IsVerifierRunning() (bool, error) {
 	containerStatus, err := dockercmd.GetContainerInfo(m.verifierContainerID)
 	if err != nil {
-		log.Println("Get container info got error", err)
+		log.Error("Get container info got error", err)
 		if !client.IsErrNotFound(err) {
 			return false, err
 		}
@@ -538,11 +538,11 @@ func (m *ModelInstance) IsVerifierRunning() (bool, error) {
 
 func (m *ModelInstance) GetTrainingRequest() error {
 	url := fmt.Sprintf("%s/api/dojo/model-info-by-model-address/%s", "https://api-dojo2.eternalai.org", m.ModelInfo.ModelAddr)
-	log.Println("[GetTrainingRequest] - url: ", url)
+	log.Info("[GetTrainingRequest] - url: ", url)
 
 	response, err := http.Get(url)
 	if err != nil {
-		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
 		return err
 	}
 	defer response.Body.Close() // Ensure the response body is closed
@@ -550,18 +550,18 @@ func (m *ModelInstance) GetTrainingRequest() error {
 	// Read the response body
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
 		return err
 	}
 
 	data := &APIResponse{}
 	err = json.Unmarshal(body, data)
 	if err != nil {
-		log.Println("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
 		return err
 	}
 
 	m.TrainingRequest = &data.Data
-	log.Println("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
+	log.Info("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
 	return nil
 }
