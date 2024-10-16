@@ -93,7 +93,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 	}
 	//workerHub.RegisterMiner()
 	dataBytes, err := instanceABI.Pack(
-		"registerMiner", 1,
+		"registerMiner", uint16(1),
 	)
 	if err != nil {
 		return err

@@ -153,12 +153,12 @@ func (tskw *TaskWatcher) Start() {
 		if !staked {
 			err = tskw.stakeForWorker()
 			if err != nil {
-				log.Println("register error: ", err)
+				log.Error("register error: ", err)
 			}
 		}
 		err = tskw.joinForMinting()
 		if err != nil {
-			log.Println("join for minting error: ", err)
+			log.Error("join for minting error: ", err)
 		}
 	}
 
