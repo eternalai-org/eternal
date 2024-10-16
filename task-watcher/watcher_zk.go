@@ -463,6 +463,17 @@ func (tskw *TaskWatcher) getInferenceInfo(inferenceID *big.Int) (*zkabi.IWorkerH
 	return &info, nil
 }
 
+func (tskw *TaskWatcher) reJoinMinting(modelAddr string) error {
+	log.Info("Node is not join model address ", modelAddr)
+	err := tskw.joinForMinting()
+	if err != nil {
+		log.Error("validator retry join for minting error: ", err)
+		return err
+	}
+	log.Info("Node re-join model address ", modelAddr)
+	return nil
+}
+
 func (tskw *TaskWatcher) isMinerOfModel(modelAddr common.Address) bool {
 	info, err := tskw.getMinerAddressesOfModel(modelAddr)
 	if err != nil {
@@ -597,10 +608,22 @@ func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receip
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefaultZk(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	if ok := tskw.isMinerOfModel(common.HexToAddress(task.ModelContract)); !ok {
+		err := tskw.reJoinMinting(task.ModelContract)
+		if err != nil {
+			return err
+		}
+	}
 	return tskw.executeWorkerTaskDefault(modelInst, task, ext, newRunner)
 }
 
 func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) error {
+	if ok := tskw.isMinerOfModel(common.HexToAddress(task.ModelContract)); !ok {
+		err := tskw.reJoinMinting(task.ModelContract)
+		if err != nil {
+			return err
+		}
+	}
 	inferenceId, ok := new(big.Int).SetString(task.InferenceID, 10)
 	if !ok {
 		return errors.New("invalid task")
