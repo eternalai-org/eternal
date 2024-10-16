@@ -395,7 +395,7 @@ func (tskw *TaskWatcher) createCommitHash(nonce uint64, sender common.Address, d
 	return crypto.Keccak256Hash(packedData[:])
 }
 
-func (tskw *TaskWatcher) Reveal(task types.TaskInfo, data []byte) error {
+func (tskw *TaskWatcher) Reveal(task *types.TaskInfo, data []byte) error {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
 		tskw.paymasterAddr,
@@ -608,7 +608,16 @@ func (tskw *TaskWatcher) executeVerfifierTaskDefaultZk(task *types.TaskInfo) err
 			}
 		case ContractInferenceStatusReveal:
 			{
-
+				resultData, err := json.Marshal(task.TaskResult)
+				if err != nil {
+					log.Error("validator marshal result error: ", err)
+					return err
+				}
+				err = tskw.Reveal(task, resultData)
+				if err != nil {
+					log.Error("validator reveal result error: ", err)
+					return err
+				}
 			}
 		}
 	}
