@@ -64,7 +64,7 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 func (m *ModelInstance) SetupDocker() error {
 	t := time.Now()
 	defer func() {
-		log.Info("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t))
+		log.Info(fmt.Sprintf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t)))
 	}()
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
@@ -303,7 +303,7 @@ func (m *ModelInstance) StartDocker() error {
 	log.Infof("[StartDocker][DEBUG][GetContainerByName] ModelAddress: %v, resultMountDir: %s  \n", m.ModelInfo.ModelAddr, resultMountDir)
 	existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
 	if err != nil {
-		log.Error("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err)
+		log.Error(fmt.Sprintf("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, resultMountDir: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.DisableGPU, err))
 		return err
 	}
 
@@ -314,12 +314,12 @@ func (m *ModelInstance) StartDocker() error {
 	log.Infof("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 	err = dockercmd.WaitForContainerToReady(m.containerID)
 	if err != nil {
-		log.Error("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID, err)
+		log.Error(fmt.Sprintf("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v, containerID: %s, err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID, err))
 		return err
 	}
 
 	m.Ready = true
-	log.Info("[StartDocker][Success] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
+	log.Info(fmt.Sprintf("[StartDocker][Success] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID))
 	return nil
 }
 
