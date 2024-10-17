@@ -156,8 +156,7 @@ func (m *ModelInstance) SetupDocker() error {
 		log.Info("[SetupDocker] - loaded - filePath", filePath)
 	} else {
 		//check image existed or not
-		//img, _ := dockercmd.GetImageInfo(m.ModelInfo.ModelAddr)
-		img, _ := dockercmd.GetImageInfo("redis")
+		img, _ := dockercmd.GetImageInfo(m.ModelInfo.ModelAddr)
 
 		log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
 		if img.ID == "" {

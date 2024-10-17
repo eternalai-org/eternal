@@ -75,7 +75,7 @@ func GetImageInfo(imageName string) (types.ImageSummary, error) {
 
 	for _, img := range imgs {
 		for _, tag := range img.RepoTags {
-			if tag == imageName || tag == imageName+":latest" {
+			if strings.EqualFold(tag, imageName) || strings.EqualFold(tag, imageName+":latest") {
 				return img, nil
 			}
 		}
