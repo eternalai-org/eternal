@@ -232,9 +232,10 @@ func (c *Client) createTransact(from common.Address, to common.Address, value *b
 		context.Background(),
 		zktypes.CallMsg{
 			CallMsg: ethereum.CallMsg{
-				From: from,
-				To:   &to,
-				Data: input,
+				From:  from,
+				To:    &to,
+				Value: value,
+				Data:  input,
 			},
 			Meta: &zktypes.Eip712Meta{
 				GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
