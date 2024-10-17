@@ -2,8 +2,10 @@ package watcher
 
 import (
 	"eternal-infer-worker/libs/abi"
+	"eternal-infer-worker/libs/durafmt"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/types"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"time"
 
@@ -56,15 +58,15 @@ func (tskw *TaskWatcher) getGlobalInfo() {
 	//	return
 	//}
 
-	//unstakeDelay, err := workerHub.WorkerHubCaller.UnstakeDelayTime(nil)
-	//if err != nil {
-	//	log.Println("get unstake delay error: ", err)
-	//	return
-	//}
-	//unstakeDelayTime, err := durafmt.ParseString(unstakeDelay.String() + "s")
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
+	unstakeDelay, err := workerHub.WorkerHubCaller.UnstakeDelayTime(nil)
+	if err != nil {
+		log.Println("get unstake delay error: ", err)
+		return
+	}
+	unstakeDelayTime, err := durafmt.ParseString(unstakeDelay.String() + "s")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	// for idx, v := range miners {
 	// 	log.Println("miner: ", idx, v.WorkerAddress.String())
@@ -75,7 +77,7 @@ func (tskw *TaskWatcher) getGlobalInfo() {
 		TotalMiners: uint64(len(miners)),
 		//TotalModels:     uint64(len(models)),
 		//FeePercent:   feePercent,
-		//UnstakeDelay: unstakeDelayTime.String(),
+		UnstakeDelay: unstakeDelayTime.String(),
 	}
 
 }
