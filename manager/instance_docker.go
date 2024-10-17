@@ -155,51 +155,57 @@ func (m *ModelInstance) SetupDocker() error {
 		m.Loaded = true
 		log.Info("[SetupDocker] - loaded - filePath", filePath)
 	} else {
-		temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
-		hash := temp[len(temp)-1]
-		out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
-		if err != nil {
-			log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
-			return err
+		//check image existed or not
+		img, _ := dockercmd.GetImageInfo(m.ModelInfo.ModelAddr)
+
+		log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
+		if img.ID == "" {
+			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
+			hash := temp[len(temp)-1]
+			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
+			if err != nil {
+				log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
+				return err
+			}
+
+			//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
+			msg := string(out)
+			if !strings.Contains(msg, "Loaded image:") {
+				str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
+				log.Warning(str)
+				err = errors.New(str)
+				return err
+			}
+
+			imageName := strings.TrimSpace(strings.ReplaceAll(msg, "Loaded image:", ""))
+			if imageName == "" {
+				str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from string: %s", imageName)
+				log.Warning(str)
+				err = errors.New(str)
+				return err
+			}
+
+			//rename image to: model_address
+			imageNameTag := strings.Split(imageName, ":")
+			if len(imageNameTag) < 2 {
+				str := fmt.Sprintf("[SetupDocker][Err] cannot get image name + tag: %s", imageName)
+				log.Warning(str)
+				err = errors.New(str)
+				return err
+			}
+
+			//oldName := imageNameTag[0]
+			//tag := imageNameTag[1]
+
+			nameName := fmt.Sprintf("%s:%s", m.ModelInfo.ModelAddr, "latest")
+			err = dockercmd.RenameImage(imageName, nameName)
+			if err != nil {
+				log.Error("[SetupDocker][Err] cannot update image name", err)
+				return err
+			}
+
+			log.Info("[SetupDocker][Success]  loaded and changed image name from: ", imageName, " ,to: ", nameName)
 		}
-
-		//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
-		msg := string(out)
-		if !strings.Contains(msg, "Loaded image:") {
-			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
-			log.Warning(str)
-			err = errors.New(str)
-			return err
-		}
-
-		imageName := strings.TrimSpace(strings.ReplaceAll(msg, "Loaded image:", ""))
-		if imageName == "" {
-			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from string: %s", imageName)
-			log.Warning(str)
-			err = errors.New(str)
-			return err
-		}
-
-		//rename image to: model_address
-		imageNameTag := strings.Split(imageName, ":")
-		if len(imageNameTag) < 2 {
-			str := fmt.Sprintf("[SetupDocker][Err] cannot get image name + tag: %s", imageName)
-			log.Warning(str)
-			err = errors.New(str)
-			return err
-		}
-
-		//oldName := imageNameTag[0]
-		//tag := imageNameTag[1]
-
-		nameName := fmt.Sprintf("%s:%s", m.ModelInfo.ModelAddr, "latest")
-		err = dockercmd.RenameImage(imageName, nameName)
-		if err != nil {
-			log.Error("[SetupDocker][Err] cannot update image name", err)
-			return err
-		}
-
-		log.Info("[SetupDocker][Success]  loaded and changed image name from: ", imageName, " ,to: ", nameName)
 
 	}
 
