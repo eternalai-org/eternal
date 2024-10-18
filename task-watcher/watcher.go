@@ -471,14 +471,14 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 	log.Println("[TaskWatcher].AssignTask")
 	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, &task)
 	if err != nil {
-		log.Println("create runner error: ", err)
+		log.Error("create runner error: ", err)
 		return err
 	}
 
 	log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
 	err = tskw.AddRunner(task.TaskID, newRunner)
 	if err != nil {
-		log.Println("[TaskWatcher].AssignTask - add runner error: ", err)
+		log.Error("[TaskWatcher].AssignTask - add runner error: ", err)
 		return err
 	}
 
