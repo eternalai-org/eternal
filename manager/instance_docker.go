@@ -325,6 +325,15 @@ func (m *ModelInstance) StartDocker() error {
 		return err
 	}
 
+	//get container again, because it would be nil if it was not started.
+	if existedContainer == nil {
+		existedContainer, err = dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
+		if err != nil {
+			log.Error(fmt.Sprintf("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, m.DisableGPU, err))
+			return err
+		}
+	}
+
 	m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
 	m.containerID = ctnInfo.ID
 	m.ResultDir = resultMountDir
