@@ -688,6 +688,7 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 	if err != nil {
 		return err
 	} else {
+		log.Info("-------- executeVerifierTaskDefaultZk get inference info")
 		switch infer.Status {
 		case ContractInferenceStatusCommit:
 			{
