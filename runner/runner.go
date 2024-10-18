@@ -50,6 +50,10 @@ func (r *RunnerInstance) SetDone() {
 	r.isDone = true
 }
 
+func (r *RunnerInstance) SetNotDone() {
+	r.isDone = false
+}
+
 func (r *RunnerInstance) Run(output string) error {
 	defer func() {
 		r.isDone = true
