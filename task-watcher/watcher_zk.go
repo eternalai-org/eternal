@@ -768,7 +768,9 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 
 		state.LastSyncedBlock = endBlock
 
-		err = tskw.UpdateContractSyncStateByAddressAndJob(state)
+		states := []model_structures.ContractSyncState{}
+		states = append(states, *state)
+		err = tskw.UpdateContractSyncStateByAddressAndJob(states)
 		if err != nil {
 			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			break
@@ -911,8 +913,8 @@ func (tskw *TaskWatcher) GetContractSyncState(contractAddress string, jobName st
 	return &_v[0], nil
 }
 
-func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state *model_structures.ContractSyncState) error {
-	err := db.Update(state.CollectionName(), state)
+func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_structures.ContractSyncState) error {
+	err := db.Update(model_structures.ContractSyncState{}.CollectionName(), state)
 	if err != nil {
 		return err
 	}
