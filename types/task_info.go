@@ -1,6 +1,9 @@
 package types
 
-import "eternal-infer-worker/libs/eaimodel"
+import (
+	"encoding/json"
+	"eternal-infer-worker/libs/eaimodel"
+)
 
 type TaskSubmitRequest struct {
 	ModelContract string `json:"model_contract"`
@@ -23,6 +26,11 @@ type TaskInfo struct {
 	InferenceID string               `json:"inference_id"`
 	TaskResult  *eaimodel.TaskResult `json:"task_result"`
 	Status      uint8                `json:"status"`
+}
+
+func (a TaskInfo) String() string {
+	jsonStr, _ := json.Marshal(a)
+	return string(jsonStr)
 }
 
 type TaskRunnerInfo struct {

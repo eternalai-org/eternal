@@ -528,7 +528,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			continue
 		}
 
-		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
+		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 		err := tskw.modelManager.MakeReady(task.ModelContract)
 		if err != nil {
 			log.Println("make ready error: ", err)
@@ -541,12 +541,15 @@ func (tskw *TaskWatcher) executeTasks() {
 		if task.ZKSync {
 			mode = task.AssignmentRole
 		}
+
+		log.Info("[TaskWatcher].executeTasks Process task with mode", mode)
+
 		switch mode {
 		case libs.MODE_MINER:
 			{
 				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 				if err != nil {
-					log.Println("check task completed error: ", err)
+					log.Println("[TaskWatcher].executeTasks check task completed error: ", err)
 					newRunner.SetDone()
 					time.Sleep(1 * time.Second)
 					continue

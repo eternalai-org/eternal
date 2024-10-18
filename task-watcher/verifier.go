@@ -57,6 +57,7 @@ func downloadInferResult(resultURI string, filePath string) (string, error) {
 }
 
 func (tskw *TaskWatcher) executeVerifierTask(task *types.TaskInfo) error {
+	log.Info("TaskWatcher.executeVerifierTask process task ", task.String())
 	if !task.ZKSync {
 		return tskw.executeVerifierTaskDefault(task)
 	} else {
