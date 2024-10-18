@@ -845,14 +845,13 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 	models := tskw.modelManager.GetLoadeModels()
 	for iter.Next() {
 		requestId := iter.Event.InferenceId
-
 		// ???
 		if requestId == nil {
 			err = errors.New("request_id is nil")
 			log.Error("[filterZKEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 			return nil, err
 		}
-
+		log.Info("[filterZKEventNewInference] pulling request ID:", requestId)
 		requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
 		if err != nil {
 			log.Error("[filterZKEventNewInference][GetInferenceInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
