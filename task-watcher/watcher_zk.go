@@ -363,8 +363,9 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 		return err
 	}
 	//workerHub.SubmitSolution()
+	_assigmentId, _ := new(big.Int).SetString(assignmentID, 10)
 	dataBytes, err := instanceABI.Pack(
-		"submitSolution", assignmentID, result,
+		"submitSolution", _assigmentId, result,
 	)
 	if err != nil {
 		return err
