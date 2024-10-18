@@ -892,7 +892,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					AssignmentRole: libs.MODE_VALIDATOR,
 				}
 
-				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID)
+				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", task.AssignmentID)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil {
 					for _, txLog := range transact.Receipt.Logs {
