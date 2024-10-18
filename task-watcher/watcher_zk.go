@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	zktypes "github.com/zksync-sdk/zksync2-go/types"
@@ -372,9 +373,31 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 	if err != nil {
 		return err
 	}
-	_, err = client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
+	tx, err := client.Transact(tskw.account, *pbkHex, contractAddress, big.NewInt(0), dataBytes)
 	if err != nil {
 		return err
+	}
+
+	receipt, err := zkClient.TransactionReceipt(context.Background(), tx.TxHash)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting tx receipt"))
+	}
+
+	if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+		return errors.New("tx failed")
+	}
+
+	for _, txLog := range receipt.Logs {
+		feeLog, err := workerHub.WorkerHubFilterer.ParseTransferFee(txLog.Log)
+		if err != nil {
+			continue
+		} else {
+			_ = feeLog
+			tskw.status.processedTasks++
+			/*if strings.EqualFold(feeLog.Miner.Hex(), tskw.address) {
+				tskw.status.currentEarning.Add(tskw.status.currentEarning, feeLog.MingingFee)
+			}*/
+		}
 	}
 
 	return nil
