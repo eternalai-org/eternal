@@ -99,6 +99,7 @@ func (rt *Router) Stats(c *gin.Context) {
 		StakedAmount   string `json:"staked_amount"`
 		SessionEarning string `json:"session_earning"`
 		ProcessedTasks uint64 `json:"processed_tasks"`
+		AssignedTasks  uint64 `json:"assigned_tasks"`
 		MiningReward   string `json:"mining_reward"`
 		UnstakeAmount  string `json:"unstake_amount"`
 		UnstakeTime    string `json:"unstake_time"`
@@ -140,6 +141,7 @@ func (rt *Router) Stats(c *gin.Context) {
 		StakedAmount:   rt.watcher.GetStakedAmount(),
 		SessionEarning: rt.watcher.GetSessionEarning(),
 		ProcessedTasks: rt.watcher.GetProcessedTasks(),
+		AssignedTasks:  rt.watcher.GetAssignedTasks(),
 		MiningReward:   rt.watcher.GetMiningReward(),
 		UnstakeAmount:  unstakeAmount,
 		UnstakeTime:    unstakeTime.String(),

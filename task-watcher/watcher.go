@@ -1339,6 +1339,13 @@ func (tskw *TaskWatcher) GetProcessedTasks() uint64 {
 	return tskw.status.processedTasks
 }
 
+func (tskw *TaskWatcher) GetAssignedTasks() uint64 {
+	if tskw.zkSync {
+		return tskw.countAssignmentByMiner()
+	}
+	return 0
+}
+
 func (tskw *TaskWatcher) GetSessionEarning() string {
 	earning := new(big.Float).SetInt(tskw.status.currentEarning)
 	earning = new(big.Float).Quo(earning, big.NewFloat(1e18))

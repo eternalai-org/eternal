@@ -510,6 +510,38 @@ func (tskw *TaskWatcher) isMinerOfModel(modelAddr common.Address) bool {
 	return false
 }
 
+func (tskw *TaskWatcher) countAssignmentByMiner() uint64 {
+	assignments, err := tskw.getAssignmentByMiner()
+	if err != nil {
+		return 0
+	}
+	return uint64(len(assignments))
+}
+
+func (tskw *TaskWatcher) getAssignmentByMiner() ([]zkabi.IWorkerHubAssignmentInfo, error) {
+	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
+		tskw.paymasterFeeZero,
+		tskw.paymasterAddr,
+		tskw.paymasterToken)
+
+	zkClient, err := client.GetZkClient()
+	if err != nil {
+		return nil, err
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+
+	workerHub, err := zkabi.NewWorkerHub(hubAddress, zkClient)
+	if err != nil {
+		return nil, err
+	}
+	info, err := workerHub.GetAssignmentByMiner(nil, common.HexToAddress(tskw.address))
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
 func (tskw *TaskWatcher) getMinerAddressesOfModel(modelAddr common.Address) ([]common.Address, error) {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
