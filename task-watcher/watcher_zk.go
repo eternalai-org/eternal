@@ -720,6 +720,8 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 	ctx := context.Background()
 	jobName := "getPendingTaskFromContractZk"
 	state, err := tskw.GetContractSyncState(tskw.taskContract, jobName)
+
+	log.Debug("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
 	if err != nil || state == nil {
 		state = &model_structures.ContractSyncState{
 			Job:             jobName,
@@ -727,7 +729,9 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 			LastSyncedBlock: 0,
 			ResyncFromBlock: 0,
 		}
-		err = db.Write(model_structures.ContractSyncState{}.CollectionName(), state)
+
+		states := []model_structures.ContractSyncState{}
+		err = db.Write(model_structures.ContractSyncState{}.CollectionName(), states)
 		if err != nil {
 			log.Error("[getPendingTaskFromContractZk][ContractSyncState] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
 			return nil, err
@@ -800,31 +804,47 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		Context: ctx,
 	}, nil, nil, nil)
 	if err != nil {
+		log.Error("[filterZKEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 		return nil, err
 	}
+
 	models := tskw.modelManager.GetLoadeModels()
 	for iter.Next() {
 		requestId := iter.Event.InferenceId
-		if err != nil {
+
+		// ???
+		if requestId == nil {
+			err = errors.New("request_id is nil")
+			log.Error("[filterZKEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 			return nil, err
 		}
+
 		requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
 		if err != nil {
+			log.Error("[filterZKEventNewInference][GetInferenceInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 			return nil, err
 		}
 		modelAddr := strings.ToLower(requestInfo.ModelAddress.Hex())
 		if models[modelAddr] == nil {
+			err := errors.New("model_address is nil")
+			log.Error("[filterZKEventNewInference][requestInfo.ModelAddress] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 			continue
 		}
 		assignments, err := whContract.GetMintingAssignmentsOfInference(nil, requestId)
 		if err != nil {
+			log.Error("[filterZKEventNewInference][GetMintingAssignmentsOfInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 			return nil, err
 		}
+
+		log.Debug("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignments: ", len(assignments))
 		for _, assignment := range assignments {
 			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
 			if err != nil {
+				log.Error("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 				continue
 			}
+
+			log.Debug("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId: ", assignment.AssignmentId, " ,assignmentInfo: ", assignmentInfo)
 			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 				task := types.TaskInfo{
 					TaskID:        assignment.InferenceId.String(),
@@ -836,13 +856,14 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					ZKSync:        true,
 					InferenceID:   iter.Event.InferenceId.String(),
 				}
-				log.Debug("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
+
+				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID, " ,task.AssignmentRole: ", task.AssignmentRole)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil {
 					for _, txLog := range transact.Receipt.Logs {
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
-							log.Error("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor, ",err: ", err)
+							log.Error("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID, " ,err: ", err)
 							continue
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
@@ -852,7 +873,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 						}
 					}
 
-					log.Debug("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor, " ,role: ", task.AssignmentRole)
+					log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", assignment.AssignmentId, " ,task.AssignmentRole: ", task.AssignmentRole)
 					tasks = append(tasks, task)
 				}
 				continue
