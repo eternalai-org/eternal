@@ -527,6 +527,10 @@ func (tskw *TaskWatcher) executeTasks() {
 			log.Println("runner not found", task.TaskID)
 			continue
 		}
+		if newRunner.IsDone() {
+			log.Println("runner is done", task.TaskID)
+			continue
+		}
 
 		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 		err := tskw.modelManager.MakeReady(task.ModelContract)
@@ -601,6 +605,9 @@ func (tskw *TaskWatcher) executeTasks() {
 								log.Info("validator [TaskWatcher].executeTasks - task send commit error: ", task.TaskID, err)
 							}
 						}
+					}
+					if !newRunner.IsDone() {
+						tskw.taskQueue <- task // set again
 					}
 				}
 			}
