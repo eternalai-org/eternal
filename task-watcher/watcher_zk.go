@@ -13,6 +13,7 @@ import (
 	"eternal-infer-worker/model_structures"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -851,7 +852,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 			log.Error("[filterZKEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 			return nil, err
 		}
-		log.Info("[filterZKEventNewInference] pulling request ID:", requestId)
+		log.Info(fmt.Sprintf("[filterZKEventNewInference] pulling request ID: %s, txHash %s", requestId, iter.Event.Raw.TxHash))
 		requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
 		if err != nil {
 			log.Error("[filterZKEventNewInference][GetInferenceInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
