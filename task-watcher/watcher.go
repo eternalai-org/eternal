@@ -607,7 +607,7 @@ func (tskw *TaskWatcher) executeTasks() {
 						}
 					}
 					if !newRunner.IsDone() {
-						if task.Retry <= 100 {
+						if task.Retry <= 500 {
 							task.Retry++
 							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
 							tskw.taskQueue <- task // set again
