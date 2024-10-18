@@ -600,7 +600,7 @@ func (tskw *TaskWatcher) executeTasks() {
 					case ContractInferenceStatusCommit:
 						{
 							if err == nil {
-								log.Info("validator [TaskWatcher].executeTasks - task send commit done: ", task.TaskID)
+								log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks - task send commit done: %s, newRunner.IsDone=%v", task.TaskID, newRunner.IsDone()))
 							} else {
 								log.Info("validator [TaskWatcher].executeTasks - task send commit error: ", task.TaskID, err)
 							}
