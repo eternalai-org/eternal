@@ -691,6 +691,7 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 		switch infer.Status {
 		case ContractInferenceStatusCommit:
 			{
+				log.Info("executeVerifierTaskDefaultZk Process as a ContractInferenceStatusCommit")
 				if task.Status == ContractInferenceStatusCommit {
 					if task.TaskResult != nil {
 						return nil
@@ -698,8 +699,8 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 				}
 				runnerInst := tskw.GetRunner(task.TaskID)
 				if runnerInst == nil {
-					log.Error("runner not found", task.TaskID)
-					return errors.New("runner not found")
+					log.Error("executeVerifierTaskDefaultZk runner not found", task.TaskID)
+					return errors.New("executeVerifierTaskDefaultZk runner not found")
 				}
 
 				modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
@@ -710,18 +711,20 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 				// execute to get result from docker container
 				ext := modelInst.GetExt()
 				taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst)
+				log.Info("executeVerifierTaskDefaultZk taskResult", taskResult)
 				if err != nil {
-					log.Error("validator run docker get result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator run docker get result error: ", err)
 					return err
 				}
 				resultData, err := json.Marshal(taskResult)
+				log.Info("executeVerifierTaskDefaultZk resultData", string(resultData))
 				if err != nil {
-					log.Error("validator marshal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator marshal result error: ", err)
 					return err
 				}
 				err = tskw.Commit(task, resultData)
 				if err != nil {
-					log.Error("validator commit result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator commit result error: ", err)
 					return err
 				}
 				task.TaskResult = taskResult
@@ -729,17 +732,18 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 			}
 		case ContractInferenceStatusReveal:
 			{
+				log.Info("executeVerifierTaskDefaultZk Process as a ContractInferenceStatusReveal")
 				if task.Status == ContractInferenceStatusReveal {
 					return nil
 				}
 				resultData, err := json.Marshal(task.TaskResult)
 				if err != nil {
-					log.Error("validator marshal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator marshal result error: ", err)
 					return err
 				}
 				err = tskw.Reveal(task, resultData)
 				if err != nil {
-					log.Error("validator reveal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator reveal result error: ", err)
 					return err
 				}
 				task.Status = infer.Status
