@@ -748,6 +748,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 			return nil, err
 		}
 
+		log.Debug("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock)
 		if endBlock >= currentBlock || startBlock >= currentBlock {
 			break
 		}
@@ -762,16 +763,19 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 
 		err = tskw.UpdateContractSyncStateByAddressAndJob(state)
 		if err != nil {
+			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			break
 		}
 
 		contract, err := zkabi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
 		if err != nil {
+			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			return nil, err
 		}
 
 		_tasks, err := tskw.filterZKEventNewInference(contract, startBlock, endBlock)
 		if err != nil {
+			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			return nil, err
 		}
 
