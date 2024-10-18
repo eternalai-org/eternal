@@ -748,6 +748,10 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 				}
 				task.Status = infer.Status
 			}
+		default:
+			{
+				log.Info(fmt.Sprintf("executeVerifierTaskDefaultZk waiting %s, infer status %d", task.TaskID, infer.Status))
+			}
 		}
 	}
 	return nil
