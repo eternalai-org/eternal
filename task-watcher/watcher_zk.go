@@ -869,7 +869,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 			return nil, err
 		}
 
-		log.Debug("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignments: ", len(assignments))
+		log.Info("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignments: ", len(assignments))
 		for _, assignment := range assignments {
 			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
 			if err != nil {
@@ -877,7 +877,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 				continue
 			}
 
-			log.Debug("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId: ", assignment.AssignmentId, " ,assignmentInfo: ", assignmentInfo)
+			log.Info("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId: ", assignment.AssignmentId, " ,assignmentInfo: ", assignmentInfo)
 			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 				task := types.TaskInfo{
 					TaskID:        assignment.InferenceId.String(),
@@ -910,6 +910,8 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					tasks = append(tasks, task)
 				}
 				continue
+			} else {
+				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", assignment.AssignmentId, " ,assign for: ", assignmentInfo.Worker.String())
 			}
 		}
 	}
