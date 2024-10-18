@@ -53,63 +53,9 @@ func main() {
 		panic(err)
 	}
 
-	releaseInfo, err := github.GetLatestRelease()
-	if err != nil {
-		log.Error("Error getting latest release info: ", err)
-	} else {
-		_willUpdate, _ := file.WillUpdateVersion(releaseInfo.TagName)
+	//check the latest version and update if it's available.
+	go AutomaticallyUpdate(cfg)
 
-		log.Info("'[Info] current version: ", releaseInfo.TagName)
-		if _willUpdate {
-			log.Info("New version available: ", releaseInfo.TagName)
-
-			log.Info("Release notes: ", releaseInfo.Body)
-			willUpdate := false
-			if cfg.DisableUpdateOnStart {
-				log.Warning("Update on start is disabled")
-				log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
-				time.Sleep(5 * time.Second)
-			} else {
-				willUpdate = true
-				VersionTag = releaseInfo.TagName
-			}
-			if willUpdate {
-				fmt.Println("Removing old binary...")
-				err = file.RemoveFile("eternal")
-				if err != nil {
-					fmt.Println("Error removing old binary: ", err)
-				}
-
-				//remove current version's log
-				errRemove := file.RemoveFile(libs.VERSION_FILENAME)
-				if err != nil {
-					fmt.Println("Error removing version log: ", errRemove)
-				}
-
-				fmt.Println("Downloading latest release...")
-				err = github.DownloadLatestRelease("eternal")
-				if err != nil {
-					log.Error("Error downloading latest release: ", err)
-					os.Exit(1)
-				} else {
-					log.Warning("Downloaded latest release")
-					log.Warning("Please restart the program")
-
-					//log the downloaded version to file
-					err1 := file.UpdateVersionLog(VersionTag)
-					if err1 != nil {
-
-						//only log error
-						log.Error("[Error] error update version.txt: ", err1)
-					}
-
-					os.Exit(0)
-				}
-			}
-		} else {
-			log.Info("You are using the latest version")
-		}
-	}
 	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
@@ -239,6 +185,70 @@ func main() {
 			}
 		}()
 		select {}
+	}
+}
+
+func AutomaticallyUpdate(cfg *config.Config) {
+	for {
+		releaseInfo, err := github.GetLatestRelease()
+		if err != nil {
+			log.Error("Error getting latest release info: ", err)
+		} else {
+			_willUpdate, _ := file.WillUpdateVersion(releaseInfo.TagName)
+
+			log.Info("'[Info] current version: ", releaseInfo.TagName)
+			if _willUpdate {
+				log.Info("New version available: ", releaseInfo.TagName)
+
+				log.Info("Release notes: ", releaseInfo.Body)
+				willUpdate := false
+				if cfg.DisableUpdateOnStart {
+					log.Warning("Update on start is disabled")
+					log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
+					time.Sleep(5 * time.Second)
+				} else {
+					willUpdate = true
+					VersionTag = releaseInfo.TagName
+				}
+				if willUpdate {
+					fmt.Println("Removing old binary...")
+					err = file.RemoveFile("eternal")
+					if err != nil {
+						fmt.Println("Error removing old binary: ", err)
+					}
+
+					//remove current version's log
+					errRemove := file.RemoveFile(libs.VERSION_FILENAME)
+					if err != nil {
+						fmt.Println("Error removing version log: ", errRemove)
+					}
+
+					fmt.Println("Downloading latest release...")
+					err = github.DownloadLatestRelease("eternal")
+					if err != nil {
+						log.Error("Error downloading latest release: ", err)
+						os.Exit(1)
+					} else {
+						log.Warning("Downloaded latest release")
+						log.Warning("Please restart the program")
+
+						//log the downloaded version to file
+						err1 := file.UpdateVersionLog(VersionTag)
+						if err1 != nil {
+
+							//only log error
+							log.Error("[Error] error update version.txt: ", err1)
+						}
+
+						os.Exit(0)
+					}
+				}
+			} else {
+				log.Info("You are using the latest version")
+			}
+		}
+
+		time.Sleep(time.Second * 60)
 	}
 }
 

@@ -138,7 +138,10 @@ func (tskw *TaskWatcher) Start() {
 	go tskw.executeTasks()
 	go tskw.watchWorkerInfo()
 	go tskw.watchHubGlobalInfo()
-	go tskw.watchNewVersion()
+
+	//there is no action in this function, turn off it. Use the infinity loop in main instead.
+	//go tskw.watchNewVersion()
+
 	tskw.GetWorkerInfo()
 	go tskw.watchAssignedModel()
 	var err error
