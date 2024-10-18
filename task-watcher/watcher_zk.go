@@ -891,14 +891,13 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					InferenceID:   iter.Event.InferenceId.String(),
 				}
 
-				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID, " ,task.AssignmentRole: ", task.AssignmentRole)
+				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil {
 					for _, txLog := range transact.Receipt.Logs {
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
-							log.Error("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
-								startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId",
+							log.Error("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(), " ,assignment.AssignmentId",
 								task.AssignmentID, " ,err: ", err)
 							continue
 						}
@@ -911,18 +910,16 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 				} else {
 					task.AssignmentRole = libs.MODE_VALIDATOR
 				}
-				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
-					startBlock, " ,endBlock: ",
-					endBlock, " ,requestId: ", requestId.String(),
+				log.Info("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(),
 					" ,assignment.AssignmentId ", assignment.AssignmentId,
 					" ,task.AssignmentRole: ",
 					task.AssignmentRole)
 				tasks = append(tasks, task)
 				continue
 			} else {
-				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
-					startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId ",
-					assignment.AssignmentId, " ,assign for: ", assignmentInfo.Worker.String())
+				/*log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
+				startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId ",
+				assignment.AssignmentId, " ,assign for: ", assignmentInfo.Worker.String())*/
 			}
 		}
 	}
