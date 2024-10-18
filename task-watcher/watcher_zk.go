@@ -881,14 +881,15 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 			log.Info("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId: ", assignment.AssignmentId, " ,assignmentInfo: ", assignmentInfo)
 			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 				task := types.TaskInfo{
-					TaskID:        assignment.InferenceId.String(),
-					AssignmentID:  assignment.AssignmentId.String(),
-					ModelContract: strings.ToLower(modelAddr),
-					Params:        string(requestInfo.Input),
-					Requestor:     strings.ToLower(requestInfo.Creator.Hex()),
-					Value:         assignment.Value.String(),
-					ZKSync:        true,
-					InferenceID:   iter.Event.InferenceId.String(),
+					TaskID:         assignment.InferenceId.String(),
+					AssignmentID:   assignment.AssignmentId.String(),
+					ModelContract:  strings.ToLower(modelAddr),
+					Params:         string(requestInfo.Input),
+					Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
+					Value:          assignment.Value.String(),
+					ZKSync:         true,
+					InferenceID:    iter.Event.InferenceId.String(),
+					AssignmentRole: libs.MODE_VALIDATOR,
 				}
 
 				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID)
@@ -903,20 +904,14 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
 							task.AssignmentRole = libs.MODE_MINER
-						} else {
-							task.AssignmentRole = libs.MODE_VALIDATOR
 						}
 					}
-				} else {
-					task.AssignmentRole = libs.MODE_VALIDATOR
 				}
 				log.Info("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(),
 					" ,assignment.AssignmentId ", assignment.AssignmentId,
-					" ,task.AssignmentRole: ",
+					" ----> Role: ",
 					task.AssignmentRole)
-				if task.AssignmentRole != "" {
-					tasks = append(tasks, task)
-				}
+				tasks = append(tasks, task)
 				continue
 			} else {
 				/*log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
