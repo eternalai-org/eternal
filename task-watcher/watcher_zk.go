@@ -896,7 +896,9 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					for _, txLog := range transact.Receipt.Logs {
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
-							log.Error("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", task.AssignmentID, " ,err: ", err)
+							log.Error("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
+								startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId",
+								task.AssignmentID, " ,err: ", err)
 							continue
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
@@ -906,12 +908,19 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 						}
 					}
 
-					log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", assignment.AssignmentId, " ,task.AssignmentRole: ", task.AssignmentRole)
+					log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
+						startBlock, " ,endBlock: ",
+						endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", assignment.AssignmentId, " ,task.AssignmentRole: ",
+						task.AssignmentRole)
 					tasks = append(tasks, task)
+				} else {
+					log.Error("[filterZKEventNewInference] tskw.seizeMinerRole assignmentId ", assignment.AssignmentId, "err ", err)
 				}
 				continue
 			} else {
-				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId", assignment.AssignmentId, " ,assign for: ", assignmentInfo.Worker.String())
+				log.Info("[filterZKEventNewInference][seizeMinerRole] startBlock: ",
+					startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId",
+					assignment.AssignmentId, " ,assign for: ", assignmentInfo.Worker.String())
 			}
 		}
 	}
