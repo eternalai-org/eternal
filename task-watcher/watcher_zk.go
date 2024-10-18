@@ -729,12 +729,14 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		}
 		err = db.Write(model_structures.ContractSyncState{}.CollectionName(), state)
 		if err != nil {
+			log.Error("[getPendingTaskFromContractZk][ContractSyncState] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
 			return nil, err
 		}
 	}
 
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
+		log.Error("[getPendingTaskFromContractZk][NewEthClient] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
 		return []types.TaskInfo{}, err
 	}
 
@@ -745,6 +747,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 	for {
 		currentBlock, err := ethClient.BlockNumber(ctx)
 		if err != nil {
+			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			return nil, err
 		}
 
