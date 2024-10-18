@@ -26,6 +26,7 @@ type TaskInfo struct {
 	InferenceID string               `json:"inference_id"`
 	TaskResult  *eaimodel.TaskResult `json:"task_result"`
 	Status      uint8                `json:"status"`
+	Retry       int
 }
 
 func (a TaskInfo) String() string {

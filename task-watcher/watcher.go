@@ -607,8 +607,11 @@ func (tskw *TaskWatcher) executeTasks() {
 						}
 					}
 					if !newRunner.IsDone() {
-						log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again", task.TaskID, task.Status))
-						tskw.taskQueue <- task // set again
+						if task.Retry <= 100 {
+							task.Retry++
+							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
+							tskw.taskQueue <- task // set again
+						}
 					}
 				}
 			}
