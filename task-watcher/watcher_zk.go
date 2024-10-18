@@ -830,12 +830,13 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					ZKSync:        true,
 					InferenceID:   iter.Event.InferenceId.String(),
 				}
-				log.Println("task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
+				log.Debug("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil {
 					for _, txLog := range transact.Receipt.Logs {
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
+							log.Error("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor, ",err: ", err)
 							continue
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
@@ -844,12 +845,16 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 							task.AssignmentRole = libs.MODE_VALIDATOR
 						}
 					}
+
+					log.Debug("[filterZKEventNewInference] task: ", task.TaskID, task.ModelContract, task.Params, task.Requestor, " ,role: ", task.AssignmentRole)
 					tasks = append(tasks, task)
 				}
 				continue
 			}
 		}
 	}
+
+	log.Info("[filterZKEventNewInference] get tasks: ", len(tasks))
 	return tasks, nil
 }
 
