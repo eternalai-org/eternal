@@ -738,16 +738,16 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		return []types.TaskInfo{}, err
 	}
 
-	currentBlock, err := ethClient.BlockNumber(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	startBlock := state.LastSyncedBlock
 	var endBlock uint64
 	tasks := []types.TaskInfo{}
 
 	for {
+		currentBlock, err := ethClient.BlockNumber(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		if endBlock >= currentBlock || startBlock >= currentBlock {
 			break
 		}

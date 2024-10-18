@@ -296,7 +296,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 		})
 	}
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 		tskw.CleanupRunners()
 		if tskw.modelManager.GetStatus() != "ready" {
 
