@@ -73,7 +73,6 @@ func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstan
 		return err
 	}
 
-	log.Info("\nsubmitting result for task %v size %v\n", task.TaskID, len(resultData))
 	err = tskw.SubmitResult(task.AssignmentID, resultData)
 	if err != nil {
 		log.Error("submit result error: ", err)
