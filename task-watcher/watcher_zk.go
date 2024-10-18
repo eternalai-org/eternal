@@ -717,7 +717,6 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 }
 
 func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error) {
-	//TODO - update here
 	ctx := context.Background()
 	jobName := "getPendingTaskFromContractZk"
 	state, err := tskw.GetContractSyncState(tskw.taskContract, jobName)
@@ -854,7 +853,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		}
 	}
 
-	log.Info("[filterZKEventNewInference] get tasks: ", len(tasks))
+	log.Info("[filterZKEventNewInference] get tasks: ", len(tasks), " ,startBlock: ", startBlock, ", toBlock: ", endBlock)
 	return tasks, nil
 }
 
