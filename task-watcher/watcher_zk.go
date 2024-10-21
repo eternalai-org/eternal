@@ -602,7 +602,7 @@ func (tskw *TaskWatcher) Commit(task *types.TaskInfo, data []byte) error {
 		return err
 	}
 	//workerHub.Commit()
-	_commitment := tskw.createCommitHash(uint64(1), common.HexToAddress(task.Requestor), data)
+	_commitment := tskw.createCommitHash(uint64(1), common.HexToAddress(tskw.address), data)
 	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
 	_ = ok
 	dataBytes, err := instanceABI.Pack(
