@@ -766,27 +766,26 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 	jobName := "getPendingTaskFromContractZk"
 	state, err := tskw.GetContractSyncState(tskw.taskContract, jobName)
 
-	log.Debug("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
-	if err != nil || state == nil {
-		state = &model_structures.ContractSyncState{
-			Job:             jobName,
-			ContractAddress: strings.ToLower(tskw.taskContract),
-			LastSyncedBlock: 0,
-			ResyncFromBlock: 0,
-		}
-
-		states := []model_structures.ContractSyncState{}
-		err = db.Write(model_structures.ContractSyncState{}.CollectionName(), states)
-		if err != nil {
-			log.Error("[getPendingTaskFromContractZk][ContractSyncState] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
-			return nil, err
-		}
-	}
-
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		log.Error("[getPendingTaskFromContractZk][NewEthClient] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
 		return []types.TaskInfo{}, err
+	}
+
+	currentBlock, err := ethClient.BlockNumber(ctx)
+	if err != nil {
+		log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,err: ", err)
+		return nil, err
+	}
+
+	log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
+	if err != nil || state == nil {
+		state = &model_structures.ContractSyncState{
+			Job:             jobName,
+			ContractAddress: strings.ToLower(tskw.taskContract),
+			LastSyncedBlock: currentBlock, // don't need to start from Block 0, use the current_block instead.
+			ResyncFromBlock: 0,
+		}
 	}
 
 	startBlock := state.LastSyncedBlock
@@ -794,13 +793,6 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 	tasks := []types.TaskInfo{}
 
 	for {
-		currentBlock, err := ethClient.BlockNumber(ctx)
-		if err != nil {
-			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
-			return nil, err
-		}
-
-		log.Debug("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock)
 		if endBlock >= currentBlock || startBlock >= currentBlock {
 			break
 		}
@@ -809,16 +801,6 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 			endBlock = startBlock + 1000
 		} else {
 			endBlock = currentBlock
-		}
-
-		state.LastSyncedBlock = endBlock
-
-		states := []model_structures.ContractSyncState{}
-		states = append(states, *state)
-		err = tskw.UpdateContractSyncStateByAddressAndJob(states)
-		if err != nil {
-			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
-			break
 		}
 
 		contract, err := zkabi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
@@ -833,7 +815,16 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 			return nil, err
 		}
 
+		log.Info("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(_tasks))
 		state.LastSyncedBlock = endBlock
+		states := []model_structures.ContractSyncState{}
+		states = append(states, *state)
+		err = tskw.UpdateContractSyncStateByAddressAndJob(states)
+		if err != nil {
+			log.Error("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
+			break
+		}
+
 		startBlock = endBlock + 1
 		tasks = append(tasks, _tasks...)
 	}
