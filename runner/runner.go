@@ -54,9 +54,11 @@ func (r *RunnerInstance) SetNotDone() {
 	r.isDone = false
 }
 
-func (r *RunnerInstance) Run(output string) error {
+func (r *RunnerInstance) Run(output string, setDone bool) error {
 	defer func() {
-		r.isDone = true
+		if setDone {
+			r.isDone = true
+		}
 	}()
 
 	log.Println("output: ", output)
