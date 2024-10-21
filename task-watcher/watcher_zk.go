@@ -880,15 +880,18 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 			return nil, err
 		}
 
-		log.Info("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignments: ", len(assignments))
+		log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,assignments: ", len(assignments))
 		for _, assignment := range assignments {
 			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
 			if err != nil {
-				log.Error("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
+				log.Error("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,err: ", err)
 				continue
 			}
 
-			log.Info("[filterZKEventNewInference][assignmentInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,assignment.AssignmentId: ", assignment.AssignmentId, " ,assignmentInfo: ", assignmentInfo)
+			log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(),
+				" ,assignment.AssignmentId: ", assignment.AssignmentId,
+				//" ,assignmentInfo: ", assignmentInfo,
+			)
 			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 				task := types.TaskInfo{
 					TaskID:         assignment.InferenceId.String(),
