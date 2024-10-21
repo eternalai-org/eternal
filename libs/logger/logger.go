@@ -18,6 +18,7 @@ func init() {
 		ForceColors:   true, // Force colors
 		FullTimestamp: true, // Show full timestamp
 	})
+	log.SetReportCaller(true)
 	log.SetOutput(lg)
 }
 

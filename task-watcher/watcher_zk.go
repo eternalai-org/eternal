@@ -446,7 +446,7 @@ func (tskw *TaskWatcher) Reveal(task *types.TaskInfo, data []byte) error {
 	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
 	_ = ok
 	//
-	log.Info(fmt.Sprintf("Call reveal with param _assignId=%v nonce=1 data=%v", _assignmentId.String(), string(data)))
+	log.Info(fmt.Sprintf("TaskWatcher task Call reveal for task=%v with param _assignId=%v nonce=1 data=%v", task.TaskID, _assignmentId.String(), string(data)))
 	dataBytes, err := instanceABI.Pack(
 		"reveal", _assignmentId, new(big.Int).SetInt64(1), data,
 	)
