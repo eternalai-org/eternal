@@ -340,6 +340,18 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			}
 		}
 
+		if len(tasks) == 0 {
+			modelAddr := tskw.GetAssignedModel()
+			log.Info("Watcher: Maybe node is slashed for model ", modelAddr)
+			if ok := tskw.isMinerOfModel(common.HexToAddress(modelAddr)); !ok {
+				log.Info("Watcher: node is reJoinMinting for model ", modelAddr)
+				err := tskw.reJoinMinting(modelAddr)
+				if err != nil {
+					log.Error("Watcher:reJoinMinting error", err)
+				}
+			}
+		}
+
 	}
 }
 
