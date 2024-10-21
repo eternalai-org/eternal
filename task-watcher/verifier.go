@@ -93,7 +93,7 @@ func (tskw *TaskWatcher) executeVerifierTaskDefault(task *types.TaskInfo) error 
 	ext := modelInst.GetExt()
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 
-	err = newRunner.Run(output)
+	err = newRunner.Run(output, true)
 	if err != nil {
 		log.Println("run task error: ", err)
 		return err

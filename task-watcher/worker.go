@@ -34,9 +34,9 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	}
 }
 
-func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) (*eaimodel.TaskResult, error) {
+func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance, setDone bool) (*eaimodel.TaskResult, error) {
 	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-	err := newRunner.Run(output)
+	err := newRunner.Run(output, setDone)
 	if err != nil {
 		log.Error("run task error: ", err)
 		return nil, err
@@ -63,7 +63,7 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
-	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner)
+	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner, true)
 	if err != nil {
 		return err
 	}

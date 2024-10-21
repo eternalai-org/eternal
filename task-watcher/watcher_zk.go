@@ -712,7 +712,7 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 				}
 				// execute to get result from docker container
 				ext := modelInst.GetExt()
-				taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst)
+				taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst, !task.ZKSync)
 				log.Info("executeVerifierTaskDefaultZk taskResult", taskResult)
 				if err != nil {
 					log.Error("executeVerifierTaskDefaultZk validator run docker get result error: ", err)
