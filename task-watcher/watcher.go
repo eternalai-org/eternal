@@ -1194,6 +1194,8 @@ func (tskw *TaskWatcher) GetDAOToken() DAOToken {
 		ethClient, _ := eth.NewEthClient(tskw.networkCfg.RPC)
 		erc20, _ := zkabi.NewErc20(common.HexToAddress(tskw.daoToken), ethClient)
 		balance, err := erc20.BalanceOf(nil, common.HexToAddress(tskw.address))
+		amount := new(big.Float).SetInt(balance)
+		amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
 		if err != nil {
 			return DAOToken{
 				Balance: "0",
@@ -1202,7 +1204,7 @@ func (tskw *TaskWatcher) GetDAOToken() DAOToken {
 			}
 		}
 		return DAOToken{
-			Balance: balance.String(),
+			Balance: amount.String(),
 			Address: tskw.daoToken,
 			Name:    tskw.daoTokenName,
 		}
