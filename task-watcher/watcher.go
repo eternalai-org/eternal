@@ -480,19 +480,19 @@ func (tskw *TaskWatcher) GetCurrentPendingTasks() []types.TaskRunnerInfo {
 }
 
 func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
-	//log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
+	log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 	tskw.taskQueue <- task
 }
 
 func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
-	log.Println("[TaskWatcher].AssignTask")
+	//log.Println("[TaskWatcher].AssignTask")
 	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, &task)
 	if err != nil {
 		log.Error("create runner error: ", err)
 		return err
 	}
 
-	log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
+	//log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
 	err = tskw.AddRunner(task.TaskID, newRunner)
 	if err != nil {
 		log.Error("[TaskWatcher].AssignTask - add runner error: ", err)
@@ -535,17 +535,17 @@ func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, er
 }
 
 func (tskw *TaskWatcher) executeTasks() {
-	log.Println("[TaskWatcher].executeTasks")
+	//log.Println("[TaskWatcher].executeTasks")
 	for {
 		task := <-tskw.taskQueue
-		log.Println("[TaskWatcher].executeTasks - received task")
+		//log.Println("[TaskWatcher].executeTasks - received task")
 		newRunner := tskw.GetRunner(task.TaskID)
 		if newRunner == nil {
-			log.Println("runner not found", task.TaskID)
+			log.Println("[TaskWatcher].executeTasks - runner not found, TaskID:", task.TaskID)
 			continue
 		}
 		if newRunner.IsDone() {
-			log.Println("runner is done", task.TaskID)
+			log.Println("[TaskWatcher].executeTasks - runner is done, TaskID:", task.TaskID)
 			continue
 		}
 
@@ -579,7 +579,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				if isCompleted {
 					newRunner.SetDone()
 
-					log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
+					//log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
 					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 					continue
 				}

@@ -303,7 +303,7 @@ func (m *ModelInstance) StartDocker() error {
 	}
 
 	if existedContainer != nil {
-		log.Infof("[StartDocker][DEBUG][GetContainerByName] container: %v, status: %s  \n", m.ModelInfo.ModelAddr, existedContainer.Status)
+		//log.Infof("[StartDocker][DEBUG][GetContainerByName] container: %v, status: %s  \n", m.ModelInfo.ModelAddr, existedContainer.Status)
 		if strings.Contains(existedContainer.Status, "up") || strings.Contains(existedContainer.Status, "running") {
 			m.Ready = true
 			return nil
