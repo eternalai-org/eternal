@@ -566,7 +566,7 @@ func (m *ModelInstance) IsVerifierRunning() (bool, error) {
 
 func (m *ModelInstance) GetTrainingRequest() error {
 	url := fmt.Sprintf("%s/api/dojo/model-info-by-model-address/%s", "https://api-dojo2.eternalai.org", m.ModelInfo.ModelAddr)
-	log.Info("[GetTrainingRequest] - url: ", url)
+	//log.Info("[GetTrainingRequest] - url: ", url)
 
 	response, err := http.Get(url)
 	if err != nil {

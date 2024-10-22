@@ -420,9 +420,9 @@ func Cid(data []byte) string {
 
 func fileExistOnNetwork(data []byte) (string, bool, error) {
 	cid := Cid(data)
-
 	fileInfo, err := GetFileInfo(cid)
 	if err != nil {
+		log.Error("fileExistOnNetwork - fileInfo: ", fileInfo, " ,err: ", err)
 		if fileInfo != nil && fileInfo.Error.Code == 404 {
 			return "", false, nil
 		}
