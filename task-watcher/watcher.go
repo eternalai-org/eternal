@@ -9,6 +9,7 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/github"
+	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
@@ -77,6 +78,8 @@ type TaskWatcher struct {
 	paymasterAddr    string
 	paymasterToken   string
 	paymasterFeeZero bool
+	daoToken         string
+	daoTokenName     string
 }
 
 func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
@@ -86,7 +89,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 	zkSycn bool,
 	paymasterAddr string,
 	paymasterToken string,
-	paymasterZeroFee bool) (*TaskWatcher, error) {
+	paymasterZeroFee bool, daoToken string, daoTokenName string) (*TaskWatcher, error) {
 
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
@@ -98,6 +101,8 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 		paymasterAddr:    paymasterAddr,
 		paymasterToken:   paymasterToken,
 		paymasterFeeZero: paymasterZeroFee,
+		daoToken:         daoToken,
+		daoTokenName:     daoTokenName,
 		networkCfg:       networkCfg,
 		modelsDir:        modelsDir,
 		version:          version,
@@ -1170,6 +1175,38 @@ func (tskw *TaskWatcher) GetWorkerBalance() string {
 	amount := new(big.Float).SetInt(tskw.status.balance)
 	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
 	return amount.String()
+}
+
+type DAOToken struct {
+	Balance string `json:"balance"`
+	Address string `json:"address"`
+	Name    string `json:"name"`
+}
+
+func (tskw *TaskWatcher) GetDAOToken() DAOToken {
+	if tskw.daoToken == "" {
+		return DAOToken{
+			Balance: "0",
+			Address: "",
+			Name:    "",
+		}
+	} else {
+		ethClient, _ := eth.NewEthClient(tskw.networkCfg.RPC)
+		erc20, _ := zkabi.NewErc20(common.HexToAddress(tskw.daoToken), ethClient)
+		balance, err := erc20.BalanceOf(nil, common.HexToAddress(tskw.address))
+		if err != nil {
+			return DAOToken{
+				Balance: "0",
+				Address: tskw.daoToken,
+				Name:    tskw.daoTokenName,
+			}
+		}
+		return DAOToken{
+			Balance: balance.String(),
+			Address: tskw.daoToken,
+			Name:    tskw.daoTokenName,
+		}
+	}
 }
 
 func (tskw *TaskWatcher) ReclaimStake() error {

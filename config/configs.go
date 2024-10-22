@@ -23,6 +23,8 @@ type ChainConfig struct {
 	WorkerhubAddress string `json:"workerhub_address"`
 	ZkSync           bool   `json:"zk_sync"`
 	EaiNative        bool   `json:"eai_native"`
+	DAOToken         string `json:"dao_token"`
+	DAOTokenName     string `json:"dao_token_name"`
 }
 
 var ChainConfigs = map[string]ChainConfig{
@@ -67,6 +69,8 @@ var ChainConfigs = map[string]ChainConfig{
 		WorkerhubAddress: "0x430583bdff80c5be1536ed82f9c8090eef68e2f6",
 		ZkSync:           true,
 		EaiNative:        true,
+		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
+		DAOTokenName:     "FLUX",
 	},
 }
 
@@ -92,6 +96,8 @@ type Config struct {
 	PaymasterAddress string `json:"paymaster_address"`
 	PaymasterToken   string `json:"paymaster_token"`
 	PaymasterZeroFee bool   `json:"paymaster_zero_fee"`
+	DAOToken         string `json:"dao_token"`
+	DAOTokenName     string `json:"dao_token_name"`
 }
 
 const (
@@ -146,6 +152,8 @@ func ReadConfig() (*Config, *CmdType, error) {
 		cfg.PaymasterToken = chainConfig.PaymasterToken
 		cfg.PaymasterAddress = chainConfig.PaymasterAddress
 		cfg.PaymasterZeroFee = chainConfig.PaymasterFeeZero
+		cfg.DAOToken = chainConfig.DAOToken
+		cfg.DAOTokenName = chainConfig.DAOTokenName
 	}
 
 	if *port != 0 {

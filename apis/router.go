@@ -91,23 +91,24 @@ func (rt *Router) StartRouter() error {
 
 func (rt *Router) Stats(c *gin.Context) {
 	type Stats struct {
-		AssignedModel  string `json:"assigned_model"`
-		ModelStatus    string `json:"model_status"`
-		WorkerAddress  string `json:"worker_address"`
-		WorkerBalance  string `json:"worker_balance"`
-		StakeStatus    string `json:"stake_status"`
-		StakedAmount   string `json:"staked_amount"`
-		SessionEarning string `json:"session_earning"`
-		ProcessedTasks uint64 `json:"processed_tasks"`
-		AssignedTasks  uint64 `json:"assigned_tasks"`
-		MiningReward   string `json:"mining_reward"`
-		UnstakeAmount  string `json:"unstake_amount"`
-		UnstakeTime    string `json:"unstake_time"`
-		TotalModels    int    `json:"total_models"`
-		TotalMiners    int    `json:"total_miners"`
-		Version        string `json:"version"`
-		HasNewVersion  bool   `json:"has_new_version"`
-		NewVersion     string `json:"new_version"`
+		AssignedModel  string           `json:"assigned_model"`
+		ModelStatus    string           `json:"model_status"`
+		WorkerAddress  string           `json:"worker_address"`
+		WorkerBalance  string           `json:"worker_balance"`
+		DAOToken       watcher.DAOToken `json:"dao_token"`
+		StakeStatus    string           `json:"stake_status"`
+		StakedAmount   string           `json:"staked_amount"`
+		SessionEarning string           `json:"session_earning"`
+		ProcessedTasks uint64           `json:"processed_tasks"`
+		AssignedTasks  uint64           `json:"assigned_tasks"`
+		MiningReward   string           `json:"mining_reward"`
+		UnstakeAmount  string           `json:"unstake_amount"`
+		UnstakeTime    string           `json:"unstake_time"`
+		TotalModels    int              `json:"total_models"`
+		TotalMiners    int              `json:"total_miners"`
+		Version        string           `json:"version"`
+		HasNewVersion  bool             `json:"has_new_version"`
+		NewVersion     string           `json:"new_version"`
 	}
 
 	unstakeAmount, unstakeTime := rt.watcher.GetUnstakeInfo()
@@ -137,6 +138,7 @@ func (rt *Router) Stats(c *gin.Context) {
 		ModelStatus:    rt.watcher.GetModelStatus(),
 		WorkerAddress:  rt.watcher.GetWorkerAddress(),
 		WorkerBalance:  rt.watcher.GetWorkerBalance(),
+		DAOToken:       rt.watcher.GetDAOToken(),
 		StakeStatus:    stakedStatus,
 		StakedAmount:   rt.watcher.GetStakedAmount(),
 		SessionEarning: rt.watcher.GetSessionEarning(),
