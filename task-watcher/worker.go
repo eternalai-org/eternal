@@ -27,7 +27,7 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	}
 	// execute to get result from docker container
 	ext := modelInst.GetExt()
-	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
+	if modelInst.ZKSync == false {
 		log.Info(fmt.Sprintf("executeWorkerTaskDefault process task %s", task.TaskID))
 		return tskw.executeWorkerTaskDefault(modelInst, task, ext, runnerInst)
 	} else {
