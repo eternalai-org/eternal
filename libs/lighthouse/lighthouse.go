@@ -426,7 +426,7 @@ func fileExistOnNetwork(data []byte) (string, bool, error) {
 		if fileInfo != nil && fileInfo.Error.Code == 404 {
 			return "", false, nil
 		}
-		return "", false, err
+		return "", false, nil
 	}
 
 	return cid, true, nil
