@@ -70,7 +70,7 @@ var ChainConfigs = map[string]ChainConfig{
 		ZkSync:           true,
 		EaiNative:        true,
 		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
-		DAOTokenName:     "FLUX",
+		DAOTokenName:     "IMAGINE",
 	},
 }
 
