@@ -286,7 +286,7 @@ func (tskw *TaskWatcher) GetCurrentRunningTasks() []types.TaskRunnerInfo {
 
 func (tskw *TaskWatcher) watchAndAssignTask() {
 	// watch and assign task to model
-	maxConcurrentTask := 10
+	maxConcurrentTask := 1
 
 	if tui.UI != nil {
 		tui.UI.UpdateSectionText(tui.UIMessageData{
