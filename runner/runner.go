@@ -3,9 +3,11 @@ package runner
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"math"
 	"math/big"
@@ -24,6 +26,10 @@ func NewRunnerInstance(modelManager *manager.ModelManager, task *types.TaskInfo)
 	modelInst, err := modelManager.GetModelInstance(task.ModelContract)
 	if err != nil {
 		return nil, err
+	}
+
+	if modelInst == nil {
+		return nil, errors.New(fmt.Sprintf("modelInst is null for model contract %s", task.ModelContract))
 	}
 
 	return &RunnerInstance{
