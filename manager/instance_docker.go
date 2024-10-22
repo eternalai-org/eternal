@@ -62,10 +62,12 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 }
 
 func (m *ModelInstance) SetupDocker() error {
-	t := time.Now()
-	defer func() {
-		log.Info(fmt.Sprintf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t)))
-	}()
+	/*
+		t := time.Now()
+		defer func() {
+			log.Info(fmt.Sprintf("[SetupDocker] - %v took %v \n", m.ModelInfo.ModelAddr, time.Since(t)))
+		}()*/
+
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 
@@ -158,7 +160,7 @@ func (m *ModelInstance) SetupDocker() error {
 		//check image existed or not
 		img, _ := dockercmd.GetImageInfo(m.ModelInfo.ModelAddr)
 
-		log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
+		//log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
 		if img.ID == "" {
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
@@ -588,6 +590,6 @@ func (m *ModelInstance) GetTrainingRequest() error {
 	}
 
 	m.TrainingRequest = &data.Data
-	log.Info("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
+	//log.Info("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
 	return nil
 }

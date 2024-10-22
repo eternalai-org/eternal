@@ -115,7 +115,7 @@ func (m *ModelManager) GetLoadeModels() map[string]*ModelInstance {
 func (m *ModelManager) PreloadModels(list []string) error {
 	m.lck.Lock()
 	defer m.lck.Unlock()
-	log.Println("Preloading models")
+	//log.Println("Preloading models")
 
 	for _, modelAddress := range list {
 		if modelAddress == "" {
@@ -134,7 +134,7 @@ func (m *ModelManager) PreloadModels(list []string) error {
 		}
 	}
 
-	log.Println("Preloading models done")
+	//log.Println("[ModelManager]. Preloading models done")
 	return nil
 }
 
@@ -177,7 +177,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
+	//log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
 	m.currentModels[strings.ToLower(modelAddress)] = inst
 
 	err = inst.SetupDocker()

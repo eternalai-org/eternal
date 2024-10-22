@@ -779,7 +779,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		return nil, err
 	}
 
-	log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
+	//log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
 	if err != nil || state == nil {
 		state = &model_structures.ContractSyncState{
 			Job:             jobName,
@@ -817,7 +817,6 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 			return nil, err
 		}
 
-		log.Info("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(_tasks))
 		state.LastSyncedBlock = endBlock
 		states := []model_structures.ContractSyncState{}
 		states = append(states, *state)
@@ -831,6 +830,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		tasks = append(tasks, _tasks...)
 	}
 
+	log.Info("[getPendingTaskFromContractZk] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
 	return tasks, nil
 }
 
