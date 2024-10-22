@@ -931,7 +931,10 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		}
 	}
 
-	log.Info("[filterZKEventNewInference] get tasks: ", len(tasks), " ,startBlock: ", startBlock, ", toBlock: ", endBlock)
+	if len(tasks) > 0 {
+		log.Info("[filterZKEventNewInference] get tasks: ", len(tasks), " ,startBlock: ", startBlock, ", toBlock: ", endBlock)
+	}
+
 	return tasks, nil
 }
 
