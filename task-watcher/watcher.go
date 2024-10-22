@@ -307,13 +307,13 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 		if tskw.zkSync {
 			tasks, err = tskw.getPendingTaskFromContractZk()
 			if err != nil {
-				log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
+				log.Error("[watchAndAssignTask][ERR] get pending task error: ", err)
 				continue
 			}
 		} else {
 			tasks, err = tskw.getPendingTaskFromContract()
 			if err != nil {
-				log.Println("[watchAndAssignTask][ERR] get pending task error: ", err)
+				log.Error("[watchAndAssignTask][ERR] get pending task error: ", err)
 				continue
 			}
 		}
@@ -325,18 +325,18 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			return taskAid.Cmp(taskBid) > 0
 		})
 
-		log.Println("[watchAndAssignTask] pending tasks: ", len(tasks))
+		//log.Println("[watchAndAssignTask] pending tasks: ", len(tasks))
 
 		for _, task := range tasks {
 			if len(tskw.currentRunner) >= maxConcurrentTask {
-				log.Println("[watchAndAssignTask] worker is full, current tasks: ", len(tskw.currentRunner))
+				log.Error("[watchAndAssignTask] worker is full, current tasks: ", len(tskw.currentRunner))
 				break
 			}
 
 			log.Println("[watchAndAssignTask] assign task: ", task.TaskID, task.ModelContract, task.Params)
 			err = tskw.AssignTask(task)
 			if err != nil {
-				log.Println("[watchAndAssignTask] assign task error: ", err)
+				log.Error("[watchAndAssignTask] assign task: taskID: ", task.TaskID, " error: ", err)
 			}
 		}
 
@@ -344,7 +344,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			modelAddr := tskw.GetAssignedModel()
 			//log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
 			if ok := tskw.isMinerOfModel(common.HexToAddress(modelAddr)); !ok {
-				log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
+				//log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
 				err := tskw.reJoinMinting(modelAddr)
 				if err != nil {
 					log.Error("Watcher:reJoinMinting error", err)
@@ -883,7 +883,7 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 		return false, errors.Join(err, errors.New("Error while getting account info"))
 	}
 
-	log.Println("check staked for: ", address.String())
+	//log.Println("check staked for: ", address.String())
 
 	workerInfo, err := workerHub.WorkerHubCaller.Miners(nil, *address)
 	if err != nil {
