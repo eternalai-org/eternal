@@ -31,7 +31,8 @@ type ModelInstance struct {
 	VerifierLoaded bool
 	DisableGPU     bool
 
-	TrainingRequest *TrainingRequest
+	//TrainingRequest *TrainingRequest
+	ZKSync bool
 }
 
 // func setupCondaEnv(name, envFile string) error {

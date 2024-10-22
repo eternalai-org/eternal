@@ -23,9 +23,10 @@ type ModelManager struct {
 	workerHub     string
 	status        string
 	disableGPU    bool
+	zksync        bool
 }
 
-func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool) *ModelManager {
+func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool, zkSync bool) *ModelManager {
 	return &ModelManager{
 		modelsDir:     modelsDir,
 		rpc:           rpcEndpoint,
@@ -34,6 +35,7 @@ func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disable
 		workerHub:     workerHub,
 		status:        "initializing",
 		disableGPU:    disableGPU,
+		zksync:        zkSync,
 	}
 }
 
@@ -164,20 +166,13 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	}
 
 	inst := &ModelInstance{
-		ModelInfo:       *modelInfo,
-		TrainingRequest: nil,
-		ModelPath:       filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
-		Port:            fmt.Sprintf("%v", randPort()),
-		DisableGPU:      m.disableGPU,
+		ModelInfo:  *modelInfo,
+		ZKSync:     m.zksync,
+		ModelPath:  filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
+		Port:       fmt.Sprintf("%v", randPort()),
+		DisableGPU: m.disableGPU,
 	}
 
-	err = inst.GetTrainingRequest()
-	if err != nil {
-		loadErr = err
-		return err
-	}
-
-	//log.Println("[loadModel] - Model path: ", inst.ModelPath, " ,modelAddress: ", modelAddress)
 	m.currentModels[strings.ToLower(modelAddress)] = inst
 
 	err = inst.SetupDocker()

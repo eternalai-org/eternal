@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
@@ -10,8 +9,6 @@ import (
 	"eternal-infer-worker/libs/zip_hf_model_to_light_house"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -71,7 +68,7 @@ func (m *ModelInstance) SetupDocker() error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 
-	if !m.TrainingRequest.ZKSync {
+	if !m.ZKSync {
 		filePath := ""
 		var err error
 		targetImageName := m.ModelInfo.ModelAddr
@@ -164,7 +161,7 @@ func (m *ModelInstance) SetupDocker() error {
 		if img.ID == "" {
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
-			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.TrainingRequest.ZKSync)
+			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync)
 			if err != nil {
 				log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
 				return err
@@ -562,34 +559,4 @@ func (m *ModelInstance) IsVerifierRunning() (bool, error) {
 		}
 	}
 	return false, nil
-}
-
-func (m *ModelInstance) GetTrainingRequest() error {
-	url := fmt.Sprintf("%s/api/dojo/model-info-by-model-address/%s", "https://api-dojo2.eternalai.org", m.ModelInfo.ModelAddr)
-	//log.Info("[GetTrainingRequest] - url: ", url)
-
-	response, err := http.Get(url)
-	if err != nil {
-		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
-		return err
-	}
-	defer response.Body.Close() // Ensure the response body is closed
-
-	// Read the response body
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
-		return err
-	}
-
-	data := &APIResponse{}
-	err = json.Unmarshal(body, data)
-	if err != nil {
-		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err, "data body: ", string(body))
-		return err
-	}
-
-	m.TrainingRequest = &data.Data
-	//log.Info("[GetTrainingRequest][Success] - url: ", url, " ,TrainingRequest: ", m.TrainingRequest)
-	return nil
 }
