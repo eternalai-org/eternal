@@ -175,7 +175,7 @@ func (tskw *TaskWatcher) watchAssignedModel() {
 			continue
 		}
 
-		log.Println("[watchAssignedModel].watchAssignedModel - assignModel ", tskw.status.assignModel)
+		//log.Println("[watchAssignedModel].watchAssignedModel - assignModel ", tskw.status.assignModel)
 		currentLoadedModels := tskw.modelManager.GetLoadeModels()
 		if _, ok := currentLoadedModels[tskw.status.assignModel]; ok {
 			time.Sleep(5 * time.Second)
@@ -333,7 +333,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 				break
 			}
 
-			log.Println("[watchAndAssignTask] assign task: ", task.TaskID, task.ModelContract, task.Params)
+			log.Println("[watchAndAssignTask] assign task:  taskID: ", task.TaskID, task.ModelContract, task.Params)
 			err = tskw.AssignTask(task)
 			if err != nil {
 				log.Error("[watchAndAssignTask] assign task: taskID: ", task.TaskID, " error: ", err)
