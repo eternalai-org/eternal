@@ -28,8 +28,10 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	// execute to get result from docker container
 	ext := modelInst.GetExt()
 	if modelInst.TrainingRequest == nil || modelInst.TrainingRequest.ZKSync == false {
+		log.Info(fmt.Sprintf("executeWorkerTaskDefault process task %s", task.TaskID))
 		return tskw.executeWorkerTaskDefault(modelInst, task, ext, runnerInst)
 	} else {
+		log.Info(fmt.Sprintf("executeWorkerTaskDefaultZk process task %s", task.TaskID))
 		return tskw.executeWorkerTaskDefaultZk(modelInst, task, ext, runnerInst)
 	}
 }
@@ -63,20 +65,24 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	log.Info(fmt.Sprintf("executeWorkerTaskDefault runDockerToGetValue for task %s", task.TaskID))
 	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner, true)
 	if err != nil {
+		log.Error("executeWorkerTaskDefault runDockerToGetValue taskResult error: ", err)
 		return err
 	}
 	resultData, err := json.Marshal(taskResult)
 	if err != nil {
-		log.Error("marshal result error: ", err)
+		log.Error("executeWorkerTaskDefault marshal result error: ", err)
 		return err
 	}
+	log.Info(fmt.Sprintf("executeWorkerTaskDefault result %s", string(resultData)))
 
 	err = tskw.SubmitResult(task.AssignmentID, resultData)
 	if err != nil {
-		log.Error("submit result error: ", err)
+		log.Error("executeWorkerTaskDefault submit result data error: ", err)
 		return err
 	}
+	log.Info(fmt.Sprintf("executeWorkerTaskDefault submit result data success"))
 	return nil
 }

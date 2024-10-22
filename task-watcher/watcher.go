@@ -672,6 +672,7 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 
 func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error {
 	if tskw.zkSync {
+		log.Info(fmt.Sprintf("SubmitResult ZK for assigmentID %s result %s", assignmentID, string(result)))
 		return tskw.SubmitResultZk(assignmentID, result)
 	}
 	// submit result to contract
