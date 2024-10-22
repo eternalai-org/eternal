@@ -494,7 +494,7 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 		return err
 	}
 
-	go tskw.assigningTask(&task)
+	tskw.assigningTask(&task)
 	return nil
 }
 
@@ -624,7 +624,8 @@ func (tskw *TaskWatcher) executeTasks() {
 						if task.Retry <= 500 {
 							task.Retry++
 							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
-							tskw.taskQueue <- task // set again
+							//tskw.taskQueue <- task // set again
+							tskw.AssignTask(*task)
 						}
 					}
 				}
@@ -663,7 +664,9 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 	}
 
 	if _, ok := tskw.currentRunner[taskID]; ok {
-		return errors.New("task already exists")
+		log.Warn(fmt.Sprintf("task %s already exists", taskID))
+		return nil
+		//return errors.New(fmt.Sprintf("task %s already exists", taskID))
 	}
 
 	tskw.currentRunner[taskID] = runnerInst
