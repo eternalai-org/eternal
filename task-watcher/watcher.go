@@ -558,7 +558,7 @@ func (tskw *TaskWatcher) executeTasks() {
 			mode = task.AssignmentRole
 		}
 
-		log.Info("[TaskWatcher].executeTasks Process task with mode", mode)
+		log.Info(fmt.Sprintf("[TaskWatcher].executeTasks ------ Process task %s with mode %s", task.TaskID, mode))
 
 		switch mode {
 		case libs.MODE_MINER:
