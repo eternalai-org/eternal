@@ -2,6 +2,7 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"eternal-infer-worker/libs/file"
 	"io"
 	"net/http"
@@ -113,6 +114,11 @@ func GetLatestRelease() (*GithubReleaseInfo, error) {
 func DownloadLatestRelease(filename string) error {
 	latestRelease, err := GetLatestRelease()
 	if err != nil {
+		return err
+	}
+
+	if len(latestRelease.Assets) == 0 {
+		err := errors.New("assets were not found for the latest release")
 		return err
 	}
 
