@@ -286,7 +286,7 @@ func (tskw *TaskWatcher) GetCurrentRunningTasks() []types.TaskRunnerInfo {
 
 func (tskw *TaskWatcher) watchAndAssignTask() {
 	// watch and assign task to model
-	maxConcurrentTask := 1
+	maxConcurrentTask := 10
 
 	if tui.UI != nil {
 		tui.UI.UpdateSectionText(tui.UIMessageData{
@@ -342,7 +342,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 
 		if len(tasks) == 0 {
 			modelAddr := tskw.GetAssignedModel()
-			log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
+			//log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
 			if ok := tskw.isMinerOfModel(common.HexToAddress(modelAddr)); !ok {
 				log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
 				err := tskw.reJoinMinting(modelAddr)
