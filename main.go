@@ -196,7 +196,7 @@ func AutomaticallyUpdate(cfg *config.Config) {
 		} else {
 			_willUpdate, _ := file.WillUpdateVersion(releaseInfo.TagName)
 
-			log.Info("'[Info] current version: ", releaseInfo.TagName)
+			//log.Info("'[Info] current version: ", releaseInfo.TagName)
 			if _willUpdate {
 				log.Info("New version available: ", releaseInfo.TagName)
 
@@ -244,7 +244,7 @@ func AutomaticallyUpdate(cfg *config.Config) {
 					}
 				}
 			} else {
-				log.Info("You are using the latest version")
+				//log.Info("You are using the latest version")
 			}
 		}
 

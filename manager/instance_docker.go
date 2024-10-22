@@ -286,7 +286,7 @@ func (m *ModelInstance) StartDocker() error {
 	//	// TODO
 	//} else {}
 	var err error
-	t := time.Now()
+	/*t := time.Now()
 	defer func() {
 
 		if err != nil {
@@ -294,7 +294,7 @@ func (m *ModelInstance) StartDocker() error {
 		} else {
 			log.Info(fmt.Sprintf("[StartDocker] ModelAddress: %v, port: %s, DisableGPU: %v,  containerID: %s, took %v  \n", m.ModelInfo.ModelAddr, m.Port, m.DisableGPU, m.containerID, time.Since(t)))
 		}
-	}()
+	}()*/
 
 	existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
 	if err != nil {
