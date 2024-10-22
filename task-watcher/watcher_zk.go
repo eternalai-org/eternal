@@ -508,6 +508,7 @@ func (tskw *TaskWatcher) isMinerOfModel(modelAddr common.Address) bool {
 	}
 	for _, v := range info {
 		if strings.ToLower(v.Hex()) == strings.ToLower(tskw.address) {
+			log.Info(fmt.Sprintf("Watcher: node is still miner of model %s", modelAddr.Hex()))
 			return true
 		}
 	}
