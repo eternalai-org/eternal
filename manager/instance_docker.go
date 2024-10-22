@@ -585,7 +585,7 @@ func (m *ModelInstance) GetTrainingRequest() error {
 	data := &APIResponse{}
 	err = json.Unmarshal(body, data)
 	if err != nil {
-		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err)
+		log.Error("[GetTrainingRequest][Error] - url: ", url, " ,err: ", err, "data body: ", string(body))
 		return err
 	}
 
