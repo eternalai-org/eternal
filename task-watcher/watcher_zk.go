@@ -784,7 +784,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		state = &model_structures.ContractSyncState{
 			Job:             jobName,
 			ContractAddress: strings.ToLower(tskw.taskContract),
-			LastSyncedBlock: currentBlock, // don't need to start from Block 0, use the current_block instead.
+			LastSyncedBlock: (currentBlock - 50), // don't need to start from Block 0, use the (currentBlock - 50) instead.
 			ResyncFromBlock: 0,
 		}
 	}
@@ -794,6 +794,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 	tasks := []types.TaskInfo{}
 
 	for {
+		//(currentBlock - 50) to pass this condition
 		if endBlock >= currentBlock || startBlock >= currentBlock {
 			break
 		}

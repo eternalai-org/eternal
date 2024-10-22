@@ -83,7 +83,7 @@ func Update(collectionName string, data interface{}) error {
 			err := os.Rename(_pathSwap, _path)
 			if err == nil {
 				//remove the old data
-				os.Remove(_pathOld)
+				//os.Remove(_pathOld) // don't remove and keep it for the testing purpose.
 				os.Remove(_pathSwap)
 			}
 
