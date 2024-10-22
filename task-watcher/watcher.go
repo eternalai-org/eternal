@@ -475,7 +475,7 @@ func (tskw *TaskWatcher) GetCurrentPendingTasks() []types.TaskRunnerInfo {
 }
 
 func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
-	log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
+	//log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID, " ,TaskMode: ", tskw.mode)
 	tskw.taskQueue <- task
 }
 
@@ -494,7 +494,7 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 		return err
 	}
 
-	tskw.assigningTask(&task)
+	go tskw.assigningTask(&task)
 	return nil
 }
 
@@ -625,7 +625,7 @@ func (tskw *TaskWatcher) executeTasks() {
 							task.Retry++
 							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
 							//tskw.taskQueue <- task // set again
-							tskw.AssignTask(*task)
+							go tskw.AssignTask(*task)
 						}
 					}
 				}
