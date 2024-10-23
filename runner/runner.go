@@ -63,6 +63,7 @@ func (r *RunnerInstance) SetNotDone() {
 }
 
 func fileExists(filename string) bool {
+	log.Info("RunnerInstance fileExists check file ", filename)
 	// Use Stat to check for the file's existence
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -80,8 +81,9 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 	}()
 
 	log.Info("RunnerInstance run for output: ", output)
-	if fileExists(manager.MountDir + r.task.ModelContract + "/" + outputFile) {
-		log.Info(fmt.Sprintf("RunnerInstance check file output %s existed", output))
+	temp := manager.MountDir + r.task.ModelContract + "/" + outputFile
+	if fileExists(temp) {
+		log.Warn(fmt.Sprintf("RunnerInstance check file output %s existed", output))
 		r.result = output
 		return nil
 	} else {
