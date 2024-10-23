@@ -80,21 +80,26 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 	}()
 
 	log.Info("RunnerInstance run for output: ", output)
-	log.Info(fmt.Sprintf("RunnerInstance check file output %s exist", output))
+	if fileExists(manager.MountDir + r.task.ModelContract + "/" + outputFile) {
+		log.Info(fmt.Sprintf("RunnerInstance check file output %s existed", output))
+		r.result = output
+		return nil
+	} else {
+		modelInst, err := r.modelManager.GetModelInstance(r.task.ModelContract)
+		if err != nil {
+			return err
+		}
 
-	modelInst, err := r.modelManager.GetModelInstance(r.task.ModelContract)
-	if err != nil {
-		return err
+		seed := createSeed(r.task.Params, r.task.TaskID)
+		log.Info(fmt.Sprintf("RunnerInstance check file output %s not existed ---> call docker to process seed %v", output, seed))
+		outputPath, err := modelInst.Infer(r.task.Params, output, seed)
+		if err != nil {
+			log.Error("RunnerInstance modelInst.Infer err", err)
+			return err
+		}
+		r.result = outputPath
+		return nil
 	}
-
-	seed := createSeed(r.task.Params, r.task.TaskID)
-
-	outputPath, err := modelInst.Infer(r.task.Params, output, seed)
-	if err != nil {
-		return err
-	}
-	r.result = outputPath
-	return nil
 }
 
 func createSeed(params string, requestID string) uint64 {
