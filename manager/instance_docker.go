@@ -17,6 +17,8 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const MountDir = "/home/eternal_ai/infer-results/"
+
 func checkModelFileExist(filePath string) bool {
 	return file.CheckFileExist(filePath)
 }
@@ -309,7 +311,7 @@ func (m *ModelInstance) StartDocker() error {
 
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
-	resultMountDir := filepath.Join("/home/eternal_ai/infer-results/" + m.ModelInfo.ModelAddr)
+	resultMountDir := filepath.Join(MountDir + m.ModelInfo.ModelAddr)
 	err = os.MkdirAll(resultMountDir, os.ModePerm)
 	if err != nil {
 		log.Printf("[StartDocker][ERR] ModelAddress: %v, resultMountDir: %s,  err: %v  \n", m.ModelInfo.ModelAddr, resultMountDir, err)
@@ -352,8 +354,7 @@ func (m *ModelInstance) StartDockerVerifier() error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 
-	resultMountDir := filepath.Join(getCurrentDir(), "verify-results/"+m.ModelInfo.ModelAddr)
-
+	resultMountDir := filepath.Join(MountDir + m.ModelInfo.ModelAddr)
 	err := os.MkdirAll(resultMountDir, os.ModePerm)
 	if err != nil {
 		log.Error("Create model mount dir got error", err)

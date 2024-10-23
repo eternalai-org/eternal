@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
@@ -11,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"math"
 	"math/big"
+	"os"
 )
 
 type RunnerInstance struct {
@@ -60,14 +62,25 @@ func (r *RunnerInstance) SetNotDone() {
 	r.isDone = false
 }
 
-func (r *RunnerInstance) Run(output string, setDone bool) error {
+func fileExists(filename string) bool {
+	// Use Stat to check for the file's existence
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false // File does not exist
+	}
+	return err == nil // Return true if no error means the file exists
+}
+
+func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
+	output := fmt.Sprintf("%s/%v", dockercmd.OUTPUT_RESULT_DIR, outputFile)
 	defer func() {
 		if setDone {
 			r.isDone = true
 		}
 	}()
 
-	log.Println("output: ", output)
+	log.Info("RunnerInstance run for output: ", output)
+	log.Info(fmt.Sprintf("RunnerInstance check file output %s exist", output))
 
 	modelInst, err := r.modelManager.GetModelInstance(r.task.ModelContract)
 	if err != nil {

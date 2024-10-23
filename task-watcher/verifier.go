@@ -3,7 +3,6 @@ package watcher
 import (
 	"bytes"
 	"errors"
-	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/lighthouse"
@@ -91,9 +90,9 @@ func (tskw *TaskWatcher) executeVerifierTaskDefault(task *types.TaskInfo) error 
 
 	finalResult := &bytes.Buffer{}
 	ext := modelInst.GetExt()
-	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
 
-	err = newRunner.Run(output, true)
+	outputFile := fmt.Sprintf("%v.%v", task.TaskID, ext)
+	err = newRunner.Run(outputFile, true)
 	if err != nil {
 		log.Println("run task error: ", err)
 		return err

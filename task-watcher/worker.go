@@ -3,7 +3,6 @@ package watcher
 import (
 	"encoding/json"
 	"errors"
-	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/manager"
@@ -37,8 +36,8 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 }
 
 func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance, setDone bool) (*eaimodel.TaskResult, error) {
-	output := fmt.Sprintf("%s/%v.%v", dockercmd.OUTPUT_RESULT_DIR, task.TaskID, ext)
-	err := newRunner.Run(output, setDone)
+	outputFile := fmt.Sprintf("%v.%v", task.TaskID, ext)
+	err := newRunner.Run(outputFile, setDone)
 	if err != nil {
 		log.Error("run task error: ", err)
 		return nil, err
