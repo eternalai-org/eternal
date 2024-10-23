@@ -594,8 +594,22 @@ func (tskw *TaskWatcher) executeTasks() {
 			}
 		case libs.MODE_VALIDATOR:
 			{
+				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
+				if err != nil {
+					log.Error(fmt.Sprintf("validator [TaskWatcher].executeTasks check task %s completed error: %v", task.TaskID, err))
+					newRunner.SetDone()
+					time.Sleep(1 * time.Second)
+					continue
+				}
+
+				if isCompleted {
+					newRunner.SetDone()
+					log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks - task done: %s", task.TaskID))
+					continue
+				}
+
 				// assign task to validator
-				err := tskw.executeVerifierTask(task)
+				err = tskw.executeVerifierTask(task)
 				if !task.ZKSync {
 					if err != nil {
 						log.Error("validator [TaskWatcher].executeTasks - execute validator task error: ", err)
