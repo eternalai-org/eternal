@@ -341,6 +341,10 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 				errorNum++
 				log.Println("[DownloadFile][Error] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
 				retryDownload = append(retryDownload, dFChan.Data)
+
+				//remove file if error
+				os.Remove(fmt.Sprintf("%s/%s", hfDir, dFChan.Data.File))
+
 			} else {
 				log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
 			}
@@ -355,11 +359,6 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 			Model:     info.Model,
 			NumOfFile: len(retryDownload),
 			Files:     retryDownload,
-		}
-
-		//remove the error file
-		for _, i := range retryDownload {
-			os.Remove(fmt.Sprintf("%s/%s", hfDir, i.File))
 		}
 
 		return downloadZipFileFromLightHouseNew(&retryInfo, hfDir)

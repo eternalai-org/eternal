@@ -149,6 +149,10 @@ func (tskw *TaskWatcher) Start() {
 
 	tskw.GetWorkerInfo()
 	go tskw.watchAssignedModel()
+
+	//remove the generated png by docker - this is called after watchAssignedModel step.
+	go tskw.modelManager.RemoveTheGeneratedFile(tskw.status.assignModel)
+
 	var err error
 	// err = tskw.modelManager.PreloadModels([]string{tskw.status.assignModel})
 	// if err != nil {
