@@ -63,7 +63,7 @@ func (r *RunnerInstance) SetNotDone() {
 }
 
 func fileExists(filename string) bool {
-	log.Info("RunnerInstance fileExists check file ", filename)
+	log.Debug(fmt.Sprintf("RunnerInstance fileExists check file %s ...... existed", filename))
 	// Use Stat to check for the file's existence
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
