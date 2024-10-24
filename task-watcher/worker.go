@@ -67,21 +67,21 @@ func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstan
 	log.Info(fmt.Sprintf("executeWorkerTaskDefault runDockerToGetValue for task %s", task.TaskID))
 	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner, true)
 	if err != nil {
-		log.Error("executeWorkerTaskDefault runDockerToGetValue taskResult error: ", err)
+		log.Error(fmt.Sprintf("executeWorkerTaskDefault runDockerToGetValue task %s Result error: %v", task.TaskID, err))
 		return err
 	}
 	resultData, err := json.Marshal(taskResult)
 	if err != nil {
-		log.Error("executeWorkerTaskDefault marshal result error: ", err)
+		log.Error(fmt.Sprintf("executeWorkerTaskDefault marshal result task %s error: %v", task.TaskID, err))
 		return err
 	}
-	log.Info(fmt.Sprintf("executeWorkerTaskDefault result %s", string(resultData)))
+	log.Info(fmt.Sprintf("executeWorkerTaskDefault task %s result %s", task.TaskID, string(resultData)))
 
 	err = tskw.SubmitResult(task.AssignmentID, resultData)
 	if err != nil {
-		log.Error("executeWorkerTaskDefault submit result data error: ", err)
+		log.Error(fmt.Sprintf("executeWorkerTaskDefault submit result data task %s error: %v", task.TaskID, err))
 		return err
 	}
-	log.Info(fmt.Sprintf("executeWorkerTaskDefault submit result data success"))
+	log.Info(fmt.Sprintf("executeWorkerTaskDefault submit result data task %s success", task))
 	return nil
 }
