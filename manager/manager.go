@@ -6,6 +6,9 @@ import (
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"io/fs"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -346,4 +349,69 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 		}
 	}
 	return nil
+}
+
+func (m *ModelManager) GetFiles(dirPath string) []fs.FileInfo {
+
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		log.Error(fmt.Sprintf("[getFiles] Failed to read directory: %v", dirPath), err)
+		return []fs.FileInfo{}
+	}
+
+	resp := []fs.FileInfo{}
+
+	subDirpaths := []string{}
+	for _, file := range files {
+		if !file.IsDir() {
+			resp = append(resp, file)
+		} else {
+			subDirPath := filepath.Join(dirPath + file.Name())
+			subDirpaths = append(subDirpaths, subDirPath)
+		}
+	}
+
+	for _, sf := range subDirpaths {
+		f := m.GetFiles(sf)
+		resp = append(resp, f...)
+	}
+
+	return resp
+}
+
+func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
+	for {
+		now := time.Now().UTC()
+
+		// Specify the directory you want to list files from
+		dirPath := filepath.Join(MountDir + modelAddress)
+
+		// Read the directory
+		files, err := ioutil.ReadDir(dirPath)
+		if err != nil {
+			log.Error(fmt.Sprintf("[RemoveTheGeneratedFile] Failed to read directory: %v", dirPath), err)
+			return
+		}
+
+		// Loop through the files and print their names
+		for _, file := range files {
+			// Check if it's not a directory
+			if !file.IsDir() {
+				creationTime := file.ModTime()
+				filePath := dirPath + "/" + file.Name()
+				if creationTime.Before(now.Add(time.Hour * 24 * -2)) {
+					if strings.Contains(filePath, ".png") { // only remove png files
+						err = os.Remove(filePath)
+						if err != nil {
+							log.Error(fmt.Sprintf("[RemoveTheGeneratedFile] error while removing file: %v", filePath), err)
+							continue
+						}
+						log.Info(fmt.Sprintf("[RemoveTheGeneratedFile] file: %v has been removed", filePath), err)
+					}
+				}
+			}
+		}
+
+		time.Sleep(time.Hour * 24)
+	}
 }

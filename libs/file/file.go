@@ -275,6 +275,12 @@ func DownloadFile(link string, dest string) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("download get http code: %d", resp.StatusCode))
+		log.Println("[DownloadFile][Err][http.Get] ", link, " ,dest: ", dest, " ,err: ", err)
+		return "", err
+	}
+
 	//end download here
 	out, err := os.Create(filePath)
 	if err != nil {
