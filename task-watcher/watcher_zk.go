@@ -692,63 +692,68 @@ func (tskw *TaskWatcher) executeVerifierTaskDefaultZk(task *types.TaskInfo) erro
 	if err != nil {
 		return err
 	} else {
-		log.Info("-------- executeVerifierTaskDefaultZk get inference info")
+		log.Info("-------- executeVerifierTaskDefaultZk get inference info taskID: ", task.TaskID)
 		switch infer.Status {
 		case ContractInferenceStatusCommit:
 			{
-				log.Info("executeVerifierTaskDefaultZk Process as a ContractInferenceStatusCommit")
+				log.Info("executeVerifierTaskDefaultZk Process as a ContractInferenceStatusCommit taskID: ", task.TaskID)
 				if task.Status == ContractInferenceStatusCommit {
 					if task.TaskResult != nil {
 						return nil
 					}
 				}
+
 				runnerInst := tskw.GetRunner(task.TaskID)
 				if runnerInst == nil {
-					log.Error("executeVerifierTaskDefaultZk runner not found", task.TaskID)
+					log.Error("executeVerifierTaskDefaultZk runner not found taskID: ", task.TaskID)
 					return errors.New("executeVerifierTaskDefaultZk runner not found")
 				}
 
 				modelInst, err := tskw.modelManager.GetModelInstance(task.ModelContract)
 				if err != nil {
-					log.Error("validator get model instance error: ", err)
+					log.Error("validator get model instance taskID: ", task.TaskID, " ,error: ", err)
 					return err
 				}
+
 				// execute to get result from docker container
 				ext := modelInst.GetExt()
 				taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, runnerInst, !task.ZKSync)
-				log.Info("executeVerifierTaskDefaultZk taskResult", taskResult)
+				log.Info("executeVerifierTaskDefaultZk taskID: ", task.TaskID, " ,taskResult", taskResult)
 				if err != nil {
-					log.Error("executeVerifierTaskDefaultZk validator run docker get result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk validator run docker taskID: ", task.TaskID, " ,get result error: ", err)
 					return err
 				}
+
 				resultData, err := json.Marshal(taskResult)
-				log.Info("executeVerifierTaskDefaultZk resultData", string(resultData))
+				log.Info("executeVerifierTaskDefaultZk taskID: ", task.TaskID, " resultData: ", string(resultData))
 				if err != nil {
-					log.Error("executeVerifierTaskDefaultZk validator marshal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk taskID: ", task.TaskID, " validator marshal result error: ", err)
 					return err
 				}
+
 				err = tskw.Commit(task, resultData)
 				if err != nil {
-					log.Error("executeVerifierTaskDefaultZk validator commit result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk taskID: ", task.TaskID, " ,validator commit result error: ", err)
 					return err
 				}
+
 				task.TaskResult = taskResult
 				task.Status = infer.Status
 			}
 		case ContractInferenceStatusReveal:
 			{
-				log.Info("executeVerifierTaskDefaultZk Process as a ContractInferenceStatusReveal")
+				log.Info("executeVerifierTaskDefaultZk taskID: ", task.TaskID, " Process as a ContractInferenceStatusReveal")
 				if task.Status == ContractInferenceStatusReveal {
 					return nil
 				}
 				resultData, err := json.Marshal(task.TaskResult)
 				if err != nil {
-					log.Error("executeVerifierTaskDefaultZk validator marshal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk taskID: ", task.TaskID, "  validator marshal result error: ", err)
 					return err
 				}
 				err = tskw.Reveal(task, resultData)
 				if err != nil {
-					log.Error("executeVerifierTaskDefaultZk validator reveal result error: ", err)
+					log.Error("executeVerifierTaskDefaultZk  taskID: ", task.TaskID, " validator reveal result error: ", err)
 					return err
 				}
 				task.Status = infer.Status
@@ -908,7 +913,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					for _, txLog := range transact.Receipt.Logs {
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
-							log.Error("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
+							log.Error("[filterZKEventNewInference][seizeMinerRole][ParseMinerRoleSeized] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
 								task.AssignmentID, " ,err: ", err)
 							continue
 						}
@@ -916,7 +921,11 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 							task.AssignmentRole = libs.MODE_MINER
 						}
 					}
+				} else {
+					log.Error("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
+						task.AssignmentID, " ,err: ", err)
 				}
+
 				log.Info("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(),
 					" ,assignment.AssignmentId ", assignment.AssignmentId,
 					" ----> Role: ",
