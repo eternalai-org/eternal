@@ -253,7 +253,7 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) ([]
 	if err != nil {
 		return nil, fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
 	}
-	err = downloadZipFileFromLightHouseNew(info, hfDir)
+	err = downloadZipFileFromLightHouseNewNew(info, hfDir)
 	if err != nil {
 		return nil, fmt.Errorf("error when download zip chunk file:%v ", err)
 	}
