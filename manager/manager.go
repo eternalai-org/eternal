@@ -395,7 +395,7 @@ func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
 
 		// Loop through the files and print their names
 		log.Infof("[RemoveTheGeneratedFile] %d files", len(files))
-		limitDate := now.Add(time.Hour * 24 * -2)
+		limitDate := now.Add(time.Hour * 24 * -1)
 		log.Infof("[RemoveTheGeneratedFile] limit date %s", limitDate.String())
 		for _, file := range files {
 			// Check if it's not a directory
@@ -416,6 +416,6 @@ func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
 			}
 		}
 
-		time.Sleep(time.Hour * 24)
+		time.Sleep(time.Hour * 15)
 	}
 }
