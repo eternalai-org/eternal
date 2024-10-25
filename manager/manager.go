@@ -407,10 +407,10 @@ func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
 					if strings.Contains(filePath, ".png") { // only remove png files
 						err = os.Remove(filePath)
 						if err != nil {
-							log.Error(fmt.Sprintf("[RemoveTheGeneratedFile] error while removing file: %v", filePath), err)
+							log.Errorf("[RemoveTheGeneratedFile] error while removing file: %v err %v", filePath, err)
 							continue
 						}
-						log.Info(fmt.Sprintf("[RemoveTheGeneratedFile] file: %v has been removed", filePath), err)
+						log.Warn("[RemoveTheGeneratedFile] file: %v has been removed", filePath)
 					}
 				}
 			}
