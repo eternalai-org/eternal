@@ -109,6 +109,8 @@ func (rt *Router) Stats(c *gin.Context) {
 		Version        string           `json:"version"`
 		HasNewVersion  bool             `json:"has_new_version"`
 		NewVersion     string           `json:"new_version"`
+		ChainId        string           `json:"chain_id"`
+		ChainExplorer  string           `json:"chain_explorer"`
 	}
 
 	unstakeAmount, unstakeTime := rt.watcher.GetUnstakeInfo()
@@ -152,6 +154,10 @@ func (rt *Router) Stats(c *gin.Context) {
 		Version:        rt.version,
 		HasNewVersion:  hasNewVersion,
 		NewVersion:     newVersion,
+		ChainId:        rt.watcher.ChainId(),
+	}
+	if _, ok := config.ChainConfigs[stats.ChainId]; ok {
+		stats.ChainExplorer = config.ChainConfigs[stats.ChainId].Explorer
 	}
 
 	c.JSON(http.StatusOK, APIResponse{

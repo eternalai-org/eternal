@@ -1022,6 +1022,18 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	return nil
 }
 
+func (tskw *TaskWatcher) ChainId() string {
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return ""
+	}
+	chainID, err := ethClient.ChainID(context.Background())
+	if err != nil {
+		return ""
+	}
+	return chainID.String()
+}
+
 func (tskw *TaskWatcher) Restake() error {
 	if tskw.zkSync {
 		return tskw.RestakeZk()
