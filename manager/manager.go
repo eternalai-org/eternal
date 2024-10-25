@@ -394,12 +394,16 @@ func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
 		}
 
 		// Loop through the files and print their names
+		log.Infof("[RemoveTheGeneratedFile] %d files", len(files))
+		limitDate := now.Add(time.Hour * 24 * -2)
+		log.Infof("[RemoveTheGeneratedFile] limit date %s", limitDate.String())
 		for _, file := range files {
 			// Check if it's not a directory
 			if !file.IsDir() {
 				creationTime := file.ModTime()
+				log.Infof("[RemoveTheGeneratedFile] file %s creationTime %s", file.Name(), creationTime.String())
 				filePath := dirPath + "/" + file.Name()
-				if creationTime.Before(now.Add(time.Hour * 24 * -2)) {
+				if creationTime.Before(limitDate) {
 					if strings.Contains(filePath, ".png") { // only remove png files
 						err = os.Remove(filePath)
 						if err != nil {
