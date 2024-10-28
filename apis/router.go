@@ -111,6 +111,8 @@ func (rt *Router) Stats(c *gin.Context) {
 		NewVersion     string           `json:"new_version"`
 		ChainId        string           `json:"chain_id"`
 		ChainExplorer  string           `json:"chain_explorer"`
+		SyncedBlock    string           `json:"synced_block"`
+		CurrentBlock   string           `json:"current_block"`
 	}
 
 	unstakeAmount, unstakeTime := rt.watcher.GetUnstakeInfo()
@@ -159,6 +161,8 @@ func (rt *Router) Stats(c *gin.Context) {
 	if _, ok := config.ChainConfigs[stats.ChainId]; ok {
 		stats.ChainExplorer = config.ChainConfigs[stats.ChainId].Explorer
 	}
+	stats.SyncedBlock = rt.watcher.GetSyncedBlocks()
+	stats.CurrentBlock = rt.watcher.GetCurrentBlock()
 
 	c.JSON(http.StatusOK, APIResponse{
 		Data:   stats,

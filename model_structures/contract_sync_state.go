@@ -1,5 +1,11 @@
 package model_structures
 
+import "strings"
+
+type StateDB interface {
+	Query(contractAddress, jobName string, v interface{}) interface{}
+}
+
 type ContractSyncState struct {
 	ID               int    `json:"id"`
 	ContractAddress  string `json:"contract_address"`
@@ -12,4 +18,14 @@ type ContractSyncState struct {
 
 func (ContractSyncState) CollectionName() string {
 	return "contract_sync_state"
+}
+
+func (o *ContractSyncState) Query(contractAddress, jobName string, v interface{}) interface{} {
+	input := v.(*[]ContractSyncState)
+	for _, i := range *input {
+		if strings.EqualFold(i.ContractAddress, contractAddress) && strings.EqualFold(i.Job, jobName) {
+			return i
+		}
+	}
+	return nil
 }

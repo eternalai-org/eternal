@@ -948,29 +948,22 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 }
 
 func (tskw *TaskWatcher) GetContractSyncState(contractAddress string, jobName string) (*model_structures.ContractSyncState, error) {
-	c := func(v interface{}) interface{} {
-		resp := []model_structures.ContractSyncState{}
-		input := v.(*[]model_structures.ContractSyncState)
-		for _, i := range *input {
-			if strings.EqualFold(i.ContractAddress, contractAddress) && strings.EqualFold(i.Job, jobName) {
-				resp = append(resp, i)
-			}
-		}
-		return resp
-	}
-
-	data, err := db.Query(model_structures.ContractSyncState{}.CollectionName(), c, &[]model_structures.ContractSyncState{})
+	temp := model_structures.ContractSyncState{}
+	data, err := db.Query(temp.CollectionName(),
+		temp.Query, contractAddress, jobName,
+		&[]model_structures.ContractSyncState{})
 	if err != nil {
 		return nil, err
 	}
 
-	_v := data.([]model_structures.ContractSyncState)
-	if len(_v) == 0 {
-		err = errors.New("no document")
-		return nil, err
+	if data != nil {
+		if _v, ok := data.(model_structures.ContractSyncState); ok {
+			return &_v, nil
+		} else {
+			return nil, errors.New("GetContractSyncState can not parse to model_structures.ContractSyncState")
+		}
 	}
-
-	return &_v[0], nil
+	return nil, errors.New("GetContractSyncState not found")
 }
 
 func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_structures.ContractSyncState) error {

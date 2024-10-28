@@ -99,11 +99,15 @@ func Update(collectionName string, data interface{}) error {
 	return nil
 }
 
-func Query(collectionName string, condition func(int interface{}) interface{}, out interface{}) (interface{}, error) {
+func Query(collectionName string,
+	condition func(contract string, job string, out interface{}) interface{},
+	contract string, job string,
+	out interface{},
+) (interface{}, error) {
 	err := Read(collectionName, out)
 	if err != nil {
 		return nil, err
 	}
-	resp := condition(out)
+	resp := condition(contract, job, out)
 	return resp, nil
 }

@@ -18,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"math/big"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1020,6 +1021,27 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	log.Println("staking success")
 
 	return nil
+}
+
+func (tskw *TaskWatcher) GetSyncedBlocks() string {
+	state, err := tskw.GetContractSyncState(tskw.taskContract, "getPendingTaskFromContractZk")
+	if err != nil {
+		log.Error("GetSyncedBlocks error ", err)
+		return ""
+	}
+	return strconv.FormatUint(state.LastSyncedBlock, 10)
+}
+
+func (tskw *TaskWatcher) GetCurrentBlock() string {
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		return ""
+	}
+	number, err := ethClient.BlockNumber(context.Background())
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatUint(number, 10)
 }
 
 func (tskw *TaskWatcher) ChainId() string {
