@@ -951,7 +951,7 @@ func (tskw *TaskWatcher) GetContractSyncState(contractAddress string, jobName st
 	temp := model_structures.ContractSyncState{}
 	data, err := db.Query(temp.CollectionName(),
 		temp.Query, contractAddress, jobName,
-		&model_structures.ContractSyncState{})
+		&[]model_structures.ContractSyncState{})
 	if err != nil {
 		return nil, err
 	}
