@@ -909,8 +909,12 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 
 				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", task.AssignmentID)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
-				if err == nil {
+				if err == nil && transact != nil {
 					for _, txLog := range transact.Receipt.Logs {
+						if txLog == nil {
+							continue
+						}
+
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
 							log.Error("[filterZKEventNewInference][seizeMinerRole][ParseMinerRoleSeized] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
@@ -921,6 +925,8 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 							task.AssignmentRole = libs.MODE_MINER
 						}
 					}
+					log.Info("[filterZKEventNewInference][seizeMinerRole][transact] ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", task.AssignmentID, " ,txHash: ", transact.TxHash.Hex())
+
 				} else {
 					log.Error("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
 						task.AssignmentID, " ,err: ", err)
