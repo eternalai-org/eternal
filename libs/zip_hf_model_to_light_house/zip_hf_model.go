@@ -21,9 +21,10 @@ var BASH_EXEC = "/usr/bin/bash"
 var THREADS = runtime.NumCPU() - 1
 
 type HFModelZipFile struct {
-	File  string `json:"file"`
-	Hash  string `json:"hash"`
-	Index int
+	File   string `json:"file"`
+	Hash   string `json:"hash"`
+	Index  int
+	Worker string
 }
 type HFModelInLightHouse struct {
 	Model     string           `json:"model"`
@@ -376,7 +377,7 @@ func _downloadHFFile(wg *sync.WaitGroup, input <-chan HFModelZipFile, hfDir stri
 	var wg1 sync.WaitGroup
 	for data := range input {
 		wg1.Add(1)
-		fmt.Println("----> [", wkName, "] received data: ", data.File, " ,index: ", data.Index)
+		data.Worker = wkName
 		DownloadHFFile(&wg1, data, hfDir, output)
 	}
 
@@ -419,14 +420,14 @@ func downloadZipFileFromLightHouseConcurrentNew(info *HFModelInLightHouse, hfDir
 		dFChan := <-dlChan
 		if dFChan.Err != nil {
 			errorNum++
-			log.Println("[DownloadFile][Error] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
+			log.Println("[DownloadFile][Error][", dFChan.Data.Worker, "] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
 			retryDownload = append(retryDownload, dFChan.Data)
 
 			//remove file if error
 			os.Remove(fmt.Sprintf("%s/%s", hfDir, dFChan.Data.File))
 
 		} else {
-			log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
+			log.Println("[DownloadFile][Success][", dFChan.Data.Worker, "] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
 		}
 	}
 
