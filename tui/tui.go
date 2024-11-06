@@ -213,7 +213,7 @@ func (m UIinstance) View() string {
 				s += bindingShortCutStyle("   Press 'e' to claim mining reward\n")
 			}
 
-			unstakeAmount, unstakeTime := m.taskManager.GetUnstakeInfo()
+			unstakeAmount, unstakeTime, _ := m.taskManager.GetUnstakeInfo()
 			if unstakeAmount != "0" {
 				s += fmt.Sprintf("\n %s Pending unstake:%s%s EAI available to claim at %s\n", ">", " ", textStyle(unstakeAmount), textStyle(unstakeTime.Format("2006-01-02 15:04:05")))
 				s += "   Press 'ctrl+r' to reclaim stake\n"
