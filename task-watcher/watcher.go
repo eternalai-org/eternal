@@ -355,9 +355,11 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			//log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
 			if ok := tskw.isMinerOfModel(common.HexToAddress(modelAddr)); !ok {
 				//log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
-				err := tskw.reJoinMinting(modelAddr)
-				if err != nil {
-					log.Error("Watcher:reJoinMinting error", err)
+				if modelAddr != "0x0000000000000000000000000000000000000000" {
+					err := tskw.reJoinMinting(modelAddr)
+					if err != nil {
+						log.Error("Watcher:reJoinMinting error", err)
+					}
 				}
 			}
 		}
@@ -569,7 +571,10 @@ func (tskw *TaskWatcher) executeTasks() {
 		}
 
 		log.Info(fmt.Sprintf("[TaskWatcher].executeTasks ------ Process task %s with mode %s", task.TaskID, mode))
-
+		if task.ModelContract == "0x0000000000000000000000000000000000000000" {
+			log.Warnf("Node is unregistering")
+			continue
+		}
 		switch mode {
 		case libs.MODE_MINER:
 			{
