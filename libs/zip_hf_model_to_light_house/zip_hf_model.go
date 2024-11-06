@@ -21,8 +21,9 @@ var BASH_EXEC = "/usr/bin/bash"
 var THREADS = runtime.NumCPU() - 1
 
 type HFModelZipFile struct {
-	File string `json:"file"`
-	Hash string `json:"hash"`
+	File  string `json:"file"`
+	Hash  string `json:"hash"`
+	Index int
 }
 type HFModelInLightHouse struct {
 	Model     string           `json:"model"`
@@ -253,7 +254,8 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) ([]
 	if err != nil {
 		return nil, fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
 	}
-	err = downloadZipFileFromLightHouseNew(info, hfDir)
+	//err = downloadZipFileFromLightHouseNew(info, hfDir)
+	err = downloadZipFileFromLightHouseConcurrentNew(info, hfDir) // use this concurrent instead
 	if err != nil {
 		return nil, fmt.Errorf("error when download zip chunk file:%v ", err)
 	}
@@ -365,5 +367,79 @@ func downloadZipFileFromLightHouseNew(info *HFModelInLightHouse, hfDir string) e
 		//return errors.New("error while download file")
 	}
 
+	return nil
+}
+
+func _downloadHFFile(wg *sync.WaitGroup, input <-chan HFModelZipFile, hfDir string, output chan DownloadFileChan, wkName string) {
+	defer wg.Done()
+
+	var wg1 sync.WaitGroup
+	for data := range input {
+		wg1.Add(1)
+		fmt.Println("----> [", wkName, "] received data: ", data.File, " ,index: ", data.Index)
+		DownloadHFFile(&wg1, data, hfDir, output)
+	}
+
+	wg1.Wait()
+}
+
+func downloadZipFileFromLightHouseConcurrentNew(info *HFModelInLightHouse, hfDir string) error {
+	workers := 8
+	queueLimit := 20
+
+	//index downloaded files for sorting.
+	if info.NumOfFile == 0 {
+		return nil
+	}
+
+	queue := make(chan HFModelZipFile, queueLimit)
+	retryDownload := []HFModelZipFile{}
+	errorNum := 0
+	var wg sync.WaitGroup
+	dlChan := make(chan DownloadFileChan, info.NumOfFile)
+
+	//init workers
+	for i := 1; i <= workers; i++ {
+		wg.Add(1)
+		wkName := fmt.Sprintf("worker-%d", i)
+		go _downloadHFFile(&wg, queue, hfDir, dlChan, wkName)
+	}
+
+	//push data to queue
+	go func() {
+		for i, data := range info.Files {
+			data.Index = i
+			queue <- data
+		}
+		close(queue)
+	}()
+
+	//listen data from outChan
+	for range info.Files {
+		dFChan := <-dlChan
+		if dFChan.Err != nil {
+			errorNum++
+			log.Println("[DownloadFile][Error] File: ", dFChan.Data.File, " ,error: ", dFChan.Err)
+			retryDownload = append(retryDownload, dFChan.Data)
+
+			//remove file if error
+			os.Remove(fmt.Sprintf("%s/%s", hfDir, dFChan.Data.File))
+
+		} else {
+			log.Println("[DownloadFile][Success] File: ", dFChan.Data.File, " ,filePath: ", *dFChan.Msg)
+		}
+	}
+
+	wg.Wait()
+	if errorNum != 0 {
+		retryInfo := HFModelInLightHouse{
+			Model:     info.Model,
+			NumOfFile: len(retryDownload),
+			Files:     retryDownload,
+		}
+
+		return downloadZipFileFromLightHouseNew(&retryInfo, hfDir)
+		//return errors.New("error while download file")
+	}
 	return nil
 }
