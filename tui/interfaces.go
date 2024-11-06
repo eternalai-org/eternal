@@ -15,7 +15,7 @@ type TaskManagerI interface {
 	GetAssignedModel() string
 	StakeStatus() string
 	GetStakedAmount() string
-	GetUnstakeInfo() (string, time.Time)
+	GetUnstakeInfo() (string, time.Time, int64)
 	ReclaimStake() error
 	ClaimMiningReward() error
 	Restake() error
