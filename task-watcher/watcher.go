@@ -38,16 +38,17 @@ type NetworkConfig struct {
 }
 
 type TaskWatcherStatus struct {
-	processedTasks         uint64
-	balance                *big.Int
-	currentEarning         *big.Int
-	stakeStatus            string
-	stakedAmount           *big.Int
-	pendingUnstakeAmount   *big.Int
-	pendingUnstakeUnlockAt time.Time
-	assignModel            string
-	miningRewardAmount     *big.Int
-	modelStatus            string
+	processedTasks              uint64
+	balance                     *big.Int
+	currentEarning              *big.Int
+	stakeStatus                 string
+	stakedAmount                *big.Int
+	pendingUnstakeAmount        *big.Int
+	pendingUnstakeUnlockAt      time.Time
+	pendingUnstakeUnlockAtBlock *big.Int
+	assignModel                 string
+	miningRewardAmount          *big.Int
+	modelStatus                 string
 }
 
 type TaskWatcher struct {
@@ -864,7 +865,11 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	workerInfo.StakeStatus = stakeStatus
 	workerInfo.StakedAmount = stakedAmount.String()
 	workerInfo.PendingUnstakeAmount = pendingUnstakeAmount.String()
-	workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
+	if !tskw.zkSync {
+		workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
+	} else {
+		workerInfo.PendingUnstakeUnlockAtBlock = pendingUnstake.UnlockAt.String()
+	}
 	workerInfo.AssignModel = strings.ToLower(info.ModelAddress.Hex())
 	workerInfo.MiningReward = rewardToClaimAmount.String()
 	workerInfo.Balance = balanceAmount.String()
@@ -873,7 +878,11 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	tskw.status.stakedAmount = info.Stake
 	tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
 	if tskw.status.pendingUnstakeAmount.Cmp(new(big.Int).SetUint64(0)) > 0 {
-		tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+		if !tskw.zkSync {
+			tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+		} else {
+			tskw.status.pendingUnstakeUnlockAtBlock = pendingUnstake.UnlockAt
+		}
 	}
 	tskw.status.assignModel = strings.ToLower(info.ModelAddress.Hex())
 	tskw.status.miningRewardAmount = rewardToClaim
@@ -1457,10 +1466,10 @@ func (tskw *TaskWatcher) ClaimMiningReward() error {
 	return nil
 }
 
-func (tskw *TaskWatcher) GetUnstakeInfo() (string, time.Time) {
+func (tskw *TaskWatcher) GetUnstakeInfo() (string, time.Time, int64) {
 	amount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
 	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
-	return amount.String(), tskw.status.pendingUnstakeUnlockAt
+	return amount.String(), tskw.status.pendingUnstakeUnlockAt, tskw.status.pendingUnstakeUnlockAtBlock.Int64()
 }
 
 func (tskw *TaskWatcher) GetProcessedTasks() uint64 {

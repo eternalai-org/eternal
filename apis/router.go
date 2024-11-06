@@ -91,31 +91,32 @@ func (rt *Router) StartRouter() error {
 
 func (rt *Router) Stats(c *gin.Context) {
 	type Stats struct {
-		AssignedModel  string           `json:"assigned_model"`
-		ModelStatus    string           `json:"model_status"`
-		WorkerAddress  string           `json:"worker_address"`
-		WorkerBalance  string           `json:"worker_balance"`
-		DAOToken       watcher.DAOToken `json:"dao_token"`
-		StakeStatus    string           `json:"stake_status"`
-		StakedAmount   string           `json:"staked_amount"`
-		SessionEarning string           `json:"session_earning"`
-		ProcessedTasks uint64           `json:"processed_tasks"`
-		AssignedTasks  uint64           `json:"assigned_tasks"`
-		MiningReward   string           `json:"mining_reward"`
-		UnstakeAmount  string           `json:"unstake_amount"`
-		UnstakeTime    string           `json:"unstake_time"`
-		TotalModels    int              `json:"total_models"`
-		TotalMiners    int              `json:"total_miners"`
-		Version        string           `json:"version"`
-		HasNewVersion  bool             `json:"has_new_version"`
-		NewVersion     string           `json:"new_version"`
-		ChainId        string           `json:"chain_id"`
-		ChainExplorer  string           `json:"chain_explorer"`
-		SyncedBlock    string           `json:"synced_block"`
-		CurrentBlock   string           `json:"current_block"`
+		AssignedModel    string           `json:"assigned_model"`
+		ModelStatus      string           `json:"model_status"`
+		WorkerAddress    string           `json:"worker_address"`
+		WorkerBalance    string           `json:"worker_balance"`
+		DAOToken         watcher.DAOToken `json:"dao_token"`
+		StakeStatus      string           `json:"stake_status"`
+		StakedAmount     string           `json:"staked_amount"`
+		SessionEarning   string           `json:"session_earning"`
+		ProcessedTasks   uint64           `json:"processed_tasks"`
+		AssignedTasks    uint64           `json:"assigned_tasks"`
+		MiningReward     string           `json:"mining_reward"`
+		UnstakeAmount    string           `json:"unstake_amount"`
+		UnstakeTime      string           `json:"unstake_time"`
+		UnstakeTimeBlock int64            `json:"unstake_time_block"`
+		TotalModels      int              `json:"total_models"`
+		TotalMiners      int              `json:"total_miners"`
+		Version          string           `json:"version"`
+		HasNewVersion    bool             `json:"has_new_version"`
+		NewVersion       string           `json:"new_version"`
+		ChainId          string           `json:"chain_id"`
+		ChainExplorer    string           `json:"chain_explorer"`
+		SyncedBlock      string           `json:"synced_block"`
+		CurrentBlock     string           `json:"current_block"`
 	}
 
-	unstakeAmount, unstakeTime := rt.watcher.GetUnstakeInfo()
+	unstakeAmount, unstakeTime, unstakeTimeBlock := rt.watcher.GetUnstakeInfo()
 
 	globalInfo, err := rt.watcher.GetHubGlobalInfo()
 	if err != nil {
@@ -138,25 +139,26 @@ func (rt *Router) Stats(c *gin.Context) {
 	hasNewVersion, newVersion := rt.watcher.HasNewVersion()
 
 	stats := Stats{
-		AssignedModel:  rt.watcher.GetAssignedModel(),
-		ModelStatus:    rt.watcher.GetModelStatus(),
-		WorkerAddress:  rt.watcher.GetWorkerAddress(),
-		WorkerBalance:  rt.watcher.GetWorkerBalance(),
-		DAOToken:       rt.watcher.GetDAOToken(),
-		StakeStatus:    stakedStatus,
-		StakedAmount:   rt.watcher.GetStakedAmount(),
-		SessionEarning: rt.watcher.GetSessionEarning(),
-		ProcessedTasks: rt.watcher.GetProcessedTasks(),
-		AssignedTasks:  rt.watcher.GetAssignedTasks(),
-		MiningReward:   rt.watcher.GetMiningReward(),
-		UnstakeAmount:  unstakeAmount,
-		UnstakeTime:    unstakeTime.String(),
-		TotalModels:    int(globalInfo.TotalModels),
-		TotalMiners:    int(globalInfo.TotalMiners),
-		Version:        rt.version,
-		HasNewVersion:  hasNewVersion,
-		NewVersion:     newVersion,
-		ChainId:        rt.watcher.ChainId(),
+		AssignedModel:    rt.watcher.GetAssignedModel(),
+		ModelStatus:      rt.watcher.GetModelStatus(),
+		WorkerAddress:    rt.watcher.GetWorkerAddress(),
+		WorkerBalance:    rt.watcher.GetWorkerBalance(),
+		DAOToken:         rt.watcher.GetDAOToken(),
+		StakeStatus:      stakedStatus,
+		StakedAmount:     rt.watcher.GetStakedAmount(),
+		SessionEarning:   rt.watcher.GetSessionEarning(),
+		ProcessedTasks:   rt.watcher.GetProcessedTasks(),
+		AssignedTasks:    rt.watcher.GetAssignedTasks(),
+		MiningReward:     rt.watcher.GetMiningReward(),
+		UnstakeAmount:    unstakeAmount,
+		UnstakeTime:      unstakeTime.String(),
+		UnstakeTimeBlock: unstakeTimeBlock,
+		TotalModels:      int(globalInfo.TotalModels),
+		TotalMiners:      int(globalInfo.TotalMiners),
+		Version:          rt.version,
+		HasNewVersion:    hasNewVersion,
+		NewVersion:       newVersion,
+		ChainId:          rt.watcher.ChainId(),
 	}
 	if _, ok := config.ChainConfigs[stats.ChainId]; ok {
 		stats.ChainExplorer = config.ChainConfigs[stats.ChainId].Explorer
