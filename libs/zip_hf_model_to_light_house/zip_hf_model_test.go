@@ -1,14 +1,21 @@
 package zip_hf_model_to_light_house
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func Test_downloadZipFileFromLightHouseConcurrentNew(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 24*time.Hour)
+	defer cancel() //
+
+	_ = ctx
+
 	info := &HFModelInLightHouse{}
 	url := "https://gateway.lighthouse.storage/ipfs/bafkreihwdqea37ii7s63klrmn2imh6nw2lm4tgyqwqzxalytiwhp6scruy"
 
