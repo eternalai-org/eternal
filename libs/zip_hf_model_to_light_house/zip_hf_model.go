@@ -376,6 +376,8 @@ func _downloadHFFile(wg *sync.WaitGroup, input <-chan HFModelZipFile, hfDir stri
 
 	var wg1 sync.WaitGroup
 	for data := range input {
+		//sleep 5 seconds before download
+		time.Sleep(time.Second * 5)
 		wg1.Add(1)
 		data.Worker = wkName
 		DownloadHFFile(&wg1, data, hfDir, output)
