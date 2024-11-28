@@ -462,7 +462,7 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 		})
 	} else {
 		inst := manager.ModelInstance{Port: "8000"}
-		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["999999999999"], 0)
+		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["500001"], 0)
 		if err != nil {
 			return
 		}
