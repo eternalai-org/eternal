@@ -3,6 +3,7 @@ package manager
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
 	"io"
@@ -205,6 +206,9 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 	}
 
 	log.Println("inferResp", string(body))
+	if len(inferResp.Choices) == 0 {
+		return "", errors.New(fmt.Sprintf("invalid data: %s", string(body)))
+	}
 	return inferResp.Choices[0].Message.Content, nil
 }
 
