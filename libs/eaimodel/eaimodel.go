@@ -39,6 +39,7 @@ type ModelInfoContract struct {
 type ModelMetadata struct {
 	Version         uint64       `json:"version"`
 	ModelName       string       `json:"model_name"`
+	Model           string       `json:"model"`
 	ModelType       ModelType    `json:"model_type"`
 	ModelURL        string       `json:"model_url"`
 	ModelFileHash   string       `json:"model_file_hash"`

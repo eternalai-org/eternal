@@ -59,7 +59,7 @@ func main() {
 	//check the latest version and update if it's available.
 	go AutomaticallyUpdate(cfg)
 
-	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU, cfg.ZKSync, cfg.LLM)
+	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU, cfg.ZKSync)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: cfg.RPC,
