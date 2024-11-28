@@ -451,7 +451,18 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 			return
 		}
 
-		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM[instance.ModelInfo.ModelID.String()], 0)
+		model := instance.ModelInfo.Metadata.Model
+		if model == "" {
+			model = config.ModelsLLM[instance.ModelInfo.ModelID.String()]
+		}
+		if model == "" {
+			c.JSON(http.StatusOK, APIResponse{
+				Status:  http.StatusBadRequest,
+				Data:    nil,
+				Message: "missing LLM model",
+			})
+		}
+		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, model, 0)
 		if err != nil {
 			return
 		}
