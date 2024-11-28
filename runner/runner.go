@@ -46,6 +46,10 @@ func (r *RunnerInstance) SetTask(task *types.TaskInfo) {
 	r.task = task
 }
 
+func (r *RunnerInstance) GetModelManager() *manager.ModelManager {
+	return r.modelManager
+}
+
 func (r *RunnerInstance) GetResult() string {
 	return r.result
 }

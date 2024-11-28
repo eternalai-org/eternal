@@ -791,6 +791,10 @@ func (tskw *TaskWatcher) SubmitResult(assignmentID string, result []byte) error 
 	return nil
 }
 
+func (tskw *TaskWatcher) GetModelManager() *manager.ModelManager {
+	return tskw.modelManager
+}
+
 func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	var workerInfo types.WorkerInfo
 

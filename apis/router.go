@@ -2,6 +2,7 @@ package apis
 
 import (
 	"eternal-infer-worker/config"
+	"eternal-infer-worker/runner"
 	watcher "eternal-infer-worker/task-watcher"
 	"eternal-infer-worker/types"
 	"fmt"
@@ -81,6 +82,8 @@ func (rt *Router) StartRouter() error {
 
 	apiv1.GET("/unstake", rt.Unstake)
 	apiv1.GET("/claim-unstake", rt.ClaimUnstake)
+
+	apiv1.POST("/chat/completion", rt.ChatCompletions)
 
 	err := r.Run("0.0.0.0:" + fmt.Sprintf("%d", rt.port))
 	if err != nil {
@@ -407,5 +410,50 @@ func (rt *Router) ClaimUnstake(c *gin.Context) {
 	c.JSON(http.StatusOK, APIResponse{
 		Message: "claimed reward",
 		Status:  http.StatusOK,
+	})
+}
+
+func (rt *Router) ChatCompletions(c *gin.Context) {
+	newRunner, err := runner.NewRunnerInstance(rt.watcher.GetModelManager(), &types.TaskInfo{
+		ModelContract: rt.watcher.GetAssignedModel(),
+	})
+	if err != nil {
+		c.JSON(http.StatusOK, APIResponse{
+			Status: http.StatusBadRequest,
+			Data:   nil,
+		})
+		return
+	}
+	instance, err := newRunner.GetModelManager().GetModelInstance(rt.watcher.GetAssignedModel())
+	if err != nil {
+		c.JSON(http.StatusOK, APIResponse{
+			Status: http.StatusBadRequest,
+			Data:   nil,
+		})
+		return
+	}
+
+	type promptReq struct {
+		Prompt string `json:"prompt"`
+	}
+
+	var promptReqObj promptReq
+	err = c.ShouldBindJSON(&promptReqObj)
+	if err != nil {
+		c.JSON(http.StatusOK, APIResponse{
+			Status: http.StatusBadRequest,
+			Data:   nil,
+		})
+		return
+	}
+
+	completions, err := instance.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM[instance.ModelInfo.ModelID.String()], 0)
+	if err != nil {
+		return
+	}
+
+	c.JSON(http.StatusOK, APIResponse{
+		Status: http.StatusOK,
+		Data:   completions,
 	})
 }
