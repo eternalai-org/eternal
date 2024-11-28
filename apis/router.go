@@ -463,7 +463,7 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 				Message: "missing LLM model",
 			})
 		}
-		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, model, 0)
+		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, model, uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
@@ -474,7 +474,7 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 		})
 	} else {
 		inst := manager.ModelInstance{Port: "8000"}
-		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["999999999999"], 0)
+		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["999999999999"], uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
@@ -522,7 +522,7 @@ func (rt *Router) GenImage(c *gin.Context) {
 			return
 		}
 
-		result, err := instance.Infer(promptReqObj.Prompt, "", 0)
+		result, err := instance.Infer(promptReqObj.Prompt, "", uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
@@ -533,7 +533,7 @@ func (rt *Router) GenImage(c *gin.Context) {
 		})
 	} else {
 		inst := manager.ModelInstance{Port: "5001"}
-		result, err := inst.Infer(promptReqObj.Prompt, "", 0)
+		result, err := inst.Infer(promptReqObj.Prompt, "", uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
