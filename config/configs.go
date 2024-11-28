@@ -72,6 +72,22 @@ var ChainConfigs = map[string]ChainConfig{
 		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
 		DAOTokenName:     "IMAGINE",
 	},
+	"45762": {
+		ChainId:          "45762",
+		Rpc:              "https://rpc.hermeschain.eternalai.org",
+		Explorer:         "https://explorer.hermeschain.eternalai.org",
+		EaiErc20:         "",
+		Name:             "Uncensored",
+		NftAddress:       "0x97c671381dabae0ae24554120dce2e9b0baeb3cd",
+		PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
+		PaymasterFeeZero: true,
+		PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
+		WorkerhubAddress: "0x87e9b8630c1e20dd86451ae15af7663d006f089c",
+		ZkSync:           true,
+		EaiNative:        true,
+		DAOToken:         "0x5211b000cce15fd7ac100e75a157a876dd30bef0",
+		DAOTokenName:     "UNCENSORED",
+	},
 }
 
 type CmdType struct {
