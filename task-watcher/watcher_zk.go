@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/db"
 	"eternal-infer-worker/libs/eth"
@@ -103,7 +104,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 		return err
 	}
 
-	if tskw.ChainId() == "45762" {
+	if tskw.ChainId() == config.HERMES_CHAIN {
 		// hermes
 		dataBytes, err = instanceABI.Pack(
 			"registerMiner",

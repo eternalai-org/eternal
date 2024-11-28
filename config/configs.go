@@ -27,8 +27,14 @@ type ChainConfig struct {
 	DAOTokenName     string `json:"dao_token_name"`
 }
 
+const (
+	ETERNAL_CHAIN = "43338"
+	HERMES_CHAIN  = "45762"
+	FLUX_CHAIN    = "222673"
+)
+
 var ChainConfigs = map[string]ChainConfig{
-	"43338": {
+	ETERNAL_CHAIN: {
 		ChainId:          "43338",
 		Rpc:              "https://node.eternalai.org/",
 		Explorer:         "https://explorer.eternalai.org",
@@ -56,7 +62,7 @@ var ChainConfigs = map[string]ChainConfig{
 		ZkSync:           true,
 		EaiNative:        true,
 	},*/
-	"222673": {
+	FLUX_CHAIN: {
 		ChainId:          "222673",
 		Rpc:              "https://rpc.fluxchain.eternalai.org",
 		Explorer:         "https://explorer.fluxchain.eternalai.org",
@@ -72,7 +78,7 @@ var ChainConfigs = map[string]ChainConfig{
 		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
 		DAOTokenName:     "IMAGINE",
 	},
-	"45762": {
+	HERMES_CHAIN: {
 		ChainId:          "45762",
 		Rpc:              "https://rpc.hermeschain.eternalai.org",
 		Explorer:         "https://explorer.hermeschain.eternalai.org",
