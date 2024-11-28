@@ -2,6 +2,7 @@ package manager
 
 import (
 	"errors"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
@@ -177,6 +178,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	}
 	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
 		inst.LLM = true
+		inst.ModelInfo.Metadata.Model = config.ModelsLLM[inst.ModelInfo.ModelID.String()]
 	}
 
 	m.currentModels[strings.ToLower(modelAddress)] = inst

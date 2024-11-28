@@ -61,6 +61,7 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 }
 
 func (m *ModelInstance) SetupDocker() error {
+	log.Info("LLM:", m.LLM)
 	/*
 		t := time.Now()
 		defer func() {
@@ -161,7 +162,8 @@ func (m *ModelInstance) SetupDocker() error {
 
 		//log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
 		if img.ID == "" {
-			//Test: m.ModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/bafkreigdnqoe3hvlozmxnwc32qwskz3fvtuznpqzvp6o5crbnka2deczdu"
+			//Test:
+			m.ModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/bafkreigdnqoe3hvlozmxnwc32qwskz3fvtuznpqzvp6o5crbnka2deczdu"
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
 			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync)
@@ -171,6 +173,9 @@ func (m *ModelInstance) SetupDocker() error {
 			}
 
 			//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
+			// TODO
+			//m.LLM
+			//m.ModelInfo.Metadata.Model
 			msg := string(out)
 			if !strings.Contains(msg, "Loaded image:") {
 				str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
@@ -282,7 +287,10 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 }
 
 func (m *ModelInstance) StartDocker() error {
+	// TODO
 	//m.LLM
+	//m.ModelInfo.Metadata.Model
+
 	//if m.TrainingRequest["ZKSync"] == true {
 	//	// TODO
 	//} else {}
