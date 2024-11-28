@@ -170,6 +170,9 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
+	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
+		m.llm = true
+	}
 	inst := &ModelInstance{
 		ModelInfo:  *modelInfo,
 		ZKSync:     m.zksync,
