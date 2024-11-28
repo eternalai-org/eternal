@@ -351,7 +351,7 @@ func (m *ModelInstance) StartDocker(llm bool) error {
 	return nil
 }
 
-func (m *ModelInstance) StartDockerVerifier() error {
+func (m *ModelInstance) StartDockerVerifier(llm bool) error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 

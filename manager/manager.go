@@ -345,7 +345,7 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 	}
 
 	if m.nodeMode == libs.MODE_VALIDATOR {
-		err := modelInst.StartDockerVerifier()
+		err := modelInst.StartDockerVerifier(modelInst.LLM)
 		if err != nil {
 			log.Println("Start model verifier error: ", err)
 			return err
