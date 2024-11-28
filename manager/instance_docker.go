@@ -281,7 +281,8 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 	return nil
 }
 
-func (m *ModelInstance) StartDocker(llm bool) error {
+func (m *ModelInstance) StartDocker() error {
+	//m.LLM
 	//if m.TrainingRequest["ZKSync"] == true {
 	//	// TODO
 	//} else {}
@@ -351,7 +352,7 @@ func (m *ModelInstance) StartDocker(llm bool) error {
 	return nil
 }
 
-func (m *ModelInstance) StartDockerVerifier(llm bool) error {
+func (m *ModelInstance) StartDockerVerifier() error {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
 

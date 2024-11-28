@@ -187,7 +187,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	err = inst.StartDocker(m.llm)
+	err = inst.StartDocker()
 	if err != nil {
 		loadErr = err
 		return err
@@ -338,14 +338,14 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 	if !ok {
 		return errors.New("Model not found")
 	}
-	err := modelInst.StartDocker(modelInst.LLM)
+	err := modelInst.StartDocker()
 	if err != nil {
 		log.Println("Start model error: ", err)
 		return err
 	}
 
 	if m.nodeMode == libs.MODE_VALIDATOR {
-		err := modelInst.StartDockerVerifier(modelInst.LLM)
+		err := modelInst.StartDockerVerifier()
 		if err != nil {
 			log.Println("Start model verifier error: ", err)
 			return err
