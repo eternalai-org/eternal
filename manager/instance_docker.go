@@ -161,6 +161,7 @@ func (m *ModelInstance) SetupDocker() error {
 
 		//log.Info("[SetupDocker]  GetImageInfo: ", m.ModelInfo.ModelAddr, " ,img: ", img.ID)
 		if img.ID == "" {
+			m.ModelInfo.Metadata.ModelURL = "https://gateway.lighthouse.storage/ipfs/bafkreigdnqoe3hvlozmxnwc32qwskz3fvtuznpqzvp6o5crbnka2deczdu"
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
 			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync)
@@ -280,7 +281,7 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 	return nil
 }
 
-func (m *ModelInstance) StartDocker() error {
+func (m *ModelInstance) StartDocker(llm bool) error {
 	//if m.TrainingRequest["ZKSync"] == true {
 	//	// TODO
 	//} else {}

@@ -34,6 +34,8 @@ type ModelInstance struct {
 
 	//TrainingRequest *TrainingRequest
 	ZKSync bool
+
+	LLM bool
 }
 
 // func setupCondaEnv(name, envFile string) error {

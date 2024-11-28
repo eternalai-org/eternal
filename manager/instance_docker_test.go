@@ -61,7 +61,7 @@ func TestModelInstance_SetupDocker(t *testing.T) {
 				t.Errorf("ModelInstance.SetupDocker() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if err := m.StartDocker(); (err != nil) != tt.wantErr {
+			if err := m.StartDocker(false); (err != nil) != tt.wantErr {
 				t.Errorf("ModelInstance.StartDocker() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -27,9 +27,10 @@ type ModelManager struct {
 	status        string
 	disableGPU    bool
 	zksync        bool
+	llm           bool
 }
 
-func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool, zkSync bool) *ModelManager {
+func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool, zkSync bool, llm bool) *ModelManager {
 	return &ModelManager{
 		modelsDir:     modelsDir,
 		rpc:           rpcEndpoint,
@@ -39,6 +40,7 @@ func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disable
 		status:        "initializing",
 		disableGPU:    disableGPU,
 		zksync:        zkSync,
+		llm:           llm,
 	}
 }
 
@@ -174,6 +176,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		ModelPath:  filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
 		Port:       fmt.Sprintf("%v", randPort()),
 		DisableGPU: m.disableGPU,
+		LLM:        m.llm,
 	}
 
 	m.currentModels[strings.ToLower(modelAddress)] = inst
@@ -184,7 +187,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	err = inst.StartDocker()
+	err = inst.StartDocker(m.llm)
 	if err != nil {
 		loadErr = err
 		return err
@@ -335,7 +338,7 @@ func (m *ModelManager) startModelInst(modelAddress string) error {
 	if !ok {
 		return errors.New("Model not found")
 	}
-	err := modelInst.StartDocker()
+	err := modelInst.StartDocker(modelInst.LLM)
 	if err != nil {
 		log.Println("Start model error: ", err)
 		return err
@@ -410,7 +413,6 @@ func (m *ModelManager) RemoveTheGeneratedFile(modelAddress string) {
 							log.Errorf("[RemoveTheGeneratedFile] error while removing file: %v err %v", filePath, err)
 							continue
 						}
-						log.Warn("[RemoveTheGeneratedFile] file: %v has been removed", filePath)
 					}
 				}
 			}

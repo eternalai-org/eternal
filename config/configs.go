@@ -25,6 +25,7 @@ type ChainConfig struct {
 	EaiNative        bool   `json:"eai_native"`
 	DAOToken         string `json:"dao_token"`
 	DAOTokenName     string `json:"dao_token_name"`
+	LLM              bool   `json:"llm"`
 }
 
 var ChainConfigs = map[string]ChainConfig{
@@ -87,6 +88,7 @@ var ChainConfigs = map[string]ChainConfig{
 		EaiNative:        true,
 		DAOToken:         "0x5211b000cce15fd7ac100e75a157a876dd30bef0",
 		DAOTokenName:     "UNCENSORED",
+		LLM:              true,
 	},
 }
 
@@ -112,6 +114,7 @@ type Config struct {
 	SilentMode           bool   `json:"silent_mode"`
 
 	ZKSync           bool   `json:"zk_sync"`
+	LLM              bool   `json:"llm"`
 	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
 	PaymasterAddress string `json:"paymaster_address"`
 	PaymasterToken   string `json:"paymaster_token"`
@@ -168,6 +171,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 
 	chainConfig := ChainConfigs[*chain]
 	cfg.ZKSync = chainConfig.ZkSync
+	cfg.LLM = chainConfig.LLM
 	if cfg.ZKSync {
 		cfg.PaymasterToken = chainConfig.PaymasterToken
 		cfg.PaymasterAddress = chainConfig.PaymasterAddress
