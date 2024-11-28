@@ -174,7 +174,7 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 			Content: prompt,
 		},
 	}
-	url := fmt.Sprintf("http://0.0.0.0:%v/chat/completions", m.Port)
+	url := fmt.Sprintf("http://0.0.0.0:%v/v1/chat/completions", m.Port)
 	inferJSON, err := json.Marshal(infer)
 	if err != nil {
 		return "", err
