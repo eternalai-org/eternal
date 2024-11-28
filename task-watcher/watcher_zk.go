@@ -103,6 +103,18 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 		return err
 	}
 
+	if tskw.ChainId() == "45762" {
+		// hermes
+		dataBytes, err = instanceABI.Pack(
+			"registerMiner",
+			uint16(1),
+			common.HexToAddress("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
 	if err != nil {
 		return err
