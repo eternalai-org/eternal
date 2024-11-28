@@ -108,9 +108,9 @@ type ModelInstance struct {
 
 type InferRequest struct {
 	Input struct {
-		OutputPath string `json:"output_path"`
-		Prompt     string `json:"prompt"`
-		Seed       uint64 `json:"seed"`
+		OutputPath *string `json:"output_path"`
+		Prompt     string  `json:"prompt"`
+		Seed       uint64  `json:"seed"`
 	} `json:"input"`
 }
 
@@ -221,7 +221,9 @@ func (m *ModelInstance) Infer(prompt, outputPath string, seed uint64) (string, e
 
 	//call the model server
 	infer := InferRequest{}
-	infer.Input.OutputPath = outputPath
+	if outputPath != "" {
+		infer.Input.OutputPath = &outputPath
+	}
 	infer.Input.Prompt = prompt
 	infer.Input.Seed = seed
 
