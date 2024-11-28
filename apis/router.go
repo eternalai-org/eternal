@@ -543,7 +543,7 @@ func (rt *Router) GenImage(c *gin.Context) {
 			Data:   base64.StdEncoding.EncodeToString(resultData),
 		})
 	} else {
-		inst := manager.ModelInstance{Port: "8000"}
+		inst := manager.ModelInstance{Port: "5001"}
 		_, err := inst.Infer(promptReqObj.Prompt, outputPath, 0)
 		if err != nil {
 			return
