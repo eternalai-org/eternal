@@ -89,6 +89,7 @@ func (rt *Router) StartRouter() error {
 	apiv1.GET("/claim-unstake", rt.ClaimUnstake)
 
 	apiv1.POST("/chat/completions", rt.ChatCompletions)
+	apiv1.POST("/predictions", rt.GenImage)
 
 	err := r.Run("0.0.0.0:" + fmt.Sprintf("%d", rt.port))
 	if err != nil {
