@@ -178,7 +178,12 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 	}
 	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
 		inst.LLM = true
-		inst.ModelInfo.Metadata.Model = config.ModelsLLM[inst.ModelInfo.ModelID.String()]
+		if inst.ModelInfo.Metadata.Model == "" {
+			inst.ModelInfo.Metadata.Model = config.ModelsLLM[inst.ModelInfo.ModelID.String()]
+		}
+		if inst.ModelInfo.Metadata.Model == "" {
+			return errors.New("missing model name")
+		}
 	}
 
 	m.currentModels[strings.ToLower(modelAddress)] = inst
