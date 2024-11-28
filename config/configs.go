@@ -92,6 +92,7 @@ var ChainConfigs = map[string]ChainConfig{
 
 var ModelsLLM = map[string]string{
 	"500001":       "meta-llama/Llama-3.2-3B-Instruct",
+	"500005":       "NousResearch/Hermes-3-Llama-3.1-8B",
 	"999999999999": "meta-llama/Llama-3.2-3B-Instruct",
 }
 

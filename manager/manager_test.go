@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func TestManager_LoadModel(t *testing.T) {
 	defer cancel() // Ensure resources are cleaned up
 
 	modelManager := NewModelManager("/Users/macbookpro/GolandProjects/eternal/models", "https://rpc.hermeschain.eternalai.org", "miner", "0x87e9b8630c1e20dd86451ae15af7663d006f089c", false, true)
-	err := modelManager.LoadModelTest("0x6ee733b0923ac74d605fbd651b412bd0849a15f5")
+	err := modelManager.LoadModelTest(strings.ToLower("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"))
 	if err != nil {
 		return
 	}
