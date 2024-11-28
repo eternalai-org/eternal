@@ -170,9 +170,6 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		return err
 	}
 
-	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
-		m.llm = true
-	}
 	inst := &ModelInstance{
 		ModelInfo:  *modelInfo,
 		ZKSync:     m.zksync,
@@ -180,6 +177,9 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		Port:       fmt.Sprintf("%v", randPort()),
 		DisableGPU: m.disableGPU,
 		LLM:        m.llm,
+	}
+	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
+		inst.LLM = true
 	}
 
 	m.currentModels[strings.ToLower(modelAddress)] = inst
