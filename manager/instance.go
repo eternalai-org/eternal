@@ -124,6 +124,90 @@ type InferResponse struct {
 	} `json:"output"`
 }
 
+type LLMInferMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type LLMInferRequest struct {
+	Messages []LLMInferMessage `json:"messages"`
+	Model    string            `json:"model"`
+	Seed     uint64            `json:"seed"`
+}
+
+type LLMInferResponse struct {
+	Id      string `json:"id"`
+	Object  string `json:"object"`
+	Created int    `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Index   int `json:"index"`
+		Message struct {
+			Role      string        `json:"role"`
+			Content   string        `json:"content"`
+			ToolCalls []interface{} `json:"tool_calls"`
+		} `json:"message"`
+		Logprobs     interface{} `json:"logprobs"`
+		FinishReason string      `json:"finish_reason"`
+		StopReason   interface{} `json:"stop_reason"`
+	} `json:"choices"`
+	Usage struct {
+		PromptTokens        int         `json:"prompt_tokens"`
+		TotalTokens         int         `json:"total_tokens"`
+		CompletionTokens    int         `json:"completion_tokens"`
+		PromptTokensDetails interface{} `json:"prompt_tokens_details"`
+	} `json:"usage"`
+	PromptLogprobs interface{} `json:"prompt_logprobs"`
+}
+
+func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed uint64) (string, error) {
+	m.actionLock.Lock()
+	defer m.actionLock.Unlock()
+
+	infer := LLMInferRequest{
+		Model: model,
+		Seed:  seed,
+	}
+	infer.Messages = []LLMInferMessage{
+		LLMInferMessage{
+			Role:    "user",
+			Content: prompt,
+		},
+	}
+	url := fmt.Sprintf("http://0.0.0.0:%v/chat/completions", m.Port)
+	inferJSON, err := json.Marshal(infer)
+	if err != nil {
+		return "", err
+	}
+
+	log.Println("infer", url, string(inferJSON))
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("error", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var inferResp LLMInferResponse
+	err = json.Unmarshal(body, &inferResp)
+	if err != nil {
+		return "", err
+	}
+
+	log.Println("inferResp", string(body))
+	return inferResp.Choices[0].Message.Content, nil
+}
+
 func (m *ModelInstance) Infer(prompt, outputPath string, seed uint64) (string, error) {
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
