@@ -1,9 +1,7 @@
 package apis
 
 import (
-	"encoding/base64"
 	"eternal-infer-worker/config"
-	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/runner"
 	watcher "eternal-infer-worker/task-watcher"
@@ -11,8 +9,6 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cache/persistence"
@@ -506,8 +502,6 @@ func (rt *Router) GenImage(c *gin.Context) {
 		})
 		return
 	}
-	file := fmt.Sprintf("%d.%s", time.Now().UnixMilli(), "png")
-	outputPath := fmt.Sprintf("%s/%s", dockercmd.OUTPUT_RESULT_DIR, file)
 	if !promptReqObj.Test {
 		newRunner, err := runner.NewRunnerInstance(rt.watcher.GetModelManager(), &types.TaskInfo{
 			ModelContract: rt.watcher.GetAssignedModel(),
@@ -528,34 +522,24 @@ func (rt *Router) GenImage(c *gin.Context) {
 			return
 		}
 
-		_, err = instance.Infer(promptReqObj.Prompt, outputPath, 0)
+		result, err := instance.Infer(promptReqObj.Prompt, "", 0)
 		if err != nil {
 			return
 		}
 
-		temp := manager.MountDir + strings.ToLower(instance.ModelInfo.ModelAddr) + "/" + file
-		resultData, err := os.ReadFile(temp)
-		if err != nil {
-			return
-		}
 		c.JSON(http.StatusOK, APIResponse{
 			Status: http.StatusOK,
-			Data:   base64.StdEncoding.EncodeToString(resultData),
+			Data:   result,
 		})
 	} else {
 		inst := manager.ModelInstance{Port: "5001"}
-		_, err := inst.Infer(promptReqObj.Prompt, outputPath, 0)
-		if err != nil {
-			return
-		}
-		temp := manager.MountDir + strings.ToLower(inst.ModelInfo.ModelAddr) + "/" + file
-		resultData, err := os.ReadFile(temp)
+		result, err := inst.Infer(promptReqObj.Prompt, "", 0)
 		if err != nil {
 			return
 		}
 		c.JSON(http.StatusOK, APIResponse{
 			Status: http.StatusOK,
-			Data:   base64.StdEncoding.EncodeToString(resultData),
+			Data:   result,
 		})
 	}
 }

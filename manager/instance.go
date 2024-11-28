@@ -124,6 +124,7 @@ type InferResponse struct {
 	Output struct {
 		OutputPath  string `json:"output_path"`
 		MagicPrompt string `json:"magic_prompt"`
+		Result      string `json:"result"`
 	} `json:"output"`
 }
 
@@ -257,8 +258,11 @@ func (m *ModelInstance) Infer(prompt, outputPath string, seed uint64) (string, e
 	}
 
 	log.Println("inferResp", string(body))
-
-	return inferResp.Output.OutputPath, nil
+	if inferResp.Output.OutputPath != "" {
+		return inferResp.Output.OutputPath, nil
+	} else {
+		return inferResp.Output.Result, nil
+	}
 }
 
 // TODO @liam change later wait for @james
