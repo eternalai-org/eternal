@@ -2,6 +2,7 @@ package apis
 
 import (
 	"eternal-infer-worker/config"
+	"eternal-infer-worker/manager"
 	"eternal-infer-worker/runner"
 	watcher "eternal-infer-worker/task-watcher"
 	"eternal-infer-worker/types"
@@ -414,46 +415,61 @@ func (rt *Router) ClaimUnstake(c *gin.Context) {
 }
 
 func (rt *Router) ChatCompletions(c *gin.Context) {
-	newRunner, err := runner.NewRunnerInstance(rt.watcher.GetModelManager(), &types.TaskInfo{
-		ModelContract: rt.watcher.GetAssignedModel(),
-	})
-	if err != nil {
-		c.JSON(http.StatusOK, APIResponse{
-			Status: http.StatusBadRequest,
-			Data:   nil,
-		})
-		return
-	}
-	instance, err := newRunner.GetModelManager().GetModelInstance(rt.watcher.GetAssignedModel())
-	if err != nil {
-		c.JSON(http.StatusOK, APIResponse{
-			Status: http.StatusBadRequest,
-			Data:   nil,
-		})
-		return
-	}
-
+	var err error
 	type promptReq struct {
 		Prompt string `json:"prompt"`
+		Test   bool   `json:"test"`
 	}
 
 	var promptReqObj promptReq
 	err = c.ShouldBindJSON(&promptReqObj)
 	if err != nil {
-		c.JSON(http.StatusOK, APIResponse{
+		c.JSON(http.StatusBadRequest, APIResponse{
 			Status: http.StatusBadRequest,
 			Data:   nil,
 		})
 		return
 	}
 
-	completions, err := instance.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM[instance.ModelInfo.ModelID.String()], 0)
-	if err != nil {
-		return
-	}
+	if !promptReqObj.Test {
+		newRunner, err := runner.NewRunnerInstance(rt.watcher.GetModelManager(), &types.TaskInfo{
+			ModelContract: rt.watcher.GetAssignedModel(),
+		})
+		if err != nil {
+			c.JSON(http.StatusOK, APIResponse{
+				Status: http.StatusBadRequest,
+				Data:   nil,
+			})
+			return
+		}
+		instance, err := newRunner.GetModelManager().GetModelInstance(rt.watcher.GetAssignedModel())
+		if err != nil {
+			c.JSON(http.StatusOK, APIResponse{
+				Status: http.StatusBadRequest,
+				Data:   nil,
+			})
+			return
+		}
 
-	c.JSON(http.StatusOK, APIResponse{
-		Status: http.StatusOK,
-		Data:   completions,
-	})
+		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM[instance.ModelInfo.ModelID.String()], 0)
+		if err != nil {
+			return
+		}
+
+		c.JSON(http.StatusOK, APIResponse{
+			Status: http.StatusOK,
+			Data:   completions,
+		})
+	} else {
+		inst := manager.ModelInstance{Port: "8000"}
+		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["999999999999"], 0)
+		if err != nil {
+			return
+		}
+
+		c.JSON(http.StatusOK, APIResponse{
+			Status: http.StatusOK,
+			Data:   completions,
+		})
+	}
 }

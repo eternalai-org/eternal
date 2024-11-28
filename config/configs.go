@@ -91,7 +91,7 @@ var ChainConfigs = map[string]ChainConfig{
 }
 
 var ModelsLLM = map[string]string{
-	"500001": "meta-llama/Llama-3.2-3B-Instruct",
+	"999999999999": "meta-llama/Llama-3.2-3B-Instruct",
 }
 
 type CmdType struct {
