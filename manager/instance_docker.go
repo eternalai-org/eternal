@@ -177,6 +177,7 @@ func (m *ModelInstance) SetupDocker() error {
 			//m.ModelInfo.Metadata.Model
 			if m.LLM {
 				//load llm
+				fmt.Println("out: ", out)
 
 				return nil
 			}
