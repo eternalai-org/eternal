@@ -176,9 +176,11 @@ func (m *ModelInstance) SetupDocker() error {
 			//m.LLM
 			//m.ModelInfo.Metadata.Model
 			if m.LLM {
-				//load llm
-				fmt.Println("out: ", out)
 
+				//path
+				path := fmt.Sprintf("%s", out)
+				//load llm
+				fmt.Println("path: ", path)
 				return nil
 			}
 
@@ -293,14 +295,22 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 }
 
 func (m *ModelInstance) StartDocker() error {
+	var err error
+
 	// TODO
 	//m.LLM
 	//m.ModelInfo.Metadata.Model
+	if m.LLM {
+		if m.ModelInfo.Metadata.Model == "" {
+			return errors.New("m.ModelInfo.Metadata.Model is empty")
+		}
+
+	}
 
 	//if m.TrainingRequest["ZKSync"] == true {
 	//	// TODO
 	//} else {}
-	var err error
+
 	/*t := time.Now()
 	defer func() {
 

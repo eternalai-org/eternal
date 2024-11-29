@@ -276,6 +276,9 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool, isL
 	}
 
 	log.Println("Success unzip list files")
+	if isLLM {
+		return []byte(info.Model), nil
+	}
 	return output, nil
 }
 
