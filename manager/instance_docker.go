@@ -66,7 +66,7 @@ func parseLLMModel(name string) string {
 }
 
 func _parseLLMModel(name string) string {
-	return fmt.Sprintf("models--%s", name)
+	return fmt.Sprintf("models--%s", parseLLMModel(name))
 }
 
 func (m *ModelInstance) LLMModelPath() string {
