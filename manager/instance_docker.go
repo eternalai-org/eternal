@@ -345,7 +345,7 @@ func (m *ModelInstance) StartDocker() error {
 		//log.Infof("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
 		err = dockercmd.WaitForContainerToReady(m.containerID)
 		if err != nil {
-			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			log.Errorf("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
 			return err
 		}
 
