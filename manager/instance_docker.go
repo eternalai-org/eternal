@@ -8,7 +8,6 @@ import (
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/libs/zip_hf_model_to_light_house"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -337,23 +336,46 @@ func (m *ModelInstance) StartDocker() error {
 		}
 
 		path := m.LLMModelPath()
+		existedContainer, err := dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
+		if err != nil {
+			log.Error(fmt.Sprintf("[StartDocker][ERR][GetContainerByName] ModelAddress: %v, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, m.DisableGPU, err))
+			return err
+		}
+
+		if existedContainer != nil {
+			m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
+			m.containerID = existedContainer.ID
+			m.ResultDir = path
+			return nil
+		}
+
 		target := fmt.Sprintf("/root/.cache/huggingface/hub/%s", _parseLLMModel(m.ModelInfo.Metadata.Model))
 		fmt.Println("run vllm docker with this path: ", path)
 
 		ctnInfo, err := dockercmd.CreateAndStartVllmContainer("vllm/vllm-openai:latest", m.ModelInfo.Metadata.Model, m.ModelInfo.ModelAddr, m.Port, path, target)
 		if err != nil {
-			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] containerID: %s, ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", ctnInfo.ID, m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
 			return err
 		}
 
-		//log.Infof("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
-		err = dockercmd.WaitForContainerToReady(m.containerID)
+		err = dockercmd.WaitForContainerToReady(ctnInfo.ID)
 		if err != nil {
-			log.Errorf("[StartDocker][ERR][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			log.Errorf("[StartDocker][ERR][WaitForContainerToReady] containerID: %s, ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", ctnInfo.ID, m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
 			return err
 		}
 
-		spew.Dump(ctnInfo)
+		//get container again, because it would be nil if it was not started.
+		if existedContainer == nil {
+			existedContainer, err = dockercmd.GetContainerByName(m.ModelInfo.ModelAddr)
+			if err != nil {
+				log.Error(fmt.Sprintf("[StartDocker][ERR][GetContainerByName] containerID: %s, ModelAddress: %v, DisableGPU: %v,  err: %v  \n", ctnInfo.ID, m.ModelInfo.ModelAddr, m.DisableGPU, err))
+				return err
+			}
+		}
+
+		m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
+		m.containerID = ctnInfo.ID
+		m.ResultDir = path
 		return nil
 
 	}
