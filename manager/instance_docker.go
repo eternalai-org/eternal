@@ -60,6 +60,10 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 	return path + "/" + filename, nil
 }
 
+func parseLLMModel(name string) string {
+	return strings.ReplaceAll(name, "/", "--")
+}
+
 func (m *ModelInstance) SetupDocker() error {
 	log.Info("LLM:", m.LLM)
 	/*
@@ -173,7 +177,7 @@ func (m *ModelInstance) SetupDocker() error {
 			if m.LLM {
 				//check if model exited or not
 				fmt.Println("m.ModelPath", m.ModelPath)
-				fmt.Println("m", m)
+				fmt.Println("m", parseLLMModel(m.ModelInfo.Metadata.ModelName))
 
 				out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
 				if err != nil {
