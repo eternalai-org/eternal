@@ -451,3 +451,108 @@ func CreateAndStartContainer(imageTag string, containerName, containerPort, moun
 
 	return &resp, nil
 }
+
+func CreateAndStartVllmContainer(imageTag string, loadModel string, containerName, containerPort, sourceFolder string, TargetFolder string) (*container.ContainerCreateCreatedBody, error) {
+	existedContainer, err := GetContainerByName(containerName)
+	if err != nil {
+		return nil, err
+	}
+	if existedContainer != nil {
+		// err = RemoveContainer(existedContainer.ID)
+		// if err != nil {
+		// 	return nil, errors.Join(fmt.Errorf("Failed to remove existed container %s", containerName), err)
+		// }
+		a := container.ContainerCreateCreatedBody{
+			ID: existedContainer.ID,
+		}
+
+		return &a, nil
+	}
+	apiClient, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, err
+	}
+	defer apiClient.Close()
+
+	port := "5000"
+	hostPort := containerPort
+
+	newport, err := nat.NewPort("tcp", port)
+	if err != nil {
+		log.Println("Unable to create docker port")
+		return nil, err
+	}
+	exposedPorts := map[nat.Port]struct{}{
+		newport: struct{}{},
+	}
+
+	gpuOpts := opts.GpuOpts{}
+	gpuOpts.Set("all")
+
+	hostConfig := &container.HostConfig{
+
+		Resources: container.Resources{DeviceRequests: gpuOpts.Value()},
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: sourceFolder,
+				Target: TargetFolder,
+			},
+		},
+		PortBindings: nat.PortMap{
+			newport: []nat.PortBinding{
+				{
+					HostIP:   "0.0.0.0",
+					HostPort: hostPort,
+				},
+			},
+		},
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		LogConfig: container.LogConfig{
+			Type:   "json-file",
+			Config: map[string]string{},
+		},
+		ShmSize: 64,
+	}
+
+	networkConfig := &network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{},
+	}
+	gatewayConfig := &network.EndpointSettings{
+		Gateway: "gatewayname",
+	}
+	networkConfig.EndpointsConfig["bridge"] = gatewayConfig
+
+	entryPoint := []string{
+		"python3",
+		"-m",
+		"vllm.entrypoints.openai.api_server",
+		"--model",
+		loadModel,
+		"--port",
+		port,
+		"--max_num_seqs",
+		"2",
+		"--max-model-len",
+		"16384",
+	}
+
+	resp, err := apiClient.ContainerCreate(context.Background(), &container.Config{
+		Image:        imageTag,
+		ExposedPorts: exposedPorts,
+		Entrypoint:   entryPoint,
+		Env:          []string{"CUDA_VISIBLE_DEVICES=0"},
+	}, hostConfig, networkConfig, nil, containerName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = apiClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return &resp, err
+	}
+
+	return &resp, nil
+}

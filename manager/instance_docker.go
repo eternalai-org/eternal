@@ -8,6 +8,7 @@ import (
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/libs/zip_hf_model_to_light_house"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -62,6 +63,19 @@ func downloadMultiPartsModelDest(url, path, filename string) (string, error) {
 
 func parseLLMModel(name string) string {
 	return strings.ReplaceAll(name, "/", "--")
+}
+
+func (m *ModelInstance) LLMModelPath() string {
+	path := fmt.Sprintf("%s/models--%s", m.ModelPath, parseLLMModel(m.ModelInfo.Metadata.Model))
+	return path
+}
+
+func folderExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false // The folder does not exist
+	}
+	return info.IsDir() // Return true if it is a directory
 }
 
 func (m *ModelInstance) SetupDocker() error {
@@ -171,24 +185,21 @@ func (m *ModelInstance) SetupDocker() error {
 			hash := temp[len(temp)-1]
 
 			//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
-			// TODO
-			//m.LLM
-			//m.ModelInfo.Metadata.Model
 			if m.LLM {
 				//check if model exited or not
 
-				fmt.Println("m", parseLLMModel(m.ModelInfo.Metadata.Model))
+				path1 := m.LLMModelPath()
+				//model was not downloaded
+				if !folderExists(path1) {
+					out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
+					if err != nil {
+						log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
+						return err
+					}
 
-				out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
-				if err != nil {
-					log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
-					return err
+					fmt.Println("LLM model path: ", out)
 				}
 
-				//path
-				path := fmt.Sprintf("%s", out)
-				//load llm
-				fmt.Println("path: ", path)
 				return nil
 			}
 
@@ -315,9 +326,31 @@ func (m *ModelInstance) StartDocker() error {
 	//m.LLM
 	//m.ModelInfo.Metadata.Model
 	if m.LLM {
+
+		//LLM use a separated flow
 		if m.ModelInfo.Metadata.Model == "" {
 			return errors.New("m.ModelInfo.Metadata.Model is empty")
 		}
+
+		path := m.LLMModelPath()
+		target := fmt.Sprintf("/root/.cache/huggingface/hub/%s", parseLLMModel(m.ModelInfo.Metadata.Model))
+		fmt.Println("run vllm docker with this path: ", path)
+
+		ctnInfo, err := dockercmd.CreateAndStartVllmContainer("vllm/vllm-openai:latest", m.ModelInfo.Metadata.Model, m.ModelInfo.ModelAddr, m.Port, path, target)
+		if err != nil {
+			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			return err
+		}
+
+		//log.Infof("[StartDocker][DEBUG][WaitForContainerToReady] ModelAddress: %v, resultMountDir: %s, port: %s, DisableGPU: %v,  containerID: %s  \n", m.ModelInfo.ModelAddr, resultMountDir, m.Port, m.DisableGPU, m.containerID)
+		err = dockercmd.WaitForContainerToReady(m.containerID)
+		if err != nil {
+			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			return err
+		}
+
+		spew.Dump(ctnInfo)
+		return nil
 
 	}
 
