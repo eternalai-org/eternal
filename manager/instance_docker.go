@@ -165,23 +165,33 @@ func (m *ModelInstance) SetupDocker() error {
 			//Test:
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
-			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
-			if err != nil {
-				log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
-				return err
-			}
 
 			//rename docker images from real name to model-address, for convenient with our flow. EX:  nikolasigmoid/flux-black-forest ->0x9874732a8699fca824a9a7d948f6bcd30a141238
 			// TODO
 			//m.LLM
 			//m.ModelInfo.Metadata.Model
 			if m.LLM {
+				//check if model exited or not
+				fmt.Println("m.ModelPath", m.ModelPath)
+				fmt.Println("m", m)
+
+				out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
+				if err != nil {
+					log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
+					return err
+				}
 
 				//path
 				path := fmt.Sprintf("%s", out)
 				//load llm
 				fmt.Println("path: ", path)
 				return nil
+			}
+
+			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
+			if err != nil {
+				log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
+				return err
 			}
 
 			msg := string(out)
