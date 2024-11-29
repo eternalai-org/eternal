@@ -164,10 +164,7 @@ type LLMInferResponse struct {
 	PromptLogprobs interface{} `json:"prompt_logprobs"`
 }
 
-func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed uint64) (string, error) {
-	m.actionLock.Lock()
-	defer m.actionLock.Unlock()
-
+func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed uint64) (*LLMInferResponse, error) {
 	infer := LLMInferRequest{
 		Model: model,
 		Seed:  seed,
@@ -181,7 +178,7 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 	url := fmt.Sprintf("http://0.0.0.0:%v/v1/chat/completions", m.Port)
 	inferJSON, err := json.Marshal(infer)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	log.Println("infer", url, string(inferJSON))
@@ -193,24 +190,32 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("error", err)
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
+	log.Println("inferResp", string(body))
 	var inferResp LLMInferResponse
 	err = json.Unmarshal(body, &inferResp)
 	if err != nil {
+		return nil, err
+	}
+	return &inferResp, nil
+}
+
+func (m *ModelInstance) InferChatCompletionsStr(prompt string, model string, seed uint64) (string, error) {
+	m.actionLock.Lock()
+	defer m.actionLock.Unlock()
+	inferResp, err := m.InferChatCompletions(prompt, model, seed)
+	if err != nil {
 		return "", err
 	}
-
-	log.Println("inferResp", string(body))
 	if len(inferResp.Choices) == 0 {
-		return "", errors.New(fmt.Sprintf("invalid data: %s", string(body)))
+		return "", errors.New(fmt.Sprintf("invalid data: %v", inferResp))
 	}
 	return inferResp.Choices[0].Message.Content, nil
 }

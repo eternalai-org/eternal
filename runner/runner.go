@@ -3,6 +3,7 @@ package runner
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
@@ -77,34 +78,68 @@ func fileExists(filename string) bool {
 }
 
 func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
-	output := fmt.Sprintf("%s/%v", dockercmd.OUTPUT_RESULT_DIR, outputFile)
 	defer func() {
 		if setDone {
 			r.isDone = true
 		}
 	}()
+	modelInst, err := r.modelManager.GetModelInstance(r.task.ModelContract)
+	if err != nil {
+		return err
+	}
 
-	log.Info("RunnerInstance run for output: ", output)
 	temp := manager.MountDir + r.task.ModelContract + "/" + outputFile
+	output := temp
+	if !modelInst.LLM {
+		// image -> file in docker -> mount disk
+		output = fmt.Sprintf("%s/%v", dockercmd.OUTPUT_RESULT_DIR, outputFile)
+		log.Info("RunnerInstance run for output: ", output)
+	}
 	if fileExists(temp) {
 		log.Warn(fmt.Sprintf("RunnerInstance check file output %s existed", output))
 		r.result = output
 		return nil
 	} else {
-		modelInst, err := r.modelManager.GetModelInstance(r.task.ModelContract)
-		if err != nil {
-			return err
-		}
-
 		seed := createSeed(r.task.Params, r.task.TaskID)
 		log.Info(fmt.Sprintf("RunnerInstance check file output %s not existed ---> call docker to process seed %v", output, seed))
-		outputPath, err := modelInst.Infer(r.task.Params, output, seed)
-		if err != nil {
-			log.Error("RunnerInstance modelInst.Infer err", err)
-			return err
+		if !modelInst.LLM {
+			outputPath, err := modelInst.Infer(r.task.Params, output, seed)
+			if err != nil {
+				log.Error("RunnerInstance modelInst.Infer err", err)
+				return err
+			}
+			r.result = outputPath
+			return nil
+		} else {
+			obj, err := modelInst.InferChatCompletions(r.task.Params, output, seed)
+			if err != nil {
+				log.Error("RunnerInstance modelInst.Infer err", err)
+				return err
+			}
+			objJson, err := json.Marshal(obj)
+			if err != nil {
+				log.Error("RunnerInstance modelInst.Infer err", err)
+				return err
+			}
+			file, err := os.Create(output)
+			if err != nil {
+				log.Error("RunnerInstance modelInst.Infer err", err)
+				return err
+			}
+			defer func(file *os.File) {
+				err := file.Close()
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+				}
+			}(file)
+			_, err = file.Write(objJson)
+			if err != nil {
+				log.Error("RunnerInstance modelInst.Infer err", err)
+				return err
+			}
+			r.result = output
+			return nil
 		}
-		r.result = outputPath
-		return nil
 	}
 }
 

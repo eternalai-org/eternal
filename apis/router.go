@@ -463,7 +463,7 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 				Message: "missing LLM model",
 			})
 		}
-		completions, err := instance.InferChatCompletions(promptReqObj.Prompt, model, uint64(time.Now().UnixMicro()))
+		completions, err := instance.InferChatCompletionsStr(promptReqObj.Prompt, model, uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
@@ -474,7 +474,7 @@ func (rt *Router) ChatCompletions(c *gin.Context) {
 		})
 	} else {
 		inst := manager.ModelInstance{Port: "8000"}
-		completions, err := inst.InferChatCompletions(promptReqObj.Prompt, config.ModelsLLM["999999999999"], uint64(time.Now().UnixMicro()))
+		completions, err := inst.InferChatCompletionsStr(promptReqObj.Prompt, config.ModelsLLM["999999999999"], uint64(time.Now().UnixMicro()))
 		if err != nil {
 			return
 		}
