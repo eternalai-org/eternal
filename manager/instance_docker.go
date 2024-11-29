@@ -65,8 +65,12 @@ func parseLLMModel(name string) string {
 	return strings.ReplaceAll(name, "/", "--")
 }
 
+func _parseLLMModel(name string) string {
+	return fmt.Sprintf("models--%s", name)
+}
+
 func (m *ModelInstance) LLMModelPath() string {
-	path := fmt.Sprintf("%s/models--%s", m.ModelPath, parseLLMModel(m.ModelInfo.Metadata.Model))
+	path := fmt.Sprintf("%s/%s", m.ModelPath, _parseLLMModel(m.ModelInfo.Metadata.Model))
 	return path
 }
 
@@ -333,7 +337,7 @@ func (m *ModelInstance) StartDocker() error {
 		}
 
 		path := m.LLMModelPath()
-		target := fmt.Sprintf("/root/.cache/huggingface/hub/%s", parseLLMModel(m.ModelInfo.Metadata.Model))
+		target := fmt.Sprintf("/root/.cache/huggingface/hub/%s", _parseLLMModel(m.ModelInfo.Metadata.Model))
 		fmt.Println("run vllm docker with this path: ", path)
 
 		ctnInfo, err := dockercmd.CreateAndStartVllmContainer("vllm/vllm-openai:latest", m.ModelInfo.Metadata.Model, m.ModelInfo.ModelAddr, m.Port, path, target)
