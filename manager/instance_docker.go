@@ -176,8 +176,8 @@ func (m *ModelInstance) SetupDocker() error {
 			//m.ModelInfo.Metadata.Model
 			if m.LLM {
 				//check if model exited or not
-				fmt.Println("m.ModelPath", m.ModelPath)
-				fmt.Println("m", parseLLMModel(m.ModelInfo.Metadata.ModelName))
+
+				fmt.Println("m", parseLLMModel(m.ModelInfo.Metadata.Model))
 
 				out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
 				if err != nil {
