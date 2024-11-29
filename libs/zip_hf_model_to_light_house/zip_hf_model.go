@@ -80,7 +80,7 @@ func getScriptZipFile(modelFolder string, hfDir string) (string, error) {
 	return filePath, nil
 }
 
-func getScriptUnZipFile(modelFolder string, hfDir string, isZkSync bool) (string, error) {
+func getScriptUnZipFile(modelFolder string, hfDir string, isZkSync bool, isLLM bool) (string, error) {
 	filePath := fmt.Sprintf("/tmp/hf-unzip-model-%v.sh", modelFolder)
 	if _, err := os.Stat(filePath); err == nil {
 		err := os.Remove(filePath)
@@ -103,6 +103,10 @@ func getScriptUnZipFile(modelFolder string, hfDir string, isZkSync bool) (string
 	if isZkSync {
 		//use the new cmd
 		script = fmt.Sprintf("sudo cat %v.zip.part* | pigz -d | docker load ", modelFolder)
+	}
+
+	if isLLM {
+		script = fmt.Sprintf("sudo cat %v.zip.part-* | sudo pigz -p %v -d | sudo tar -xf -", modelFolder, 2)
 	}
 
 	log.Println("[getScriptUnZipFile]", "modelFolder: ", modelFolder, " ,hfDir: ", hfDir, " ,script: ", script)
@@ -250,7 +254,7 @@ type DownloadFileChan struct {
 	Err  error
 }
 
-func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) ([]byte, error) {
+func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool, isLLM bool) ([]byte, error) {
 	info, err := getHFModelResultFromLightHouse(hash)
 	if err != nil {
 		return nil, fmt.Errorf("error when get model info from light house hash : %v err :%v ", hash, err)
@@ -260,7 +264,7 @@ func DownloadHFModelFromLightHouse(hash string, hfDir string, isZkSync bool) ([]
 	if err != nil {
 		return nil, fmt.Errorf("error when download zip chunk file:%v ", err)
 	}
-	scriptFile, err := getScriptUnZipFile(info.Model, hfDir, isZkSync)
+	scriptFile, err := getScriptUnZipFile(info.Model, hfDir, isZkSync, isLLM)
 	if err != nil {
 		return nil, fmt.Errorf("error when get unzip script file:%v ", err)
 	}

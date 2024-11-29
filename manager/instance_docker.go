@@ -165,7 +165,7 @@ func (m *ModelInstance) SetupDocker() error {
 			//Test:
 			temp := strings.Split(m.ModelInfo.Metadata.ModelURL, "/")
 			hash := temp[len(temp)-1]
-			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync)
+			out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
 			if err != nil {
 				log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
 				return err
@@ -175,6 +175,12 @@ func (m *ModelInstance) SetupDocker() error {
 			// TODO
 			//m.LLM
 			//m.ModelInfo.Metadata.Model
+			if m.LLM {
+				//load llm
+
+				return nil
+			}
+
 			msg := string(out)
 			if !strings.Contains(msg, "Loaded image:") {
 				str := fmt.Sprintf("[SetupDocker][Err] cannot get image name from: \"%s\"", msg)
