@@ -346,6 +346,8 @@ func (m *ModelInstance) StartDocker() error {
 			m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
 			m.containerID = existedContainer.ID
 			m.ResultDir = path
+
+			log.Info(fmt.Sprintf("[StartDocker][INFO][Started] containerID: %s, ModelAddress: %v, DisableGPU: %v,  err: %v  \n", m.containerID, m.ModelInfo.ModelAddr, m.DisableGPU, err))
 			return nil
 		}
 
@@ -376,6 +378,8 @@ func (m *ModelInstance) StartDocker() error {
 		m.Port = fmt.Sprintf("%v", existedContainer.Ports[0].PublicPort)
 		m.containerID = ctnInfo.ID
 		m.ResultDir = path
+
+		log.Info(fmt.Sprintf("[StartDocker][INFO][Started] containerID: %s, ModelAddress: %v, DisableGPU: %v,  err: %v  \n", m.containerID, m.ModelInfo.ModelAddr, m.DisableGPU, err))
 		return nil
 
 	}
