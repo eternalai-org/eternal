@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"errors"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
@@ -325,11 +326,25 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 
 func (m *ModelInstance) StartDocker() error {
 	var err error
-
+	ctx := context.Background()
 	// TODO
 	//m.LLM
 	//m.ModelInfo.Metadata.Model
 	if m.LLM {
+		baseImage := "vllm/vllm-openai:latest"
+		existed, err := dockercmd.CheckImage(ctx, baseImage)
+		if err != nil && existed == nil {
+			log.Error(fmt.Sprintf("[StartDocker][ERR][PullImage] Imagename: %s, ModelAddress: %v, DisableGPU: %v,  err: %v  \n", baseImage, m.ModelInfo.ModelAddr, m.DisableGPU, err))
+			return err
+		}
+
+		if existed != nil && *existed == false {
+			_, err = dockercmd.PullImage(ctx, baseImage)
+			if err != nil {
+				log.Error(fmt.Sprintf("[StartDocker][ERR][PullImage] Imagename: %s, ModelAddress: %v, DisableGPU: %v,  err: %v  \n", baseImage, m.ModelInfo.ModelAddr, m.DisableGPU, err))
+				return err
+			}
+		}
 
 		//LLM use a separated flow
 		if m.ModelInfo.Metadata.Model == "" {

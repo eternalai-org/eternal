@@ -196,6 +196,44 @@ func loadLocalImage(imagePath string) (string, error) {
 	return imageName, nil
 }
 
+func PullImage(ctx context.Context, image string) (string, error) {
+	apiClient, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return "", err
+	}
+	defer apiClient.Close()
+
+	out, err := apiClient.ImagePull(ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	defer out.Close()
+
+	return image, nil
+}
+
+func CheckImage(ctx context.Context, image string) (*bool, error) {
+	apiClient, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, err
+	}
+	defer apiClient.Close()
+	b := new(bool)
+	_, _, err = apiClient.ImageInspectWithRaw(ctx, image)
+	if err != nil {
+		if client.IsErrNotFound(err) {
+			*b = false
+			return b, err
+		}
+
+		return nil, err
+	}
+
+	*b = true
+	return b, nil
+}
+
 func StopAndRemoveContainer(containerID string) error {
 	apiClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
