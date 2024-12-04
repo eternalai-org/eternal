@@ -193,6 +193,7 @@ func (m *ModelInstance) SetupDocker() error {
 
 				path1 := m.LLMModelPath()
 				//model was not downloaded
+				//check model was started or not?
 				if !folderExists(path1) || true {
 					out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
 					if err != nil {
@@ -356,7 +357,7 @@ func (m *ModelInstance) StartDocker() error {
 
 		ctnInfo, err := dockercmd.CreateAndStartVllmContainer("vllm/vllm-openai:latest", m.ModelInfo.Metadata.Model, m.ModelInfo.ModelAddr, m.Port, path, target)
 		if err != nil {
-			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] containerID: %s, ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", ctnInfo.ID, m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
+			log.Errorf("[StartDocker][ERR][CreateAndStartContainer] ModelAddress: %v, resultMountDir: %s, target: %s, DisableGPU: %v,  err: %v  \n", m.ModelInfo.ModelAddr, path, target, m.DisableGPU, err)
 			return err
 		}
 
