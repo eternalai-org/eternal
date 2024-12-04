@@ -217,7 +217,7 @@ func PullImage(ctx context.Context, image string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("----> ", data)
+	fmt.Println("----> ", string(data))
 	return image, nil
 }
 

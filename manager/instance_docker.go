@@ -202,7 +202,7 @@ func (m *ModelInstance) SetupDocker() error {
 						return err
 					}
 
-					fmt.Println("LLM model path: ", out)
+					fmt.Println("LLM model path: ", string(out))
 				}
 
 				return nil
