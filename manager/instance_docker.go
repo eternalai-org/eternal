@@ -193,7 +193,7 @@ func (m *ModelInstance) SetupDocker() error {
 
 				path1 := m.LLMModelPath()
 				//model was not downloaded
-				if !folderExists(path1) {
+				if !folderExists(path1) || true {
 					out, err := zip_hf_model_to_light_house.DownloadHFModelFromLightHouse(hash, m.ModelPath, m.ZKSync, m.LLM)
 					if err != nil {
 						log.Error("[SetupDocker][Err]  Download model zkchain got error", err)
