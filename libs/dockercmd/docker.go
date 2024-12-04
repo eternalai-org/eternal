@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -210,6 +211,13 @@ func PullImage(ctx context.Context, image string) (string, error) {
 
 	defer out.Close()
 
+	// Read from io.Reader to byte slice
+	data, err := io.ReadAll(out)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("----> ", data)
 	return image, nil
 }
 
