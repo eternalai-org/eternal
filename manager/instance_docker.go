@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"errors"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/file"
@@ -92,6 +93,15 @@ func (m *ModelInstance) SetupDocker() error {
 
 	m.actionLock.Lock()
 	defer m.actionLock.Unlock()
+
+	//use api flo instead of Docker
+	//use api flo instead of Docker
+	//use api flo instead of Docker
+	apiURL, ok := config.IsUsedAPI(m.ChainCfg)
+	if ok {
+		log.Info(fmt.Sprintf("[SetupDocker][INFO][USE API] - url: %s", apiURL))
+		return nil
+	}
 
 	if !m.ZKSync {
 		filePath := ""
@@ -327,7 +337,14 @@ func (m *ModelInstance) SetupDockerVerifier() error {
 func (m *ModelInstance) StartDocker() error {
 	var err error
 	ctx := context.Background()
-	// TODO
+
+	//use api flo instead of Docker
+	apiURL, ok := config.IsUsedAPI(m.ChainCfg)
+	if ok {
+		log.Info(fmt.Sprintf("[StartDocker][INFO][USE API] - url: %s", apiURL))
+		return nil
+	}
+
 	//m.LLM
 	//m.ModelInfo.Metadata.Model
 	if m.LLM {

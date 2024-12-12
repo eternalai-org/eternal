@@ -3,6 +3,7 @@ package watcher
 import (
 	"context"
 	"errors"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/coordinator"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/abi"
@@ -82,6 +83,8 @@ type TaskWatcher struct {
 	paymasterFeeZero bool
 	daoToken         string
 	daoTokenName     string
+
+	chainCfg *config.ChainConfig
 }
 
 func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
@@ -91,7 +94,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 	zkSycn bool,
 	paymasterAddr string,
 	paymasterToken string,
-	paymasterZeroFee bool, daoToken string, daoTokenName string) (*TaskWatcher, error) {
+	paymasterZeroFee bool, daoToken string, daoTokenName string, chaincfg *config.ChainConfig) (*TaskWatcher, error) {
 
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
@@ -119,6 +122,7 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 		currentRunner: make(map[string]*runner.RunnerInstance),
 		lighthouseAPI: lighthouseAPI,
 		mode:          mode,
+		chainCfg:      chaincfg,
 		status: TaskWatcherStatus{
 			processedTasks:       0,
 			stakeStatus:          "-",
@@ -1473,7 +1477,12 @@ func (tskw *TaskWatcher) ClaimMiningReward() error {
 func (tskw *TaskWatcher) GetUnstakeInfo() (string, time.Time, int64) {
 	amount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
 	amount = new(big.Float).Quo(amount, big.NewFloat(1e18))
-	return amount.String(), tskw.status.pendingUnstakeUnlockAt, tskw.status.pendingUnstakeUnlockAtBlock.Int64()
+	unstakeAtBlock := int64(0)
+	if tskw.status.pendingUnstakeUnlockAtBlock != nil {
+		unstakeAtBlock = tskw.status.pendingUnstakeUnlockAtBlock.Int64()
+	}
+
+	return amount.String(), tskw.status.pendingUnstakeUnlockAt, unstakeAtBlock
 }
 
 func (tskw *TaskWatcher) GetProcessedTasks() uint64 {

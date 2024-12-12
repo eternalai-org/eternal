@@ -59,7 +59,7 @@ func main() {
 	//check the latest version and update if it's available.
 	go AutomaticallyUpdate(cfg)
 
-	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU, cfg.ZKSync)
+	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU, cfg.ZKSync, cfg.ChainCfg)
 
 	newTaskWatcher, err := watcher.NewTaskWatcher(watcher.NetworkConfig{
 		RPC: cfg.RPC,
@@ -68,7 +68,7 @@ func main() {
 		cfg.WorkerHub, cfg.Account,
 		cfg.ModelsDir, cfg.LighthouseAPI, cfg.NodeMode,
 		1, 1, modelManager, nil,
-		cfg.ZKSync, cfg.PaymasterAddress, cfg.PaymasterToken, true, cfg.DAOToken, cfg.DAOTokenName)
+		cfg.ZKSync, cfg.PaymasterAddress, cfg.PaymasterToken, true, cfg.DAOToken, cfg.DAOTokenName, cfg.ChainCfg)
 	if err != nil {
 		panic(err)
 	}

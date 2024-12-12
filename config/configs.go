@@ -25,6 +25,10 @@ type ChainConfig struct {
 	EaiNative        bool   `json:"eai_native"`
 	DAOToken         string `json:"dao_token"`
 	DAOTokenName     string `json:"dao_token_name"`
+	APIUrl           string `json:"api_url"` // if this field is filled out, API will be used instead of docker
+	APIKey           string `json:"api_key"` // if the `APIUrl` is filled out, API will be used instead of docker
+	ModelID          string `json:"model_id"`
+	ModelName        string `json:"model_name"`
 }
 
 const (
@@ -47,6 +51,8 @@ var ChainConfigs = map[string]ChainConfig{
 		WorkerhubAddress: "",
 		ZkSync:           false,
 		EaiNative:        false,
+		APIUrl:           "",
+		APIKey:           "",
 	},
 	/*"222672": {
 		ChainId:          "222672",
@@ -77,6 +83,8 @@ var ChainConfigs = map[string]ChainConfig{
 		EaiNative:        true,
 		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
 		DAOTokenName:     "IMAGINE",
+		APIUrl:           "",
+		APIKey:           "",
 	},
 	HERMES_CHAIN: {
 		ChainId:          "45762",
@@ -93,6 +101,11 @@ var ChainConfigs = map[string]ChainConfig{
 		EaiNative:        true,
 		DAOToken:         "0x5211b000cce15fd7ac100e75a157a876dd30bef0",
 		DAOTokenName:     "UNCENSORED",
+
+		APIUrl:    "https://api.eternalai.org/v1/chat/completions",
+		APIKey:    "",
+		ModelID:   "500007",
+		ModelName: "PrimeIntellect/INTELLECT-1-Instruct",
 	},
 }
 
@@ -118,13 +131,14 @@ type Config struct {
 	DisableUpdateOnStart bool   `json:"disable_update_on_start"`
 	SilentMode           bool   `json:"silent_mode"`
 
-	ZKSync           bool   `json:"zk_sync"`
-	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
-	PaymasterAddress string `json:"paymaster_address"`
-	PaymasterToken   string `json:"paymaster_token"`
-	PaymasterZeroFee bool   `json:"paymaster_zero_fee"`
-	DAOToken         string `json:"dao_token"`
-	DAOTokenName     string `json:"dao_token_name"`
+	ZKSync           bool         `json:"zk_sync"`
+	PaymasterFeeZero bool         `json:"paymaster_fee_zero"`
+	PaymasterAddress string       `json:"paymaster_address"`
+	PaymasterToken   string       `json:"paymaster_token"`
+	PaymasterZeroFee bool         `json:"paymaster_zero_fee"`
+	DAOToken         string       `json:"dao_token"`
+	DAOTokenName     string       `json:"dao_token_name"`
+	ChainCfg         *ChainConfig `json:"-"`
 }
 
 const (
@@ -156,6 +170,8 @@ func ReadConfig() (*Config, *CmdType, error) {
 	help := flag.Bool("help", false, "show help")
 
 	lighthouseAPI := flag.String("lighthouse", "", "(*REQUIRE) lighthouse api")
+	apiKey := flag.String("api-key", "", "(*REQUIRE) lighthouse api")
+	apiURL := flag.String("api-url", "", "(optional) call api instead of docker")
 
 	flag.Parse()
 	mode := libs.MODE_MINER
@@ -265,6 +281,13 @@ func ReadConfig() (*Config, *CmdType, error) {
 		return nil, nil, err
 	}
 
+	cfg.ChainCfg = &chainConfig
+	cfg.ChainCfg.APIKey = *apiKey
+
+	if apiURL != nil && *apiURL != "" {
+		cfg.ChainCfg.APIUrl = *apiURL
+	}
+
 	return cfg, nil, nil
 }
 
@@ -340,4 +363,12 @@ func (c *Config) setDefaultValue() {
 		genPriv, _, _, _ := eth.GenerateAddress()
 		c.Account = genPriv
 	}
+}
+
+func IsUsedAPI(cfg *ChainConfig) (string, bool) {
+	if cfg != nil && cfg.APIUrl != "" {
+		return cfg.APIUrl, true
+	}
+
+	return "", false
 }

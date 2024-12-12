@@ -64,12 +64,15 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 }
 
 func (tskw *TaskWatcher) executeWorkerTaskDefault(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance) error {
+	var err error
+	taskResult := &eaimodel.TaskResult{}
 	log.Info(fmt.Sprintf("executeWorkerTaskDefault runDockerToGetValue for task %s", task.TaskID))
-	taskResult, err := tskw.runDockerToGetValue(modelInst, task, ext, newRunner, true)
+	taskResult, err = tskw.runDockerToGetValue(modelInst, task, ext, newRunner, true)
 	if err != nil {
 		log.Error(fmt.Sprintf("executeWorkerTaskDefault runDockerToGetValue task %s Result error: %v", task.TaskID, err))
 		return err
 	}
+
 	resultData, err := json.Marshal(taskResult)
 	if err != nil {
 		log.Error(fmt.Sprintf("executeWorkerTaskDefault marshal result task %s error: %v", task.TaskID, err))

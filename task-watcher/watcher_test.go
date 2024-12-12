@@ -1,6 +1,8 @@
 package watcher
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestStakeForWorker(t *testing.T) {
 	tskw := &TaskWatcher{

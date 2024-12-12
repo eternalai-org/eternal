@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/eaimodel"
 	"fmt"
 	"io"
@@ -35,7 +36,8 @@ type ModelInstance struct {
 	//TrainingRequest *TrainingRequest
 	ZKSync bool
 
-	LLM bool
+	LLM      bool
+	ChainCfg *config.ChainConfig
 }
 
 // func setupCondaEnv(name, envFile string) error {
@@ -170,12 +172,21 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 		Seed:  seed,
 	}
 	infer.Messages = []LLMInferMessage{
-		LLMInferMessage{
+		{
 			Role:    "user",
 			Content: prompt,
 		},
 	}
+
 	url := fmt.Sprintf("http://0.0.0.0:%v/v1/chat/completions", m.Port)
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
+
+	if m.ChainCfg.APIUrl != "" {
+		url = m.ChainCfg.APIUrl
+		headers["Authorization"] = fmt.Sprintf("Bearer %s", m.ChainCfg.APIKey)
+	}
+
 	inferJSON, err := json.Marshal(infer)
 	if err != nil {
 		return nil, err
@@ -184,7 +195,10 @@ func (m *ModelInstance) InferChatCompletions(prompt string, model string, seed u
 	log.Println("infer", url, string(inferJSON))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
-	req.Header.Set("Content-Type", "application/json")
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

@@ -28,9 +28,10 @@ type ModelManager struct {
 	status        string
 	disableGPU    bool
 	zksync        bool
+	chainCfg      *config.ChainConfig
 }
 
-func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool, zkSync bool) *ModelManager {
+func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disableGPU bool, zkSync bool, chainCfg *config.ChainConfig) *ModelManager {
 	return &ModelManager{
 		modelsDir:     modelsDir,
 		rpc:           rpcEndpoint,
@@ -40,6 +41,7 @@ func NewModelManager(modelsDir, rpcEndpoint, nodeMode, workerHub string, disable
 		status:        "initializing",
 		disableGPU:    disableGPU,
 		zksync:        zkSync,
+		chainCfg:      chainCfg,
 	}
 }
 
@@ -175,6 +177,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		ModelPath:  filepath.Join(m.modelsDir, modelInfo.ModelID.String()),
 		Port:       fmt.Sprintf("%v", randPort()),
 		DisableGPU: m.disableGPU,
+		ChainCfg:   m.chainCfg,
 	}
 	if modelInfo.Metadata.ModelType == eaimodel.ModelTypeText {
 		inst.LLM = true
