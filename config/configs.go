@@ -6,6 +6,7 @@ import (
 	"eternal-infer-worker/libs/eth"
 	"flag"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"strings"
 )
@@ -34,6 +35,7 @@ type ChainConfig struct {
 const (
 	ETERNAL_CHAIN = "43338"
 	HERMES_CHAIN  = "45762"
+	SYMBIOSIS     = "45762"
 	FLUX_CHAIN    = "222673"
 )
 
@@ -83,29 +85,54 @@ var ChainConfigs = map[string]ChainConfig{
 		EaiNative:        true,
 		DAOToken:         "0x2fDF1e58F61EDE27A1BEa5E329A68dcfB081968b",
 		DAOTokenName:     "IMAGINE",
-		APIUrl:           "",
+		APIUrl:           "https://api.eternalai.org/v1/chat/completions",
 		APIKey:           "",
+		ModelID:          "500007",
+		ModelName:        "hf.co/lmstudio-community/INTELLECT-1-Instruct-GGUF:Q8_0",
 	},
-	HERMES_CHAIN: {
+	/*
+		HERMES_CHAIN: {
+			ChainId:          "45762",
+			Rpc:              "https://rpc.hermeschain.eternalai.org",
+			Explorer:         "https://explorer.hermeschain.eternalai.org",
+			EaiErc20:         "",
+			Name:             "Uncensored",
+			NftAddress:       "0x97c671381dabae0ae24554120dce2e9b0baeb3cd",
+			PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
+			PaymasterFeeZero: true,
+			PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
+			WorkerhubAddress: "0x87e9b8630c1e20dd86451ae15af7663d006f089c",
+			ZkSync:           true,
+			EaiNative:        true,
+			DAOToken:         "0x5211b000cce15fd7ac100e75a157a876dd30bef0",
+			DAOTokenName:     "UNCENSORED",
+
+			APIUrl:    "https://api.eternalai.org/v1/chat/completions",
+			APIKey:    "",
+			ModelID:   "500007",
+			ModelName: "PrimeIntellect/INTELLECT-1-Instruct",
+		},*/
+
+	SYMBIOSIS: {
 		ChainId:          "45762",
-		Rpc:              "https://rpc.hermeschain.eternalai.org",
-		Explorer:         "https://explorer.hermeschain.eternalai.org",
+		Rpc:              "https://rpc.symbiosis.eternalai.org",
+		Explorer:         "https://explorer.symbiosis.eternalai.org",
 		EaiErc20:         "",
 		Name:             "Uncensored",
-		NftAddress:       "0x97c671381dabae0ae24554120dce2e9b0baeb3cd",
+		NftAddress:       "0x97c671381dabae0ae24554120dce2e9b0baeb3cd", ///HERMES_MAINNET_COLLECTION_ADDRESS
 		PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
 		PaymasterFeeZero: true,
 		PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
-		WorkerhubAddress: "0x87e9b8630c1e20dd86451ae15af7663d006f089c",
+		WorkerhubAddress: "0x87e9B8630c1E20dd86451AE15aF7663D006f089c", //HERMES_MAINNET_WORKER_HUB_ADDRESS
 		ZkSync:           true,
 		EaiNative:        true,
-		DAOToken:         "0x5211b000cce15fd7ac100e75a157a876dd30bef0",
+		DAOToken:         "0x5211b000CCe15fd7aC100E75a157a876dd30bef0", //HERMES_MAINNET_DAO_TOKEN_ADDRESS
 		DAOTokenName:     "UNCENSORED",
 
-		APIUrl:    "https://api.eternalai.org/v1/chat/completions",
+		APIUrl:    "",
 		APIKey:    "",
 		ModelID:   "500007",
-		ModelName: "PrimeIntellect/INTELLECT-1-Instruct",
+		ModelName: "hf.com/lmstudio-community/INTELLECT-1-Instruct-GGUF:Q8_0",
 	},
 }
 
@@ -138,7 +165,7 @@ type Config struct {
 	PaymasterZeroFee bool         `json:"paymaster_zero_fee"`
 	DAOToken         string       `json:"dao_token"`
 	DAOTokenName     string       `json:"dao_token_name"`
-	ChainCfg         *ChainConfig `json:"-"`
+	ChainCfg         *ChainConfig `json:"chain_cfg"`
 }
 
 const (
@@ -151,27 +178,45 @@ const (
 )
 
 func ReadConfig() (*Config, *CmdType, error) {
-	var cfg *Config
-
+	cfg := new(Config)
+	err := godotenv.Load()
 	rpc := flag.String("rpc", "", "(optional) rpc url of the network")
 	// ws := flag.String("ws", "", "ws url of the network")
 	workerHub := flag.String("worker-hub", "", "(optional) task contract address")
-	account := flag.String("account", "", "(optional) account private key")
+	account := flag.String("account_priv", "", "(optional) account private key")
+	if *account == "" {
+		*account = os.Getenv("ACCOUNT_PRIV")
+	}
+
 	modelsDir := flag.String("models-dir", "", "(optional) models dir")
 	port := flag.Int("port", 0, "(optional) port of the server")
 	modeValidator := flag.Bool("validator", false, "(optional) run as validator")
 	noGPU := flag.Bool("no-gpu", false, "(optional) disable gpu")
 	noUpdateOnStart := flag.Bool("no-update-on-start", false, "(optional) disable update on start")
 	silentMode := flag.Bool("silent", false, "(optional) silent mode")
-	chain := flag.String("chain", "43338", "(optional) chain")
+	chain := flag.String("chain", "", "(optional) chain")
+	if *chain == "" {
+		*chain = os.Getenv("CHAIN_ID")
+	}
 
 	wallet := flag.Bool("wallet", false, "wallet cmd ('-wallet help' for more info)")
 
 	help := flag.Bool("help", false, "show help")
 
 	lighthouseAPI := flag.String("lighthouse", "", "(*REQUIRE) lighthouse api")
+	if *lighthouseAPI == "" {
+		*lighthouseAPI = os.Getenv("LIGHT_HOUSE_API_KEY")
+	}
+
 	apiKey := flag.String("api-key", "", "(*REQUIRE) lighthouse api")
+	if *apiKey == "" {
+		*apiKey = os.Getenv("API_KEY")
+	}
+
 	apiURL := flag.String("api-url", "", "(optional) call api instead of docker")
+	if *apiURL == "" {
+		*apiURL = os.Getenv("API_URL")
+	}
 
 	flag.Parse()
 	mode := libs.MODE_MINER
@@ -184,10 +229,11 @@ func ReadConfig() (*Config, *CmdType, error) {
 		os.Exit(0)
 	}
 
-	cfg, err := readCfgFile()
-	if err != nil {
-		return nil, nil, err
-	}
+	/*
+		cfg, err := readCfgFile()
+		if err != nil {
+			return nil, nil, err
+		}*/
 
 	chainConfig := ChainConfigs[*chain]
 	cfg.ZKSync = chainConfig.ZkSync
@@ -262,7 +308,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 		return nil, nil, fmt.Errorf("lighthouse api is required")
 	}
 
-	cfg.setDefaultValue()
+	//cfg.setDefaultValue() >????
 
 	if *wallet {
 		a := os.Args[1:]
@@ -287,7 +333,8 @@ func ReadConfig() (*Config, *CmdType, error) {
 	if apiURL != nil && *apiURL != "" {
 		cfg.ChainCfg.APIUrl = *apiURL
 	}
-
+	_b, _ := json.Marshal(cfg)
+	fmt.Println("cfg: ", string(_b))
 	return cfg, nil, nil
 }
 

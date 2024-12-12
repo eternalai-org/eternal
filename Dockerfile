@@ -9,10 +9,12 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -ldflags "-linkmode external -extldflags -static" -o workersv
+RUN GOOS=linux GOARCH=arm64 go build -ldflags "-linkmode external -extldflags -static" -o workersv
 
 RUN chmod +x /app/workersv
 
-FROM scratch AS export-stage
+FROM  alpine:3.17 AS export-stage
+
+RUN  apk update && apk add --no-cache ca-certificates && update-ca-certificates
 
 COPY --from=build /app/workersv .

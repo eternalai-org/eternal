@@ -104,12 +104,12 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 		return err
 	}
 
-	if tskw.ChainId() == config.HERMES_CHAIN {
+	if tskw.ChainId() == config.HERMES_CHAIN || tskw.ChainId() == config.SYMBIOSIS {
 		// hermes
 		dataBytes, err = instanceABI.Pack(
 			"registerMiner",
 			uint16(1),
-			common.HexToAddress("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"),
+			//common.HexToAddress("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"),
 		)
 		if err != nil {
 			return err
@@ -874,39 +874,40 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		// ???
 		if requestId == nil {
 			err = errors.New("request_id is nil")
-			log.Error("[filterZKEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
+			log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 			return nil, err
 		}
-		log.Info(fmt.Sprintf("[filterZKEventNewInference] pulling request ID: %s, txHash %s", requestId, iter.Event.Raw.TxHash))
+
 		requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
 		if err != nil {
 			log.Error("[filterZKEventNewInference][GetInferenceInfo] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 			return nil, err
 		}
+		_b, _ := json.Marshal(requestInfo)
+
 		modelAddr := strings.ToLower(requestInfo.ModelAddress.Hex())
 		if models[modelAddr] == nil {
 			err := errors.New("model_address is nil")
-			log.Error("[filterZKEventNewInference][requestInfo.ModelAddress] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
+			log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
+			//log.Error("[filterZKEventNewInference][requestInfo.ModelAddress] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
+			_ = err
 			continue
 		}
+
 		assignments, err := whContract.GetMintingAssignmentsOfInference(nil, requestId)
 		if err != nil {
-			log.Error("[filterZKEventNewInference][GetMintingAssignmentsOfInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
+			log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
 			return nil, err
 		}
 
-		log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,assignments: ", len(assignments))
+		//log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,assignments: ", len(assignments))
 		for _, assignment := range assignments {
 			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
 			if err != nil {
-				log.Error("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,err: ", err)
+				log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
 				continue
 			}
 
-			log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(),
-				" ,assignment.AssignmentId: ", assignment.AssignmentId,
-				//" ,assignmentInfo: ", assignmentInfo,
-			)
 			if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 				task := types.TaskInfo{
 					TaskID:         assignment.InferenceId.String(),
@@ -920,7 +921,6 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 					AssignmentRole: libs.MODE_VALIDATOR,
 				}
 
-				log.Info("[filterZKEventNewInference][seizeMinerRole] ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", task.AssignmentID)
 				transact, err := tskw.seizeMinerRole(assignment.AssignmentId)
 				if err == nil && transact != nil {
 					for _, txLog := range transact.Receipt.Logs {
@@ -930,25 +930,19 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 
 						minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
 						if err != nil {
-							log.Error("[filterZKEventNewInference][seizeMinerRole][ParseMinerRoleSeized] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
-								task.AssignmentID, " ,err: ", err)
+							log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
 							continue
 						}
 						if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
 							task.AssignmentRole = libs.MODE_MINER
 						}
 					}
-					log.Info("[filterZKEventNewInference][seizeMinerRole][transact] ,requestId: ", requestId.String(), " ,assignment.AssignmentId ", task.AssignmentID, " ,txHash: ", transact.TxHash.Hex())
 
 				} else {
-					log.Error("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(), " ,assignment.AssignmentId ",
-						task.AssignmentID, " ,err: ", err)
+					log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
 				}
 
-				log.Info("[filterZKEventNewInference][seizeMinerRole] requestId: ", requestId.String(),
-					" ,assignment.AssignmentId ", assignment.AssignmentId,
-					" ----> Role: ",
-					task.AssignmentRole)
+				log.Info("[filterZKEventNewInference][Proccessing] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "role: ", assignmentInfo.Role)
 				tasks = append(tasks, task)
 				continue
 			} else {

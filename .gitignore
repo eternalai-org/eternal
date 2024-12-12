@@ -33,3 +33,7 @@ log
 infer-results
 
 models
+.idea
+./database
+./docker-volumes
+config.env

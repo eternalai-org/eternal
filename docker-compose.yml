@@ -1,29 +1,28 @@
 version: '3.7'
 services:
-  service_vllm:
-    container_name: lnode-vllm
-    image: vllm/vllm-openai:latest
-    entrypoint: [ "python3", "-m", "vllm.entrypoints.openai.api_server", "--model", "meta-llama/Llama-3.2-3B-Instruct", "--host", "0.0.0.0", "--port", "8000", "--max_num_seqs", "2", "--max-model-len","16384" ]
-    environment:
-      - HUGGING_FACE_HUB_TOKEN=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
-      - CUDA_VISIBLE_DEVICES=0
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+  ollama:
+    image: ollama/ollama
+    restart: always
+    ports:
+      - "11435:11434"
+    volumes:
+      - ./models:/app/models
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/usr/bin/bash", "/entrypoint.sh"]
+  service_miner:
+    image:  service_miner
+    build:
+      context: .
+      dockerfile: Dockerfile.Arm
+    container_name:  service_miner
+    entrypoint: ["/workersv", "-silent",  "-no-update-on-start", "true", ]
     ports:
       - "8000:8000"
+    env_file:
+      - config.env
+    tty: true
+    stdin_open: true
     restart: always
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8000/v1/models" ]
-      interval: 30s
-      timeout: 5s
-      retries: 20
     volumes:
-      - type: bind
-        source: /root/.cache
-        target: /root/.cache
-    shm_size: '64gb'
+      - ./docker-volumes/eternal_ai/infer-results:/home/eternal_ai/infer-results/
+      - ./docker-volumes/eternal_ai/database:/database

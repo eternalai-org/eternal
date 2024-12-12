@@ -118,7 +118,7 @@ func main() {
 		})
 		err = checkRequirement()
 		if err != nil {
-			panic(err)
+			//panic(err)
 		}
 
 		stopChn := make(chan struct{}, 1)
@@ -207,14 +207,19 @@ func AutomaticallyCheckNewVersion(cfg *config.Config) {
 
 		//log.Info("'[Info] current version: ", releaseInfo.TagName)
 		if _willUpdate {
-			log.Info("New version available: ", releaseInfo.TagName)
-
-			log.Info("Release notes: ", releaseInfo.Body)
+			//log.Info("New version available: ", releaseInfo.TagName)
+			//log.Info("Release notes: ", releaseInfo.Body)
 			willUpdate := false
 			if cfg.DisableUpdateOnStart {
-				log.Warning("Update on start is disabled")
-				log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
-				time.Sleep(5 * time.Second)
+				//log.Warning("Update on start is disabled")
+				//log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
+				//time.Sleep(5 * time.Second)
+
+				err1 := file.UpdateVersionLog(VersionTag)
+				if err1 != nil {
+					//only log error
+					log.Error("[Error] error update version.txt: ", err1)
+				}
 			} else {
 				willUpdate = true
 				VersionTag = releaseInfo.TagName

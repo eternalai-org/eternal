@@ -184,7 +184,7 @@ func (m *ModelManager) loadModel(modelAddress string) error {
 		if inst.ModelInfo.Metadata.Model == "" {
 			inst.ModelInfo.Metadata.Model = config.ModelsLLM[inst.ModelInfo.ModelID.String()]
 		}
-		if inst.ModelInfo.Metadata.Model == "" {
+		if inst.ModelInfo.Metadata.Model == "" && m.chainCfg.APIUrl == "" {
 			return errors.New("missing model name")
 		}
 	}
