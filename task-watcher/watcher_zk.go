@@ -1033,10 +1033,6 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-
 	var batchInfers []*model_structures.BatchInferHistory
 	var externalData *model_structures.AgentInferExternalData
 
