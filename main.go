@@ -14,7 +14,6 @@ import (
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/github"
 	"eternal-infer-worker/libs/logger"
-	_ "eternal-infer-worker/libs/logger"
 	"eternal-infer-worker/manager"
 	watcher "eternal-infer-worker/task-watcher"
 
