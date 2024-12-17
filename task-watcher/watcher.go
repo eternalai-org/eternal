@@ -1625,8 +1625,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 			return nil, err
 		}
 
-		//TODO -
-		_tasks, err := tskw.filterBaseChainEventNewInference(contract, startBlock, endBlock)
+		_tasks, err := tskw.filterBaseChainEventNewInference(contract, ethClient, startBlock, endBlock)
 		if err != nil {
 			log.Error("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
 			return nil, err

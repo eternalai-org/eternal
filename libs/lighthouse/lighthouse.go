@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/ipfs/boxo/blockservice"
@@ -460,4 +461,20 @@ func DownloadToFile(hash string, filePath string) error {
 		os.Remove(filePath)
 	}
 	return nil
+}
+
+func DownloadDataSimpleWithRetry(hash string) ([]byte, string, error) {
+	var err error
+	var byteResp []byte
+	var mimeType string
+	for i := 0; i < 3; i++ {
+		byteResp, mimeType, err = DownloadDataSimple(hash)
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return byteResp, mimeType, nil
+	}
+
+	return byteResp, mimeType, nil
 }

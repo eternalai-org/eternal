@@ -38,6 +38,8 @@ const (
 	SYMBIOSIS     = "45762"
 	FLUX_CHAIN    = "222673"
 	BASE_CHAIN    = "8453"
+
+	IPFSPrefix = "ipfs://"
 )
 
 var ChainConfigs = map[string]ChainConfig{

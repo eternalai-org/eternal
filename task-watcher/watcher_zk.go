@@ -9,6 +9,7 @@ import (
 	"eternal-infer-worker/libs/abi/base_wh_abi"
 	"eternal-infer-worker/libs/db"
 	"eternal-infer-worker/libs/eth"
+	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/libs/zkclient"
 	"eternal-infer-worker/manager"
@@ -21,6 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	log "github.com/sirupsen/logrus"
 	zktypes "github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
@@ -961,15 +963,16 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 	return tasks, nil
 }
 
-func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_abi.WorkerHub, startBlock uint64, endBlock uint64,
+func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_abi.WorkerHub, ethClient *ethclient.Client, startBlock uint64, endBlock uint64,
 ) ([]types.TaskInfo, error) {
 	tasks := make([]types.TaskInfo, 0)
 	ctx := context.Background()
-	iter, err := whContract.FilterNewInference(&bind.FilterOpts{
+	iter, err := whContract.FilterRawSubmitted(&bind.FilterOpts{
 		Start:   startBlock,
 		End:     &endBlock,
 		Context: ctx,
 	}, nil, nil, nil)
+
 	if err != nil {
 		log.Error("[filterBaseChainEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 		return nil, err
@@ -977,9 +980,10 @@ func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_ab
 
 	models := tskw.modelManager.GetLoadeModels()
 	for iter.Next() {
-
-		//TODO - implement me
-
+		err := tskw.ProcessBaseChainEventNewInference(ctx, iter.Event, tskw.chainCfg, common.HexToAddress(tskw.taskContract), whContract, ethClient)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(tasks) > 0 {
@@ -1014,5 +1018,64 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
+	client *ethclient.Client) error {
+	var err error
+
+	requestId := event.InferenceId
+	requestIdStr := requestId.String()
+	_ = requestIdStr
+	requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+	var batchInfers []*model_structures.BatchInferHistory
+	var externalData *model_structures.AgentInferExternalData
+
+	_ = batchInfers
+	_ = externalData
+	/*
+		TODO - chainConfig.AgentContractAddress ???
+		if chainConfig.AgentContractAddress != "" {
+			isAgentInfer, batchInfers, externalData, err = s.handleNewInferIsAgentInfer(ctx, modelInfo.ModelID.String(), chainConfig, ethClient, event.Raw.TxHash, aiZKClient)
+			if err != nil {
+				return err
+			}
+		}*/
+
+	// Detect if  is batch
+	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
+		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
+		if err == nil {
+			var batchFullPrompts = []*model_structures.BatchInferHistory{}
+			err = json.Unmarshal(inputBytes, &batchFullPrompts)
+			if err == nil && len(batchFullPrompts) > 0 {
+				batchInfers = batchFullPrompts
+			}
+		}
+	}
+
+	var assignments []zkabi.IWorkerHubAssignmentInfo
+
+	assignmentIds, err := whContract.GetAssignmentsByInference(nil, requestId)
+	if err != nil {
+		return err
+	}
+
+	for _, assignmentId := range assignmentIds {
+		assignments = append(assignments, zkabi.IWorkerHubAssignmentInfo{
+			AssignmentId: assignmentId,
+			InferenceId:  requestId,
+		})
+	}
+
 	return nil
 }
