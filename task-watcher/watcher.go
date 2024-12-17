@@ -3,6 +3,14 @@ package watcher
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/big"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/coordinator"
 	"eternal-infer-worker/libs"
@@ -17,14 +25,8 @@ import (
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	log "github.com/sirupsen/logrus"
-	"math/big"
-	"sort"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -96,8 +98,8 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 	zkSycn bool,
 	paymasterAddr string,
 	paymasterToken string,
-	paymasterZeroFee bool, daoToken string, daoTokenName string, chaincfg *config.ChainConfig) (*TaskWatcher, error) {
-
+	paymasterZeroFee bool, daoToken string, daoTokenName string, chaincfg *config.ChainConfig,
+) (*TaskWatcher, error) {
 	_, address, err := eth.GenerateAddressFromPrivKey(account)
 	if err != nil {
 		return nil, err
@@ -139,7 +141,6 @@ func NewTaskWatcher(networkCfg NetworkConfig, version, taskContract, account,
 }
 
 func (tskw *TaskWatcher) Start() {
-
 	log.Println("start task watcher")
 	if tui.UI != nil {
 		tui.UI.UpdateSectionText(tui.UIMessageData{
@@ -152,13 +153,13 @@ func (tskw *TaskWatcher) Start() {
 	go tskw.watchWorkerInfo()
 	go tskw.watchHubGlobalInfo()
 
-	//there is no action in this function, turn off it. Use the infinity loop in main instead.
-	//go tskw.watchNewVersion()
+	// there is no action in this function, turn off it. Use the infinity loop in main instead.
+	// go tskw.watchNewVersion()
 
 	tskw.GetWorkerInfo()
 	go tskw.watchAssignedModel()
 
-	//remove the generated png by docker - this is called after watchAssignedModel step.
+	// remove the generated png by docker - this is called after watchAssignedModel step.
 	go tskw.modelManager.RemoveTheGeneratedFile(tskw.status.assignModel)
 
 	var err error
@@ -192,7 +193,7 @@ func (tskw *TaskWatcher) watchAssignedModel() {
 			continue
 		}
 
-		//log.Println("[watchAssignedModel].watchAssignedModel - assignModel ", tskw.status.assignModel)
+		// log.Println("[watchAssignedModel].watchAssignedModel - assignModel ", tskw.status.assignModel)
 		currentLoadedModels := tskw.modelManager.GetLoadeModels()
 		if _, ok := currentLoadedModels[tskw.status.assignModel]; ok {
 			time.Sleep(5 * time.Second)
@@ -316,7 +317,6 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 		time.Sleep(1 * time.Second)
 		tskw.CleanupRunners()
 		if tskw.modelManager.GetStatus() != "ready" {
-
 		}
 
 		var tasks []types.TaskInfo
@@ -349,7 +349,7 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 			return taskAid.Cmp(taskBid) > 0
 		})
 
-		//log.Println("[watchAndAssignTask] pending tasks: ", len(tasks))
+		// log.Println("[watchAndAssignTask] pending tasks: ", len(tasks))
 
 		for _, task := range tasks {
 			if len(tskw.currentRunner) >= maxConcurrentTask {
@@ -366,9 +366,9 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 
 		if len(tasks) == 0 {
 			modelAddr := tskw.GetAssignedModel()
-			//log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
+			// log.Warning("Watcher: Maybe node is slashed for model ", modelAddr)
 			if ok := tskw.isMinerOfModel(common.HexToAddress(modelAddr)); !ok {
-				//log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
+				// log.Info("Watcher: node need to be reJoinMinting for model ", modelAddr)
 				if modelAddr != "0x0000000000000000000000000000000000000000" {
 					err := tskw.reJoinMinting(modelAddr)
 					if err != nil {
@@ -485,6 +485,7 @@ func (tskw *TaskWatcher) GetAllTasks() []types.TaskRunnerInfo {
 
 	return pendingTasks
 }
+
 func (tskw *TaskWatcher) GetCurrentPendingTasks() []types.TaskRunnerInfo {
 	tskw.runnerLock.Lock()
 	defer tskw.runnerLock.Unlock()
@@ -506,14 +507,14 @@ func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
 }
 
 func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
-	//log.Println("[TaskWatcher].AssignTask")
+	// log.Println("[TaskWatcher].AssignTask")
 	newRunner, err := runner.NewRunnerInstance(tskw.modelManager, &task)
 	if err != nil {
 		log.Error("create runner error: ", err)
 		return err
 	}
 
-	//log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
+	// log.Println("[TaskWatcher].AssignTask - task.TaskID: ", task.TaskID)
 	err = tskw.AddRunner(task.TaskID, newRunner)
 	if err != nil {
 		log.Error("[TaskWatcher].AssignTask - add runner error: ", err)
@@ -525,7 +526,6 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 }
 
 func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, error) {
-
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return false, err
@@ -556,10 +556,10 @@ func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, er
 }
 
 func (tskw *TaskWatcher) executeTasks() {
-	//log.Println("[TaskWatcher].executeTasks")
+	// log.Println("[TaskWatcher].executeTasks")
 	for {
 		task := <-tskw.taskQueue
-		//log.Println("[TaskWatcher].executeTasks - received task")
+		// log.Println("[TaskWatcher].executeTasks - received task")
 		newRunner := tskw.GetRunner(task.TaskID)
 		if newRunner == nil {
 			log.Println("[TaskWatcher].executeTasks - runner not found, TaskID:", task.TaskID)
@@ -603,7 +603,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				if isCompleted {
 					newRunner.SetDone()
 
-					//log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
+					// log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
 					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
 					continue
 				}
@@ -667,7 +667,7 @@ func (tskw *TaskWatcher) executeTasks() {
 						if task.Retry <= 500 {
 							task.Retry++
 							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
-							//tskw.taskQueue <- task // set again
+							// tskw.taskQueue <- task // set again
 							go tskw.AssignTask(*task)
 						}
 					}
@@ -709,7 +709,7 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 	if _, ok := tskw.currentRunner[taskID]; ok {
 		log.Warn(fmt.Sprintf("task %s already exists", taskID))
 		return nil
-		//return errors.New(fmt.Sprintf("task %s already exists", taskID))
+		// return errors.New(fmt.Sprintf("task %s already exists", taskID))
 	}
 
 	tskw.currentRunner[taskID] = runnerInst
@@ -915,12 +915,10 @@ func (tskw *TaskWatcher) GetMiningReward() string {
 }
 
 func (tskw *TaskWatcher) GetUnskateAmount() (string, error) {
-
 	pendingUnstakeAmount := new(big.Float).SetInt(tskw.status.pendingUnstakeAmount)
 	pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
 
 	return pendingUnstakeAmount.String(), nil
-
 }
 
 func (tskw *TaskWatcher) isStaked() (bool, error) {
@@ -941,7 +939,7 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 		return false, errors.Join(err, errors.New("Error while getting account info"))
 	}
 
-	//log.Println("check staked for: ", address.String())
+	// log.Println("check staked for: ", address.String())
 
 	workerInfo, err := workerHub.WorkerHubCaller.Miners(nil, *address)
 	if err != nil {
@@ -950,7 +948,6 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 
 	minStake, err := workerHub.WorkerHubCaller.MinerMinimumStake(nil)
 	if err != nil {
-
 		return false, errors.Join(err, errors.New("Error while getting minimum stake"))
 	}
 
@@ -1202,7 +1199,7 @@ func (tskw *TaskWatcher) SubmitTask(task *types.TaskSubmitRequest) error {
 		return errors.New("invalid model id")
 	}
 
-	//TODO: @liam check if task value is enough
+	// TODO: @liam check if task value is enough
 	// inferenceCost, err := model.HybridModelCaller.InferenceCost(nil)
 	// if err != nil {
 	// 	return errors.Join(err, errors.New("Error while getting inference cost"))
@@ -1523,7 +1520,6 @@ func (tskw *TaskWatcher) GetStakeStatus() (string, error) {
 		return "", err
 	}
 	return tskw.status.stakeStatus, nil
-
 }
 
 func (tskw *TaskWatcher) GetAssignedModel() string {
@@ -1593,7 +1589,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 		return nil, err
 	}
 
-	//log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
+	// log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
 	if err != nil || state == nil {
 		state = &model_structures.ContractSyncState{
 			Job:             jobName,

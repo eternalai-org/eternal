@@ -2,6 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
+	"runtime/debug"
+	"time"
+
 	"eternal-infer-worker/apis"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
@@ -12,11 +17,8 @@ import (
 	_ "eternal-infer-worker/libs/logger"
 	"eternal-infer-worker/manager"
 	watcher "eternal-infer-worker/task-watcher"
-	"fmt"
+
 	log "github.com/sirupsen/logrus"
-	"os"
-	"runtime/debug"
-	"time"
 
 	"eternal-infer-worker/tui"
 
@@ -53,10 +55,10 @@ func main() {
 		panic(err)
 	}
 
-	//the 1st starting to check
+	// the 1st starting to check
 	AutomaticallyCheckNewVersion(cfg)
 
-	//check the latest version and update if it's available.
+	// check the latest version and update if it's available.
 	go AutomaticallyUpdate(cfg)
 
 	modelManager := manager.NewModelManager(cfg.ModelsDir, cfg.RPC, cfg.NodeMode, cfg.WorkerHub, cfg.DisableGPU, cfg.ZKSync, cfg.ChainCfg)
@@ -118,7 +120,7 @@ func main() {
 		})
 		err = checkRequirement()
 		if err != nil {
-			//panic(err)
+			// panic(err)
 		}
 
 		stopChn := make(chan struct{}, 1)
@@ -150,7 +152,8 @@ func main() {
 						tui.UI.UpdateSectionText(tui.UIMessageData{
 							Section: tui.UISectionStatusText,
 							Color:   "danger",
-							Text:    "Shutting down..."})
+							Text:    "Shutting down...",
+						})
 						err = modelManager.RemoveAllInstanceDocker()
 						if err != nil {
 							panic(err)
@@ -169,7 +172,8 @@ func main() {
 							tui.UI.UpdateSectionText(tui.UIMessageData{
 								Section: tui.UISectionStatusText,
 								Color:   "danger",
-								Text:    "Force shutting down..."})
+								Text:    "Force shutting down...",
+							})
 							time.Sleep(1 * time.Second)
 							os.Exit(0)
 						}
@@ -178,7 +182,6 @@ func main() {
 			}()
 		}
 		// go modelManager.WatchAndPreloadModels()
-
 		go newTaskWatcher.Start()
 
 		go func() {
@@ -205,19 +208,19 @@ func AutomaticallyCheckNewVersion(cfg *config.Config) {
 	} else {
 		_willUpdate, _ := file.WillUpdateVersion(releaseInfo.TagName)
 
-		//log.Info("'[Info] current version: ", releaseInfo.TagName)
+		// log.Info("'[Info] current version: ", releaseInfo.TagName)
 		if _willUpdate {
-			//log.Info("New version available: ", releaseInfo.TagName)
-			//log.Info("Release notes: ", releaseInfo.Body)
+			// log.Info("New version available: ", releaseInfo.TagName)
+			// log.Info("Release notes: ", releaseInfo.Body)
 			willUpdate := false
 			if cfg.DisableUpdateOnStart {
-				//log.Warning("Update on start is disabled")
-				//log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
-				//time.Sleep(5 * time.Second)
+				// log.Warning("Update on start is disabled")
+				// log.Warning("Please update the program manually (this message will disappear in 5 seconds)")
+				// time.Sleep(5 * time.Second)
 
 				err1 := file.UpdateVersionLog(VersionTag)
 				if err1 != nil {
-					//only log error
+					// only log error
 					log.Error("[Error] error update version.txt: ", err1)
 				}
 			} else {
@@ -231,7 +234,7 @@ func AutomaticallyCheckNewVersion(cfg *config.Config) {
 					fmt.Println("Error removing old binary: ", err)
 				}
 
-				//remove current version's log
+				// remove current version's log
 				errRemove := file.RemoveFile(libs.VERSION_FILENAME)
 				if err != nil {
 					fmt.Println("Error removing version log: ", errRemove)
@@ -246,11 +249,10 @@ func AutomaticallyCheckNewVersion(cfg *config.Config) {
 					log.Warning("Downloaded latest release")
 					log.Warning("Please restart the program")
 
-					//log the downloaded version to file
+					// log the downloaded version to file
 					err1 := file.UpdateVersionLog(VersionTag)
 					if err1 != nil {
-
-						//only log error
+						// only log error
 						log.Error("[Error] error update version.txt: ", err1)
 					}
 
@@ -258,7 +260,7 @@ func AutomaticallyCheckNewVersion(cfg *config.Config) {
 				}
 			}
 		} else {
-			//log.Info("You are using the latest version")
+			// log.Info("You are using the latest version")
 		}
 	}
 }
