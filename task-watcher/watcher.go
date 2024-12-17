@@ -565,14 +565,14 @@ func (tskw *TaskWatcher) executeTasks() {
 			log.Println("[TaskWatcher].executeTasks - runner not found, TaskID:", task.TaskID)
 			continue
 		}
+
 		if newRunner.IsDone() {
 			log.Println("[TaskWatcher].executeTasks - runner is done, TaskID:", task.TaskID)
 			continue
 		}
 
 		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
-		err := tskw.modelManager.MakeReady(task.ModelContract)
-		if err != nil {
+		if err := tskw.modelManager.MakeReady(task.ModelContract); err != nil {
 			log.Println("make ready error: ", err)
 			newRunner.SetDone()
 			time.Sleep(1 * time.Second)
