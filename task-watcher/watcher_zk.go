@@ -1024,7 +1024,7 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
 	client *ethclient.Client) error {
 	var err error
-
+	tasks := make([]types.TaskInfo, 0)
 	requestId := event.InferenceId
 	requestIdStr := requestId.String()
 	_ = requestIdStr
@@ -1033,15 +1033,9 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-
 	var batchInfers []*model_structures.BatchInferHistory
 	var externalData *model_structures.AgentInferExternalData
 
-	_ = batchInfers
-	_ = externalData
 	/*
 		TODO - chainConfig.AgentContractAddress ???
 		if chainConfig.AgentContractAddress != "" {
@@ -1052,6 +1046,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 		}*/
 
 	// Detect if  is batch
+	isBatch := false
 	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
 		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
 		if err == nil {
@@ -1059,6 +1054,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 			err = json.Unmarshal(inputBytes, &batchFullPrompts)
 			if err == nil && len(batchFullPrompts) > 0 {
 				batchInfers = batchFullPrompts
+				isBatch = true
 			}
 		}
 	}
@@ -1075,6 +1071,51 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 			AssignmentId: assignmentId,
 			InferenceId:  requestId,
 		})
+	}
+
+	for _, assignment := range assignments {
+		assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
+		if err != nil {
+			continue
+		}
+
+		if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
+			task := types.TaskInfo{
+				TaskID:         assignment.InferenceId.String(),
+				AssignmentID:   assignment.AssignmentId.String(),
+				ModelContract:  strings.ToLower(event.Model.Hex()),
+				Params:         string(requestInfo.Input),
+				Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
+				Value:          assignment.Value.String(),
+				ZKSync:         true,
+				InferenceID:    event.InferenceId.String(),
+				AssignmentRole: libs.MODE_VALIDATOR,
+				IsBatch:        isBatch,
+				BatchInfers:    batchInfers,
+				ExternalData:   externalData,
+			}
+
+			transact, err := tskw.seizeMinerRole(assignment.AssignmentId) //ask contract do i have miner role?
+			if err == nil && transact != nil {
+				for _, txLog := range transact.Receipt.Logs {
+					if txLog == nil {
+						continue
+					}
+
+					minerRoleSeized, err := whContract.ParseMinerRoleSeized(*txLog)
+					if err != nil {
+						continue
+					}
+					if strings.EqualFold(tskw.address, strings.ToLower(minerRoleSeized.Miner.Hex())) {
+						task.AssignmentRole = libs.MODE_MINER
+					}
+				}
+
+			}
+
+			tasks = append(tasks, task)
+			continue
+		}
 	}
 
 	return nil

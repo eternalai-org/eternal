@@ -111,34 +111,78 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 			r.result = outputPath
 			return nil
 		} else {
-			obj, err := modelInst.InferChatCompletions(r.task.Params, output, seed)
-			if err != nil {
-				log.Error("RunnerInstance modelInst.Infer err", err)
-				return err
-			}
-			objJson, err := json.Marshal(obj)
-			if err != nil {
-				log.Error("RunnerInstance modelInst.Infer err", err)
-				return err
-			}
-			file, err := os.Create(output)
-			if err != nil {
-				log.Error("RunnerInstance modelInst.Infer err", err)
-				return err
-			}
-			defer func(file *os.File) {
-				err := file.Close()
+			if r.task.IsBatch && len(r.task.BatchInfers) > 0 {
+
+				for _, b := range r.task.BatchInfers {
+					obj, err := modelInst.InferChatCompletions(b.PromptInput, output, seed)
+					if err != nil {
+						log.Error("RunnerInstance modelInst.Infer err", err)
+						return err
+					}
+					_b, err := json.Marshal(obj)
+					if err != nil {
+						log.Error("RunnerInstance modelInst.Infer err", err)
+						return err
+					}
+
+					b.PromptOutput = string(_b)
+				}
+
+				objJson, err := json.Marshal(r.task.BatchInfers)
 				if err != nil {
 					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
 				}
-			}(file)
-			_, err = file.Write(objJson)
-			if err != nil {
-				log.Error("RunnerInstance modelInst.Infer err", err)
-				return err
+				file, err := os.Create(output)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				defer func(file *os.File) {
+					err := file.Close()
+					if err != nil {
+						log.Error("RunnerInstance modelInst.Infer err", err)
+					}
+				}(file)
+				_, err = file.Write(objJson)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				r.result = output
+				return nil
+
+			} else {
+				obj, err := modelInst.InferChatCompletions(r.task.Params, output, seed)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				objJson, err := json.Marshal(obj)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				file, err := os.Create(output)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				defer func(file *os.File) {
+					err := file.Close()
+					if err != nil {
+						log.Error("RunnerInstance modelInst.Infer err", err)
+					}
+				}(file)
+				_, err = file.Write(objJson)
+				if err != nil {
+					log.Error("RunnerInstance modelInst.Infer err", err)
+					return err
+				}
+				r.result = output
+				return nil
 			}
-			r.result = output
-			return nil
+
 		}
 	}
 }
