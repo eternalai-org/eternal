@@ -7,11 +7,13 @@ import (
 	"eternal-infer-worker/coordinator"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/abi"
+	"eternal-infer-worker/libs/abi/base_wh_abi"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/github"
 	"eternal-infer-worker/libs/zkabi"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/model_structures"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
 	"eternal-infer-worker/types"
@@ -319,12 +321,19 @@ func (tskw *TaskWatcher) watchAndAssignTask() {
 
 		var tasks []types.TaskInfo
 		var err error
-		if tskw.zkSync {
+		if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+			tasks, err = tskw.getPendingTaskFromContractBase()
+			if err != nil {
+				log.Error("[watchAndAssignTask][ERR] get pending task error: ", err)
+				continue
+			}
+		} else if tskw.chainCfg.ChainId != config.BASE_CHAIN && tskw.zkSync {
 			tasks, err = tskw.getPendingTaskFromContractZk()
 			if err != nil {
 				log.Error("[watchAndAssignTask][ERR] get pending task error: ", err)
 				continue
 			}
+
 		} else {
 			tasks, err = tskw.getPendingTaskFromContract()
 			if err != nil {
@@ -1565,4 +1574,79 @@ func (tskw *TaskWatcher) checkNewVersion() error {
 
 func (tskw *TaskWatcher) HasNewVersion() (bool, string) {
 	return tskw.hasNewVersion, tskw.newVersion
+}
+
+func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, error) {
+	ctx := context.Background()
+	jobName := "getPendingTaskFromContractBase"
+	state, err := tskw.GetContractSyncState(tskw.taskContract, jobName)
+
+	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	if err != nil {
+		log.Error("[getPendingTaskFromContractBase][NewEthClient] - NewEthClient, tskw.networkCfg.RPC:", tskw.networkCfg.RPC, " ,err: ", err)
+		return []types.TaskInfo{}, err
+	}
+
+	currentBlock, err := ethClient.BlockNumber(ctx)
+	if err != nil {
+		log.Error("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,err: ", err)
+		return nil, err
+	}
+
+	//log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
+	if err != nil || state == nil {
+		state = &model_structures.ContractSyncState{
+			Job:             jobName,
+			ContractAddress: strings.ToLower(tskw.taskContract),
+			LastSyncedBlock: (currentBlock - 50), // don't need to start from Block 0, use the (currentBlock - 50) instead.
+			ResyncFromBlock: 0,
+		}
+	}
+
+	startBlock := state.LastSyncedBlock
+	var endBlock uint64
+	tasks := []types.TaskInfo{}
+
+	for {
+		//(currentBlock - 50) to pass this condition
+		if endBlock >= currentBlock || startBlock >= currentBlock {
+			break
+		}
+
+		if currentBlock-startBlock > 1000 {
+			endBlock = startBlock + 1000
+		} else {
+			endBlock = currentBlock
+		}
+
+		contract, err := base_wh_abi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
+		if err != nil {
+			log.Error("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
+			return nil, err
+		}
+
+		//TODO -
+		_tasks, err := tskw.filterBaseChainEventNewInference(contract, startBlock, endBlock)
+		if err != nil {
+			log.Error("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
+			return nil, err
+		}
+
+		state.LastSyncedBlock = endBlock
+		states := []model_structures.ContractSyncState{}
+		states = append(states, *state)
+		err = tskw.UpdateContractSyncStateByAddressAndJob(states)
+		if err != nil {
+			log.Error("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,err: ", err)
+			break
+		}
+
+		startBlock = endBlock + 1
+		tasks = append(tasks, _tasks...)
+	}
+
+	if len(tasks) > 0 {
+		log.Info("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
+	}
+	return tasks, nil
 }

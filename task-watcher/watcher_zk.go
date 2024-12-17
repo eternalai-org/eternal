@@ -6,6 +6,7 @@ import (
 	"errors"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+	"eternal-infer-worker/libs/abi/base_wh_abi"
 	"eternal-infer-worker/libs/db"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/zkabi"
@@ -957,6 +958,35 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		log.Info("[filterZKEventNewInference] get tasks: ", len(tasks), " ,startBlock: ", startBlock, ", toBlock: ", endBlock)
 	}
 
+	return tasks, nil
+}
+
+func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_abi.WorkerHub, startBlock uint64, endBlock uint64,
+) ([]types.TaskInfo, error) {
+	tasks := make([]types.TaskInfo, 0)
+	ctx := context.Background()
+	iter, err := whContract.FilterNewInference(&bind.FilterOpts{
+		Start:   startBlock,
+		End:     &endBlock,
+		Context: ctx,
+	}, nil, nil, nil)
+	if err != nil {
+		log.Error("[filterBaseChainEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
+		return nil, err
+	}
+
+	models := tskw.modelManager.GetLoadeModels()
+	for iter.Next() {
+
+		//TODO - implement me
+
+	}
+
+	if len(tasks) > 0 {
+		log.Info("[filterZKEventNewInference] get tasks: ", len(tasks), " ,startBlock: ", startBlock, ", toBlock: ", endBlock)
+	}
+
+	_ = models
 	return tasks, nil
 }
 

@@ -37,6 +37,7 @@ const (
 	HERMES_CHAIN  = "45762"
 	SYMBIOSIS     = "45762"
 	FLUX_CHAIN    = "222673"
+	BASE_CHAIN    = "8453"
 )
 
 var ChainConfigs = map[string]ChainConfig{
@@ -132,6 +133,28 @@ var ChainConfigs = map[string]ChainConfig{
 		APIUrl:    "",
 		APIKey:    "",
 		ModelID:   "500007",
+		ModelName: "hf.com/lmstudio-community/INTELLECT-1-Instruct-GGUF:Q8_0",
+	},
+
+	BASE_CHAIN: {
+		ChainId:          "8453",
+		Rpc:              "https://base.llamarpc.com",
+		Explorer:         "https://basescan.org",
+		EaiErc20:         "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7",
+		Name:             "Base network",
+		NftAddress:       "0x1e4c5b7a0568a2cb96bebe5c70472c140fc847a0", ///HERMES_MAINNET_COLLECTION_ADDRESS
+		PaymasterAddress: "",
+		PaymasterFeeZero: true,
+		PaymasterToken:   "",
+		WorkerhubAddress: "0xa1d2f74c345ff1d97b8fc72e061903cd84c66f69", //HERMES_MAINNET_WORKER_HUB_ADDRESS
+		ZkSync:           true,
+		EaiNative:        true,
+		DAOToken:         "0x2fb0108f90724f63da4360d39c588124eaeb3f7d", //HERMES_MAINNET_DAO_TOKEN_ADDRESS
+		DAOTokenName:     "UNCENSORED",
+
+		APIUrl:    "",
+		APIKey:    "",
+		ModelID:   "",
 		ModelName: "hf.com/lmstudio-community/INTELLECT-1-Instruct-GGUF:Q8_0",
 	},
 }
