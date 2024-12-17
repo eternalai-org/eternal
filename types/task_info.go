@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"eternal-infer-worker/libs/eaimodel"
+	"eternal-infer-worker/model_structures"
 )
 
 type TaskSubmitRequest struct {
@@ -21,12 +22,15 @@ type TaskInfo struct {
 	Value          string `json:"value"`
 	AssignmentRole string `json:"assignment_role"`
 
-	ZKSync      bool                 `json:"zk_sync"`
-	Requestor   string               `json:"requestor"`
-	InferenceID string               `json:"inference_id"`
-	TaskResult  *eaimodel.TaskResult `json:"task_result"`
-	Status      uint8                `json:"status"`
-	Retry       int
+	ZKSync       bool                 `json:"zk_sync"`
+	Requestor    string               `json:"requestor"`
+	InferenceID  string               `json:"inference_id"`
+	TaskResult   *eaimodel.TaskResult `json:"task_result"`
+	Status       uint8                `json:"status"`
+	Retry        int
+	BatchInfers  []*model_structures.BatchInferHistory
+	ExternalData *model_structures.AgentInferExternalData
+	IsBatch      bool
 }
 
 func (a TaskInfo) String() string {
