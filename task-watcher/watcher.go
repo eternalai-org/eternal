@@ -3,14 +3,6 @@ package watcher
 import (
 	"context"
 	"errors"
-	"fmt"
-	"math/big"
-	"sort"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
-
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/coordinator"
 	"eternal-infer-worker/libs"
@@ -26,6 +18,14 @@ import (
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
 	"eternal-infer-worker/types"
+	"fmt"
+	_types "github.com/ethereum/go-ethereum/core/types"
+	"math/big"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
@@ -978,7 +978,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	ctx := context.Background()
-	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
+	_ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return err
 	}
@@ -989,17 +989,12 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	// Get the balance
-	balance, err := ethClient.BalanceAt(context.Background(), *address, nil)
+	balance, err := _ethClient.BalanceAt(context.Background(), *address, nil)
 	if err != nil {
 		logger.GetLoggerInstanceFromContext(ctx).Fatal("Failed to get balance", zap.Error(err))
 	}
 
-	nonce, err := ethClient.NonceAt(ctx, *address, nil)
-	if err != nil {
-		return errors.Join(err, errors.New("Error while getting nonce"))
-	}
-
-	chainID, err := ethClient.NetworkID(context.Background())
+	chainID, err := _ethClient.NetworkID(context.Background())
 	if err != nil {
 		if tskw.chainCfg.ChainId == config.BASE_CHAIN {
 			chainID, _ = big.NewInt(0).SetString(tskw.chainCfg.ChainId, 10)
@@ -1009,11 +1004,129 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 	logger.GetLoggerInstanceFromContext(ctx).Info("tskw config", zap.Any("rpc", tskw.networkCfg.RPC), zap.Any("chain_id", chainID))
 
-	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+	//  change  workerHub to stHWorkerHub
+	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+		ethBlance := balance
+		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
+			return nil
+		}
+
+		erc20contract, err := abi.NewAbi(common.HexToAddress(tskw.chainCfg.EaiErc20), _ethClient)
+		if err != nil {
+			return err
+		}
+
+		balance, err = erc20contract.BalanceOf(nil, *address)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Error(err))
+		}
+
+		err = tskw.ApproveERC20(tskw.account, tskw.chainCfg.StakingHubAddress, tskw.chainCfg.EaiErc20, tskw.chainCfg.Rpc)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Error(err))
+			return err
+		}
+
+		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(common.HexToAddress(tskw.chainCfg.StakingHubAddress), _ethClient)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Error(err))
+			return err
+		}
+
+		minStake, err := stHWorkerHub.MinerMinimumStake(nil)
+		if err != nil {
+			return errors.Join(err, errors.New("Error while getting minimum stake"))
+		}
+
+		gasPrice, err := _ethClient.SuggestGasPrice(context.Background())
+		if err != nil {
+			return errors.Join(err, errors.New("Error while getting gas price"))
+		}
+
+		nonce, err := _ethClient.NonceAt(ctx, *address, nil)
+		if err != nil {
+			return errors.Join(err, errors.New("Error while getting nonce"))
+		}
+		auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+		if err != nil {
+			return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+		}
+		auth.Nonce = big.NewInt(int64(nonce))
+		auth.GasLimit = uint64(200_000) // in units
+		auth.GasPrice = gasPrice
+		auth.Value = minStake
+
+		logger.GetLoggerInstanceFromContext(ctx).Info("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Any("min_stake", minStake.String()))
+		instanceABI, err := ethabi.JSON(strings.NewReader(base_wh_abi.BaseWhAbiABI))
+
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
+				zap.Any("address", address.Hex()),
+				zap.String("erc20_balance", balance.String()),
+				zap.String("erc20_min_stake", minStake.String()),
+				zap.String("eth_balance", ethBlance.String()),
+				zap.String("model_address", tskw.chainCfg.ModelAddress),
+				zap.Error(err))
+			return err
+		}
+		// workerHub.RegisterMiner()
+		dataBytes, err := instanceABI.Pack(
+			"registerMiner0",
+			uint16(1),
+			common.HexToAddress(tskw.chainCfg.ModelAddress),
+		)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
+				zap.Any("address", address.Hex()),
+				zap.String("erc20_balance", balance.String()),
+				zap.String("erc20_min_stake", minStake.String()),
+				zap.String("eth_balance", ethBlance.String()),
+				zap.String("model_address", tskw.chainCfg.ModelAddress),
+				zap.Error(err))
+			return err
+		}
+
+		tx := _types.NewTransaction(nonce, common.HexToAddress(tskw.chainCfg.StakingHubAddress), big.NewInt(0), auth.GasLimit, gasPrice, dataBytes)
+
+		signedTx, err := _types.SignTx(tx, _types.NewEIP155Signer(chainID), workerAcc)
+		if err != nil {
+			log.Fatalf("Failed to sign transaction: %v", err)
+		}
+
+		// Send the transaction
+		err = _ethClient.SendTransaction(context.Background(), signedTx)
+		if err != nil {
+			err = errors.Join(err, errors.New("Error while JoinForMinting"))
+			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
+				zap.Any("address", address.Hex()),
+				zap.String("erc20_balance", balance.String()),
+				zap.String("erc20_min_stake", minStake.String()),
+				zap.String("eth_balance", ethBlance.String()),
+				zap.String("model_address", tskw.chainCfg.ModelAddress),
+				zap.Error(err))
+			return err
+		}
+
+		logger.GetLoggerInstanceFromContext(ctx).Info("Start staking",
+			zap.Any("address", address.Hex()),
+			zap.String("erc20_balance", balance.String()),
+			zap.String("erc20_min_stake", minStake.String()),
+			zap.String("eth_balance", ethBlance.String()),
+			zap.String("model_address", tskw.chainCfg.ModelAddress),
+			zap.String("register_miner_tx", tx.Hash().Hex()))
+
+		return nil
+	}
+
+	gasPrice, err := _ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting gas price"))
 	}
 
+	nonce, err := _ethClient.NonceAt(ctx, *address, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
 	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
@@ -1022,52 +1135,9 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
 
-	logger.GetLoggerInstanceFromContext(ctx).Sugar().Infof("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
-
-	//  change  workerHub to stHWorkerHub
-	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
-		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
-			return nil
-		}
-
-		erc20contract, err := abi.NewAbi(common.HexToAddress(tskw.chainCfg.EaiErc20), ethClient)
-		if err != nil {
-			return err
-		}
-
-		balance, err = erc20contract.BalanceOf(nil, *address)
-		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Fatal("Failed to get balance", zap.Error(err))
-		}
-
-		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(common.HexToAddress(tskw.chainCfg.StakingHubAddress), ethClient)
-		if err != nil {
-			return err
-		}
-
-		minStake, err := stHWorkerHub.MinerMinimumStake(nil)
-		if err != nil {
-			return errors.Join(err, errors.New("Error while getting minimum stake"))
-		}
-		auth.Value = minStake
-
-		logger.GetLoggerInstanceFromContext(ctx).Info("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Any("min_stake", minStake.String()))
-
-		tx, err := stHWorkerHub.BaseWhAbiTransactor.RegisterMiner0(auth, uint16(1), common.HexToAddress(tskw.chainCfg.ModelAddress))
-		if err != nil {
-			return errors.Join(err, errors.New("Error while JoinForMinting"))
-		}
-
-		logger.GetLoggerInstanceFromContext(ctx).Info("staking success", zap.Any("model", tskw.chainCfg.ModelAddress), zap.Any("tx", tx.Hash().Hex()))
-		if err = eth.WaitForTx(ethClient, tx.Hash()); err != nil {
-			return errors.Join(err, errors.New("Error while waiting for tx"))
-		}
-		return nil
-	}
-
 	logger.GetLoggerInstanceFromContext(ctx).Sugar().Infof("workerhub contract addr: %v \n - rpc: %s \n - private key: %s", tskw.taskContract, tskw.networkCfg.RPC, tskw.account)
 
-	workerHub, err := abi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
+	workerHub, err := abi.NewWorkerHub(common.HexToAddress(tskw.taskContract), _ethClient)
 	if err != nil {
 		return err
 	}
@@ -1086,7 +1156,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	logger.GetLoggerInstanceFromContext(ctx).Info("stake tx", zap.Any("data", tx.Hash().Hex()))
-	if err = eth.WaitForTx(ethClient, tx.Hash()); err != nil {
+	if err = eth.WaitForTx(_ethClient, tx.Hash()); err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
 	logger.GetLoggerInstanceFromContext(ctx).Info("staking success")
@@ -1711,6 +1781,7 @@ func (tskw *TaskWatcher) ApproveERC20(workerPriKey string, workerHubAddr string,
 
 	contract := common.HexToAddress(erc20Addr)
 	erc20, err := abi.NewAbi(contract, client)
+
 	allowance, err := erc20.AbiCaller.Allowance(nil, *workerAddr, common.HexToAddress(workerHubAddr))
 	if err != nil {
 		return err
