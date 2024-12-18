@@ -144,7 +144,7 @@ var ChainConfigs = map[string]ChainConfig{
 
 	BASE_CHAIN: {
 		ChainId:          "8453",
-		Rpc:              "https://base.llamarpc.com",
+		Rpc:              "https://go.getblock.io/0d069c52ad014322b536ce11da02b0dc",
 		Explorer:         "https://basescan.org",
 		EaiErc20:         "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7",
 		Name:             "Base network",

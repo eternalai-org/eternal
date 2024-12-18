@@ -1000,10 +1000,14 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	chainID, err := ethClient.NetworkID(context.Background())
-	logger.GetLoggerInstanceFromContext(ctx).Info("tskw config", zap.Any("rpc", tskw.networkCfg.RPC), zap.Any("chain_id", chainID))
 	if err != nil {
-		return errors.Join(err, errors.New("Error while getting chain ID"))
+		if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+			chainID, _ = big.NewInt(0).SetString(tskw.chainCfg.ChainId, 10)
+		} else {
+			return errors.Join(err, errors.New("Error while getting chain ID"))
+		}
 	}
+	logger.GetLoggerInstanceFromContext(ctx).Info("tskw config", zap.Any("rpc", tskw.networkCfg.RPC), zap.Any("chain_id", chainID))
 
 	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
 	if err != nil {
@@ -1024,6 +1028,16 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
 		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
 			return nil
+		}
+
+		erc20contract, err := abi.NewAbi(common.HexToAddress(tskw.chainCfg.EaiErc20), ethClient)
+		if err != nil {
+			return err
+		}
+
+		balance, err = erc20contract.BalanceOf(nil, *address)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Fatal("Failed to get balance", zap.Error(err))
 		}
 
 		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(common.HexToAddress(tskw.chainCfg.StakingHubAddress), ethClient)
@@ -1673,4 +1687,9 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 		log.Info("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
 	}
 	return tasks, nil
+}
+
+func (tskw *TaskWatcher) ApproveERC20(workerPriKey string, workerHubAddr string, erc20Addr string, rpc string) error {
+	///TODO - implement me
+	return nil
 }
