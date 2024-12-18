@@ -12,24 +12,26 @@ import (
 )
 
 type ChainConfig struct {
-	ChainId          string `json:"chain_id"`
-	Rpc              string `json:"rpc"`
-	Explorer         string `json:"explorer"`
-	EaiErc20         string `json:"eai_erc20"`
-	Name             string `json:"name"`
-	NftAddress       string `json:"nft_address"`
-	PaymasterAddress string `json:"paymaster_address"`
-	PaymasterFeeZero bool   `json:"paymaster_fee_zero"`
-	PaymasterToken   string `json:"paymaster_token"`
-	WorkerhubAddress string `json:"workerhub_address"`
-	ZkSync           bool   `json:"zk_sync"`
-	EaiNative        bool   `json:"eai_native"`
-	DAOToken         string `json:"dao_token"`
-	DAOTokenName     string `json:"dao_token_name"`
-	APIUrl           string `json:"api_url"` // if this field is filled out, API will be used instead of docker
-	APIKey           string `json:"api_key"` // if the `APIUrl` is filled out, API will be used instead of docker
-	ModelID          string `json:"model_id"`
-	ModelName        string `json:"model_name"`
+	ChainId           string `json:"chain_id"`
+	Rpc               string `json:"rpc"`
+	Explorer          string `json:"explorer"`
+	EaiErc20          string `json:"eai_erc20"`
+	Name              string `json:"name"`
+	NftAddress        string `json:"nft_address"`
+	PaymasterAddress  string `json:"paymaster_address"`
+	PaymasterFeeZero  bool   `json:"paymaster_fee_zero"`
+	PaymasterToken    string `json:"paymaster_token"`
+	WorkerhubAddress  string `json:"workerhub_address"`
+	ZkSync            bool   `json:"zk_sync"`
+	EaiNative         bool   `json:"eai_native"`
+	DAOToken          string `json:"dao_token"`
+	DAOTokenName      string `json:"dao_token_name"`
+	APIUrl            string `json:"api_url"` // if this field is filled out, API will be used instead of docker
+	APIKey            string `json:"api_key"` // if the `APIUrl` is filled out, API will be used instead of docker
+	ModelID           string `json:"model_id"`
+	ModelName         string `json:"model_name"`
+	ModelAddress      string `json:"model_address"`
+	StakingHubAddress string `json:"staking_hub_address"`
 }
 
 const (
@@ -149,7 +151,7 @@ var ChainConfigs = map[string]ChainConfig{
 		PaymasterFeeZero: true,
 		PaymasterToken:   "",
 		WorkerhubAddress: "0xa1d2f74c345ff1d97b8fc72e061903cd84c66f69", //HERMES_MAINNET_WORKER_HUB_ADDRESS
-		ZkSync:           true,
+		ZkSync:           false,
 		EaiNative:        true,
 		DAOToken:         "0x2fb0108f90724f63da4360d39c588124eaeb3f7d", //HERMES_MAINNET_DAO_TOKEN_ADDRESS
 		DAOTokenName:     "UNCENSORED",
@@ -157,7 +159,7 @@ var ChainConfigs = map[string]ChainConfig{
 		APIUrl:    "",
 		APIKey:    "",
 		ModelID:   "",
-		ModelName: "hf.com/lmstudio-community/INTELLECT-1-Instruct-GGUF:Q8_0",
+		ModelName: "neuralmagic/Meta-Llama-3.1-405B-Instruct-quantized.w4a16",
 	},
 }
 
@@ -211,6 +213,16 @@ func ReadConfig() (*Config, *CmdType, error) {
 	account := flag.String("account_priv", "", "(optional) account private key")
 	if *account == "" {
 		*account = os.Getenv("ACCOUNT_PRIV")
+	}
+
+	modelAddress := flag.String("model-address", "", "(optional) specific model for minting")
+	if *modelAddress == "" {
+		*modelAddress = os.Getenv("MODEL_ADDRESS")
+	}
+
+	stakingHubAddress := flag.String("staking-hub-address", "", "(optional) specific model for minting")
+	if *stakingHubAddress == "" {
+		*stakingHubAddress = os.Getenv("STAKING_HUB_ADDRESS")
 	}
 
 	modelsDir := flag.String("models-dir", "", "(optional) models dir")
@@ -358,6 +370,15 @@ func ReadConfig() (*Config, *CmdType, error) {
 	if apiURL != nil && *apiURL != "" {
 		cfg.ChainCfg.APIUrl = *apiURL
 	}
+
+	if *modelAddress != "" {
+		cfg.ChainCfg.ModelAddress = *modelAddress
+	}
+
+	if *stakingHubAddress != "" {
+		cfg.ChainCfg.StakingHubAddress = *stakingHubAddress
+	}
+
 	_b, _ := json.Marshal(cfg)
 	fmt.Println("cfg: ", string(_b))
 	return cfg, nil, nil

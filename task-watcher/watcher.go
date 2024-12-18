@@ -979,6 +979,42 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		//}
 		return tskw.stakeForWorkerZk()
 	}
+	//if base {
+	//}
+
+	//TODO - @kian: if tskw.chainCfg.ChainId == config.BASE_CHAIN { change all `workerHub` to `stHWorkerHub`  return }
+	/*if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+		sthAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(sthAddress, ethClient)
+		if err != nil {
+			return err
+		}
+
+		if tskw.chainCfg.ModelAddress != "" && tskw.chainCfg.StakingHubAddress != "" {
+			sthAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+			stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(sthAddress, ethClient)
+			if err != nil {
+				return err
+			}
+
+			modelAddress := common.HexToAddress(tskw.chainCfg.ModelAddress)
+			tier := uint16(1)
+			tx1, err := stHWorkerHub.BaseWhAbiTransactor.RegisterMiner0(auth, tier, modelAddress)
+			if err != nil {
+				return errors.Join(err, errors.New("Error while JoinForMinting"))
+			}
+
+			log.Println("stake tx: ", tx1.Hash().Hex())
+			err = eth.WaitForTx(ethClient, tx1.Hash())
+			if err != nil {
+				return errors.Join(err, errors.New("Error while waiting for tx"))
+			}
+
+			log.Println("staking success with model: ", tskw.chainCfg.ModelAddress, " , tx: ", tx1.Hash().Hex())
+			return nil
+		}
+	}*/
+
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
@@ -986,14 +1022,13 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	hubAddress := common.HexToAddress(tskw.taskContract)
-	log.Printf("workerhub contract addr: %v \n", tskw.taskContract)
+	log.Printf("workerhub contract addr: %v \n - rpc: %s \n - private key: %s", tskw.taskContract, tskw.networkCfg.RPC, tskw.account)
 
 	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("private key: %v \n", tskw.account)
 	workerAcc, address, err := eth.GetAccountInfo(tskw.account)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting account info"))
