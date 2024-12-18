@@ -991,7 +991,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	// Get the balance
 	balance, err := ethClient.BalanceAt(context.Background(), *address, nil)
 	if err != nil {
-		log.Fatalf("Failed to get balance: %v", err)
+		logger.GetLoggerInstanceFromContext(ctx).Fatal("Failed to get balance", zap.Error(err))
 	}
 
 	nonce, err := ethClient.NonceAt(ctx, *address, nil)
@@ -1000,7 +1000,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	}
 
 	chainID, err := ethClient.NetworkID(context.Background())
-	log.Printf("RPC: %v ---- ChainID: %v\n", tskw.networkCfg.RPC, chainID)
+	logger.GetLoggerInstanceFromContext(ctx).Info("tskw config", zap.Any("rpc", tskw.networkCfg.RPC), zap.Any("chain_id", chainID))
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting chain ID"))
 	}
@@ -1025,8 +1025,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 			return nil
 		}
 
-		sthAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
-		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(sthAddress, ethClient)
+		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(common.HexToAddress(tskw.chainCfg.StakingHubAddress), ethClient)
 		if err != nil {
 			return err
 		}
@@ -1051,10 +1050,9 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return nil
 	}
 
-	hubAddress := common.HexToAddress(tskw.taskContract)
 	log.Printf("workerhub contract addr: %v \n - rpc: %s \n - private key: %s", tskw.taskContract, tskw.networkCfg.RPC, tskw.account)
 
-	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	workerHub, err := abi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
 	if err != nil {
 		return err
 	}
@@ -1072,12 +1070,12 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return errors.Join(err, errors.New("Error while staking"))
 	}
 
-	log.Println("stake tx: ", tx.Hash().Hex())
-	err = eth.WaitForTx(ethClient, tx.Hash())
-	if err != nil {
+	logger.GetLoggerInstanceFromContext(ctx).Info("stake tx", zap.Any("data", tx.Hash().Hex()))
+	if err = eth.WaitForTx(ethClient, tx.Hash()); err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
-	log.Println("staking success")
+
+	logger.GetLoggerInstanceFromContext(ctx).Info("staking success")
 	return nil
 }
 
