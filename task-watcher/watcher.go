@@ -1007,7 +1007,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	//  change  workerHub to stHWorkerHub
 	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
 		ethBlance := balance
-		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
+		if tskw.chainCfg.StakingHubAddress == "" {
 			return nil
 		}
 
@@ -1069,22 +1069,41 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 				zap.Error(err))
 			return err
 		}
-		// workerHub.RegisterMiner()
-		dataBytes, err := instanceABI.Pack(
-			"registerMiner0",
-			uint16(1),
-			common.HexToAddress(tskw.chainCfg.ModelAddress),
-		)
-		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
-				zap.Any("address", address.Hex()),
-				zap.String("erc20_balance", balance.String()),
-				zap.String("erc20_min_stake", minStake.String()),
-				zap.String("eth_balance", ethBlance.String()),
-				zap.String("model_address", tskw.chainCfg.ModelAddress),
-				zap.Error(err))
-			return err
+		dataBytes := []byte{}
+		if tskw.chainCfg.ModelAddress != "" {
+			dataBytes, err = instanceABI.Pack(
+				"registerMiner0",
+				uint16(1),
+				common.HexToAddress(tskw.chainCfg.ModelAddress),
+			)
+			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
+					zap.Any("address", address.Hex()),
+					zap.String("erc20_balance", balance.String()),
+					zap.String("erc20_min_stake", minStake.String()),
+					zap.String("eth_balance", ethBlance.String()),
+					zap.String("model_address", tskw.chainCfg.ModelAddress),
+					zap.Error(err))
+				return err
+			}
+		} else {
+			dataBytes, err = instanceABI.Pack(
+				"registerMiner",
+				uint16(1),
+			)
+			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
+					zap.Any("address", address.Hex()),
+					zap.String("erc20_balance", balance.String()),
+					zap.String("erc20_min_stake", minStake.String()),
+					zap.String("eth_balance", ethBlance.String()),
+					zap.String("model_address", tskw.chainCfg.ModelAddress),
+					zap.Error(err))
+				return err
+			}
 		}
+
+		// workerHub.RegisterMiner()
 
 		tx := _types.NewTransaction(nonce, common.HexToAddress(tskw.chainCfg.StakingHubAddress), big.NewInt(0), auth.GasLimit, gasPrice, dataBytes)
 
