@@ -40,6 +40,7 @@ import (
 )
 
 const DEFAULT_GAS_LIMIT = 200_000_000
+const DEFAULT_BASE_GAS_LIMIT = 200_000
 
 type NetworkConfig struct {
 	RPC string
@@ -259,15 +260,16 @@ func (tskw *TaskWatcher) joinForMinting() error {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)                // in wei
-	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
+	auth.Value = big.NewInt(0) // in wei
 	auth.GasPrice = gasPrice
+	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT)
 
 	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
 		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
 			return nil
 		}
 
+		auth.GasLimit = uint64(DEFAULT_BASE_GAS_LIMIT) // in units
 		sthAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
 		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(sthAddress, ethClient)
 		if err != nil {
@@ -1121,7 +1123,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 			return errors.Join(err, errors.New("Error while creating new keyed transactor"))
 		}
 		auth.Nonce = big.NewInt(int64(nonce))
-		auth.GasLimit = uint64(200_000) // in units
+		auth.GasLimit = uint64(DEFAULT_BASE_GAS_LIMIT) // in units
 		auth.GasPrice = gasPrice
 		auth.Value = minStake
 
