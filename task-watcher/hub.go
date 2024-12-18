@@ -1,7 +1,9 @@
 package watcher
 
 import (
+	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/abi"
+	"eternal-infer-worker/libs/abi/base_wh_abi"
 	"eternal-infer-worker/libs/durafmt"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/types"
@@ -27,8 +29,36 @@ func (tskw *TaskWatcher) getGlobalInfo() {
 		return
 	}
 
-	hubAddress := common.HexToAddress(tskw.taskContract)
+	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+		stKHubAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+		stKHub, err := base_wh_abi.NewBaseWhAbi(stKHubAddress, ethClient)
+		if err != nil {
+			log.Println("get worker hub error: ", err)
+			return
+		}
 
+		unstakeDelay, err := stKHub.UnstakeDelayTime(nil)
+		if err != nil {
+			log.Println("get unstake delay error: ", err)
+			return
+		}
+		unstakeDelayTime, err := durafmt.ParseString(unstakeDelay.String() + "s")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		tskw.globalInfo = types.HubGlobalInfo{
+			//TotalValidators: uint64(len(validators)),
+			TotalMiners: uint64(1),
+			//TotalModels:     uint64(len(models)),
+			//FeePercent:   feePercent,
+			UnstakeDelay: unstakeDelayTime.String(),
+		}
+
+		return
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
 	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
 		log.Println("get worker hub error: ", err)

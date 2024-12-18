@@ -843,22 +843,127 @@ func (tskw *TaskWatcher) GetModelManager() *manager.ModelManager {
 
 func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 	var workerInfo types.WorkerInfo
+	ctx := context.Background()
 
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return nil, err
 	}
 
-	hubAddress := common.HexToAddress(tskw.taskContract)
+	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
 
-	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
-	if err != nil {
-		return nil, err
+		hubAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+		workerHub, err := base_wh_abi.NewBaseWhAbi(hubAddress, ethClient)
+		if err != nil {
+			return nil, err
+		}
+
+		_, address, err := eth.GetAccountInfo(tskw.account)
+		if err != nil {
+			return nil, errors.Join(err, errors.New("Error while getting account info"))
+		}
+
+		info, err := workerHub.Miners(nil, *address)
+		if err != nil {
+			return nil, errors.Join(err, errors.New("Error while getting worker info"))
+		}
+
+		pendingUnstake, err := workerHub.MinerUnstakeRequests(nil, *address)
+		if err != nil {
+			return nil, errors.Join(err, errors.New("Error while getting pending unstake"))
+		}
+
+		minStake, err := workerHub.MinerMinimumStake(nil)
+		if err != nil {
+			return nil, errors.Join(err, errors.New("Error while getting minimum stake"))
+		}
+		stakeStatus := "staked"
+		if info.Stake.Cmp(minStake) < 0 {
+			stakeStatus = "not enough staked"
+		}
+		if info.Stake.Cmp(minStake) == 0 {
+			stakeStatus = "staked"
+		}
+
+		//TODO - check task contract again.
+		miningReward, err := abi.NewMiningReward(common.HexToAddress(tskw.taskContract), ethClient)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("NewMiningReward",
+				zap.String("tskw.taskContract", tskw.taskContract),
+				zap.Error(err),
+			)
+			return nil, err
+		}
+
+		//TODO - check execution reverted
+		rewardToClaim, err := miningReward.MiningRewardCaller.RewardToClaim(nil, *address)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("RewardToClaim",
+				zap.String("tskw.taskContract", tskw.taskContract),
+				zap.Error(err),
+			)
+			return nil, err
+		}
+
+		//TODO - use erc20 instead
+		bal, err := ethClient.BalanceAt(context.Background(), common.HexToAddress(tskw.address), nil)
+		if err != nil {
+			log.Println("get balance error: ", err)
+			return nil, err
+		}
+
+		balFloat := new(big.Float).SetInt(bal)
+		balFloat = new(big.Float).Quo(balFloat, big.NewFloat(1e18))
+
+		stakedAmount := new(big.Float).SetInt(info.Stake)
+		stakedAmount = new(big.Float).Quo(stakedAmount, big.NewFloat(1e18))
+		pendingUnstakeAmount := new(big.Float).SetInt(pendingUnstake.Stake)
+		pendingUnstakeAmount = new(big.Float).Quo(pendingUnstakeAmount, big.NewFloat(1e18))
+		rewardToClaimAmount := new(big.Float).SetInt(rewardToClaim)
+		rewardToClaimAmount = new(big.Float).Quo(rewardToClaimAmount, big.NewFloat(1e18))
+		balanceAmount := new(big.Float).SetInt(bal)
+		balanceAmount = new(big.Float).Quo(balanceAmount, big.NewFloat(1e18))
+
+		workerInfo.Address = address.String()
+		workerInfo.StakeStatus = stakeStatus
+		workerInfo.StakedAmount = stakedAmount.String()
+		workerInfo.PendingUnstakeAmount = pendingUnstakeAmount.String()
+		if !tskw.zkSync {
+			workerInfo.PendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0).Format("2006-01-02 15:04:05")
+		} else {
+			workerInfo.PendingUnstakeUnlockAtBlock = pendingUnstake.UnlockAt.String()
+		}
+		workerInfo.AssignModel = strings.ToLower(info.ModelAddress.Hex())
+		workerInfo.MiningReward = rewardToClaimAmount.String()
+		workerInfo.Balance = balanceAmount.String()
+
+		tskw.status.stakeStatus = stakeStatus
+		tskw.status.stakedAmount = info.Stake
+		tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
+		if tskw.status.pendingUnstakeAmount.Cmp(new(big.Int).SetUint64(0)) > 0 {
+			if !tskw.zkSync {
+				tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+			} else {
+				tskw.status.pendingUnstakeUnlockAtBlock = pendingUnstake.UnlockAt
+			}
+		}
+		tskw.status.assignModel = strings.ToLower(info.ModelAddress.Hex())
+		tskw.status.miningRewardAmount = rewardToClaim
+		tskw.status.balance = bal
+
+		return &workerInfo, nil
+
 	}
 
 	_, address, err := eth.GetAccountInfo(tskw.account)
 	if err != nil {
 		return nil, errors.Join(err, errors.New("Error while getting account info"))
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return nil, err
 	}
 
 	info, err := workerHub.WorkerHubCaller.Miners(nil, *address)
