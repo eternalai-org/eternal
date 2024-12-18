@@ -1017,7 +1017,8 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
-	log.Printf("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
+
+	logger.GetLoggerInstanceFromContext(ctx).Sugar().Infof("GasPrice:%v Nonce:%v Value:%v \n", auth.GasPrice.String(), auth.Nonce, auth.Value)
 
 	//  change  workerHub to stHWorkerHub
 	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
@@ -1050,7 +1051,7 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 		return nil
 	}
 
-	log.Printf("workerhub contract addr: %v \n - rpc: %s \n - private key: %s", tskw.taskContract, tskw.networkCfg.RPC, tskw.account)
+	logger.GetLoggerInstanceFromContext(ctx).Sugar().Infof("workerhub contract addr: %v \n - rpc: %s \n - private key: %s", tskw.taskContract, tskw.networkCfg.RPC, tskw.account)
 
 	workerHub, err := abi.NewWorkerHub(common.HexToAddress(tskw.taskContract), ethClient)
 	if err != nil {
