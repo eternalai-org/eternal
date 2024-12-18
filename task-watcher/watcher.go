@@ -3,6 +3,14 @@ package watcher
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/big"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/coordinator"
 	"eternal-infer-worker/libs"
@@ -18,14 +26,8 @@ import (
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/tui"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	_types "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
-	"sort"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
@@ -225,15 +227,9 @@ func (tskw *TaskWatcher) joinForMinting() error {
 	if tskw.zkSync {
 		return tskw.joinForMintingZk()
 	}
+
 	ctx := context.Background()
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
-	if err != nil {
-		return err
-	}
-
-	hubAddress := common.HexToAddress(tskw.taskContract)
-
-	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
 		return err
 	}
@@ -257,6 +253,7 @@ func (tskw *TaskWatcher) joinForMinting() error {
 	if err != nil {
 		return errors.Join(err, errors.New("Error while getting gas price"))
 	}
+
 	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
 	if err != nil {
 		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
@@ -265,6 +262,37 @@ func (tskw *TaskWatcher) joinForMinting() error {
 	auth.Value = big.NewInt(0)                // in wei
 	auth.GasLimit = uint64(DEFAULT_GAS_LIMIT) // in units
 	auth.GasPrice = gasPrice
+
+	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+		if tskw.chainCfg.ModelAddress == "" || tskw.chainCfg.StakingHubAddress == "" {
+			return nil
+		}
+
+		sthAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+		stHWorkerHub, err := base_wh_abi.NewBaseWhAbi(sthAddress, ethClient)
+		if err != nil {
+			return err
+		}
+
+		tx, err := stHWorkerHub.BaseWhAbiTransactor.JoinForMinting(auth)
+		if err != nil {
+			return errors.Join(err, errors.New("Error while BaseWhAbiTransactor JoinForMinting"))
+		}
+
+		log.Println("BaseWhAbiTransactor JoinForMinting tx: ", tx.Hash().Hex())
+
+		err = eth.WaitForTx(ethClient, tx.Hash())
+		if err != nil {
+			return errors.Join(err, errors.New("BaseWhAbiTransactor Error while waiting for tx"))
+		}
+		return nil
+	}
+
+	hubAddress := common.HexToAddress(tskw.taskContract)
+	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
+	if err != nil {
+		return err
+	}
 
 	tx, err := workerHub.WorkerHubTransactor.JoinForMinting(auth)
 	if err != nil {
@@ -1099,7 +1127,6 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 
 		logger.GetLoggerInstanceFromContext(ctx).Info("Start staking", zap.Any("address", address.Hex()), zap.Any("balance", balance.String()), zap.Any("min_stake", minStake.String()))
 		instanceABI, err := ethabi.JSON(strings.NewReader(base_wh_abi.BaseWhAbiABI))
-
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("Start staking",
 				zap.Any("address", address.Hex()),
