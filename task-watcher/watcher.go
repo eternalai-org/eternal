@@ -930,6 +930,47 @@ func (tskw *TaskWatcher) isStaked() (bool, error) {
 		return false, err
 	}
 
+	if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+		hubAddress := common.HexToAddress(tskw.chainCfg.StakingHubAddress)
+		stakingHub, err := base_wh_abi.NewBaseWhAbi(hubAddress, ethClient)
+		if err != nil {
+			return false, err
+		}
+
+		_, address, err := eth.GetAccountInfo(tskw.account)
+		if err != nil {
+			return false, errors.Join(err, errors.New("Error while getting account info"))
+		}
+
+		workerInfo, err := stakingHub.Miners(nil, *address)
+		if err != nil {
+			return false, errors.Join(err, errors.New("Error while getting worker info"))
+		}
+
+		minStake, err := stakingHub.MinerMinimumStake(nil)
+		if err != nil {
+			return false, errors.Join(err, errors.New("Error while getting minimum stake"))
+		}
+
+		if workerInfo.Stake.Cmp(minStake) < 0 {
+			return false, nil
+		}
+
+		pendingUnstake, err := stakingHub.MinerUnstakeRequests(nil, *address)
+		if err != nil {
+			return false, errors.Join(err, errors.New("Error while getting pending unstake"))
+		}
+
+		tskw.status.pendingUnstakeAmount = pendingUnstake.Stake
+		if tskw.status.pendingUnstakeAmount.Cmp(new(big.Int).SetUint64(0)) > 0 {
+			tskw.status.pendingUnstakeUnlockAt = time.Unix(pendingUnstake.UnlockAt.Int64(), 0)
+		}
+
+		tskw.status.assignModel = workerInfo.ModelAddress.Hex()
+		tskw.status.stakedAmount = workerInfo.Stake
+		return true, nil
+	}
+
 	hubAddress := common.HexToAddress(tskw.taskContract)
 	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
