@@ -2,13 +2,15 @@ package config
 
 import (
 	"encoding/json"
-	"eternal-infer-worker/libs"
-	"eternal-infer-worker/libs/eth"
 	"flag"
 	"fmt"
-	"github.com/joho/godotenv"
 	"os"
 	"strings"
+
+	"eternal-infer-worker/libs"
+	"eternal-infer-worker/libs/eth"
+
+	"github.com/joho/godotenv"
 )
 
 type ChainConfig struct {
@@ -128,10 +130,10 @@ var ChainConfigs = map[string]ChainConfig{
 		PaymasterAddress: "0xf40a14473f649d15cd63d38f3ca68c4cbc301f3c",
 		PaymasterFeeZero: true,
 		PaymasterToken:   "0xcdbe9d69d5d9a98d85384c05b462d16a588b53fa",
-		WorkerhubAddress: "0x87e9B8630c1E20dd86451AE15aF7663D006f089c", //HERMES_MAINNET_WORKER_HUB_ADDRESS
+		WorkerhubAddress: "0x87e9B8630c1E20dd86451AE15aF7663D006f089c", // HERMES_MAINNET_WORKER_HUB_ADDRESS
 		ZkSync:           true,
 		EaiNative:        true,
-		DAOToken:         "0x5211b000CCe15fd7aC100E75a157a876dd30bef0", //HERMES_MAINNET_DAO_TOKEN_ADDRESS
+		DAOToken:         "0x5211b000CCe15fd7aC100E75a157a876dd30bef0", // HERMES_MAINNET_DAO_TOKEN_ADDRESS
 		DAOTokenName:     "UNCENSORED",
 
 		APIUrl:    "",
@@ -150,10 +152,10 @@ var ChainConfigs = map[string]ChainConfig{
 		PaymasterAddress: "",
 		PaymasterFeeZero: true,
 		PaymasterToken:   "",
-		WorkerhubAddress: "0xa1d2f74c345ff1d97b8fc72e061903cd84c66f69", //HERMES_MAINNET_WORKER_HUB_ADDRESS
+		WorkerhubAddress: "0xa1d2f74c345ff1d97b8fc72e061903cd84c66f69", // HERMES_MAINNET_WORKER_HUB_ADDRESS
 		ZkSync:           false,
 		EaiNative:        true,
-		DAOToken:         "0x2fb0108f90724f63da4360d39c588124eaeb3f7d", //HERMES_MAINNET_DAO_TOKEN_ADDRESS
+		DAOToken:         "0x2fb0108f90724f63da4360d39c588124eaeb3f7d", // HERMES_MAINNET_DAO_TOKEN_ADDRESS
 		DAOTokenName:     "UNCENSORED",
 
 		APIUrl:    "",
@@ -313,7 +315,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	}
 
 	if *workerHub != "" {
-		//check if invalid contract
+		// check if invalid contract
 		if len(*workerHub) != 42 {
 			return nil, nil, fmt.Errorf("invalid worker hub address")
 		}
@@ -326,7 +328,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 	}
 
 	if *account != "" {
-		//check if invalid account
+		// check if invalid account
 		_, _, err := eth.GetAccountInfo(*account)
 		if err != nil {
 			return nil, nil, err
@@ -345,7 +347,7 @@ func ReadConfig() (*Config, *CmdType, error) {
 		return nil, nil, fmt.Errorf("lighthouse api is required")
 	}
 
-	//cfg.setDefaultValue() >????
+	// cfg.setDefaultValue() >????
 
 	if *wallet {
 		a := os.Args[1:]
@@ -388,10 +390,10 @@ func readCfgFile() (*Config, error) {
 	var cfg Config
 	cfgPath := "./cfg.json"
 
-	cfgFile, err := os.OpenFile(cfgPath, os.O_RDONLY, 0666)
+	cfgFile, err := os.OpenFile(cfgPath, os.O_RDONLY, 0o666)
 	if err != nil {
 		if os.IsNotExist(err) {
-			//return empty config
+			// return empty config
 			return &cfg, nil
 		}
 		return nil, err
@@ -414,7 +416,7 @@ func readCfgFile() (*Config, error) {
 func (c *Config) save() error {
 	cfgPath := "./cfg.json"
 
-	cfgFile, err := os.OpenFile(cfgPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	cfgFile, err := os.OpenFile(cfgPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
 	if err != nil {
 		return err
 	}

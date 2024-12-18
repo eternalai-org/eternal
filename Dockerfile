@@ -1,4 +1,4 @@
-FROM  golang:1.21-alpine3.17 AS build
+FROM  golang:1.22-alpine3.17 AS build
 
 RUN apk update && apk add gcc musl-dev gcompat libc-dev linux-headers
 WORKDIR /app
@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux GOARCH=arm64 go build -ldflags "-linkmode external -extldflags -static" -o workersv
+RUN GOOS=linux GOARCH=amd64 go build -ldflags "-linkmode external -extldflags -static" -o workersv
 
 RUN chmod +x /app/workersv
 
