@@ -1089,7 +1089,6 @@ func (tskw *TaskWatcher) stakeForWorker() error {
 	if err = eth.WaitForTx(ethClient, tx.Hash()); err != nil {
 		return errors.Join(err, errors.New("Error while waiting for tx"))
 	}
-
 	logger.GetLoggerInstanceFromContext(ctx).Info("staking success")
 	return nil
 }
@@ -1690,6 +1689,58 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 }
 
 func (tskw *TaskWatcher) ApproveERC20(workerPriKey string, workerHubAddr string, erc20Addr string, rpc string) error {
-	///TODO - implement me
+	ctx := context.Background()
+	workerAcc, workerAddr, err := eth.GetAccountInfo(workerPriKey)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting account info"))
+	}
+	client, err := eth.NewEthClient(rpc)
+	if err != nil {
+		return err
+	}
+
+	nonce, err := client.NonceAt(ctx, *workerAddr, nil)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting nonce"))
+	}
+
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting chain ID"))
+	}
+
+	contract := common.HexToAddress(erc20Addr)
+	erc20, err := abi.NewAbi(contract, client)
+	allowance, err := erc20.AbiCaller.Allowance(nil, *workerAddr, common.HexToAddress(workerHubAddr))
+	if err != nil {
+		return err
+	}
+	if allowance.Cmp(new(big.Int).SetInt64(0)) > 0 {
+		return nil
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return errors.Join(err, errors.New("Error while getting gas price"))
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(workerAcc, chainID)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while creating new keyed transactor"))
+	}
+
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.GasLimit = uint64(0) // in units
+	auth.GasPrice = gasPrice
+	maxBigInt := new(big.Int)
+	maxBigInt.SetString("30000000000000000000000", 10)
+	tx, err := erc20.AbiTransactor.Approve(auth, common.HexToAddress(workerHubAddr), maxBigInt)
+	if err != nil {
+		return errors.Join(err, errors.New("Error while submitting result"))
+	}
+
+	log.Println("submit result tx: ", tx.Hash().Hex())
+	if err = eth.WaitForTx(client, tx.Hash()); err != nil {
+		return errors.Join(err, errors.New("Error while waiting for tx"))
+	}
 	return nil
 }

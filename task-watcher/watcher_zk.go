@@ -4,6 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math/big"
+	"strings"
+	"time"
+
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/abi/base_wh_abi"
@@ -16,7 +21,7 @@ import (
 	"eternal-infer-worker/model_structures"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -25,9 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	log "github.com/sirupsen/logrus"
 	zktypes "github.com/zksync-sdk/zksync2-go/types"
-	"math/big"
-	"strings"
-	"time"
 )
 
 func (tskw *TaskWatcher) approveErc20Zk() error {
@@ -52,7 +54,7 @@ func (tskw *TaskWatcher) approveErc20Zk() error {
 	if err != nil {
 		return err
 	}
-	//erc20.Approve()
+	// erc20.Approve()
 	maxBigInt := new(big.Int)
 	maxBigInt.SetString("99999999999999999999999999999999999999999999999999999999", 10)
 	dataBytes, err := instanceABI.Pack(
@@ -99,7 +101,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 	if err != nil {
 		return err
 	}
-	//workerHub.RegisterMiner()
+	// workerHub.RegisterMiner()
 	dataBytes, err := instanceABI.Pack(
 		"registerMiner", uint16(1),
 	)
@@ -112,7 +114,7 @@ func (tskw *TaskWatcher) stakeForWorkerZk() error {
 		dataBytes, err = instanceABI.Pack(
 			"registerMiner",
 			uint16(1),
-			//common.HexToAddress("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"),
+			// common.HexToAddress("0x0610132d42717Eebb6350BF9fD95fd5A41Cd9170"),
 		)
 		if err != nil {
 			return err
@@ -153,7 +155,7 @@ func (tskw *TaskWatcher) joinForMintingZk() error {
 	if err != nil {
 		return err
 	}
-	//workerHub.JoinForMinting()
+	// workerHub.JoinForMinting()
 	dataBytes, err := instanceABI.Pack(
 		"joinForMinting",
 	)
@@ -195,7 +197,7 @@ func (tskw *TaskWatcher) ClaimMiningRewardZk() error {
 	if err != nil {
 		return err
 	}
-	//workerHub.ClaimReward()
+	// workerHub.ClaimReward()
 	_, pbkHex, err := eth.GetAccountInfo(tskw.account)
 	dataBytes, err := instanceABI.Pack(
 		"claimReward", pbkHex,
@@ -237,7 +239,7 @@ func (tskw *TaskWatcher) UnregisterZk() error {
 	if err != nil {
 		return err
 	}
-	//workerHub.UnregisterMiner()
+	// workerHub.UnregisterMiner()
 	dataBytes, err := instanceABI.Pack(
 		"unregisterMiner",
 	)
@@ -289,7 +291,7 @@ func (tskw *TaskWatcher) RestakeZk() error {
 				if err != nil {
 					return err
 				}
-				//workerHub.RestakeForMiner()
+				// workerHub.RestakeForMiner()
 				dataBytes, err := instanceABI.Pack(
 					"restakeForMiner", 1,
 				)
@@ -336,7 +338,7 @@ func (tskw *TaskWatcher) ReclaimStakeZk() error {
 	if err != nil {
 		return err
 	}
-	//workerHub.UnstakeForMiner()
+	// workerHub.UnstakeForMiner()
 	dataBytes, err := instanceABI.Pack(
 		"unstakeForMiner",
 	)
@@ -378,7 +380,7 @@ func (tskw *TaskWatcher) SubmitResultZk(assignmentID string, result []byte) erro
 	if err != nil {
 		return err
 	}
-	//workerHub.SubmitSolution()
+	// workerHub.SubmitSolution()
 	_assigmentId, _ := new(big.Int).SetString(assignmentID, 10)
 	dataBytes, err := instanceABI.Pack(
 		"submitSolution", _assigmentId, result,
@@ -429,9 +431,9 @@ func (tskw *TaskWatcher) createCommitHash(nonce uint64, sender common.Address, d
 	packedData[2] = byte(nonce >> 16)
 	packedData[3] = byte(nonce >> 8)
 	packedData[4] = byte(nonce)
-	//seder
+	// seder
 	copy(packedData[5:], sender.Bytes())
-	//data
+	// data
 	copy(packedData[5+common.AddressLength:], data)
 	return crypto.Keccak256Hash(packedData[:])
 }
@@ -458,7 +460,7 @@ func (tskw *TaskWatcher) Reveal(task *types.TaskInfo, data []byte) error {
 	if err != nil {
 		return err
 	}
-	//workerHub.Reveal()
+	// workerHub.Reveal()
 	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
 	_ = ok
 	//
@@ -524,7 +526,7 @@ func (tskw *TaskWatcher) isMinerOfModel(modelAddr common.Address) bool {
 	}
 	for _, v := range info {
 		if strings.ToLower(v.Hex()) == strings.ToLower(tskw.address) {
-			//log.Info(fmt.Sprintf("Watcher: node is still miner of model %s", modelAddr.Hex()))
+			// log.Info(fmt.Sprintf("Watcher: node is still miner of model %s", modelAddr.Hex()))
 			return true
 		}
 	}
@@ -618,7 +620,7 @@ func (tskw *TaskWatcher) Commit(task *types.TaskInfo, data []byte) error {
 	if err != nil {
 		return err
 	}
-	//workerHub.Commit()
+	// workerHub.Commit()
 	_commitment := tskw.createCommitHash(uint64(1), common.HexToAddress(tskw.address), data)
 	_assignmentId, ok := new(big.Int).SetString(task.AssignmentID, 10)
 	_ = ok
@@ -663,7 +665,7 @@ func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receip
 	if err != nil {
 		return nil, err
 	}
-	//workerHub.SeizeMinerRole()
+	// workerHub.SeizeMinerRole()
 	dataBytes, err := instanceABI.Pack(
 		"seizeMinerRole", _assignmentId,
 	)
@@ -800,7 +802,7 @@ func (tskw *TaskWatcher) getPendingTaskFromContractZk() ([]types.TaskInfo, error
 		return nil, err
 	}
 
-	//log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
+	// log.Info("[getPendingTaskFromContractZk][ContractSyncState] - state: ", state, " ,err: ", err)
 	if err != nil || state == nil {
 		state = &model_structures.ContractSyncState{
 			Job:             jobName,
@@ -892,7 +894,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 		if models[modelAddr] == nil {
 			err := errors.New("model_address is nil")
 			log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
-			//log.Error("[filterZKEventNewInference][requestInfo.ModelAddress] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
+			// log.Error("[filterZKEventNewInference][requestInfo.ModelAddress] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,err: ", err)
 			_ = err
 			continue
 		}
@@ -903,7 +905,7 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 			return nil, err
 		}
 
-		//log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,assignments: ", len(assignments))
+		// log.Info("[filterZKEventNewInference][assignmentInfo], requestId: ", requestId.String(), " ,assignments: ", len(assignments))
 		for _, assignment := range assignments {
 			assignmentInfo, err := whContract.Assignments(nil, assignment.AssignmentId)
 			if err != nil {
@@ -940,7 +942,6 @@ func (tskw *TaskWatcher) filterZKEventNewInference(whContract *zkabi.WorkerHub, 
 							task.AssignmentRole = libs.MODE_MINER
 						}
 					}
-
 				} else {
 					log.Error("[filterZKEventNewInference][Err] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,requestId: ", requestId.String(), " ,request_info: ", string(_b), "err: ", err)
 				}
@@ -972,7 +973,6 @@ func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_ab
 		End:     &endBlock,
 		Context: ctx,
 	}, nil, nil, nil)
-
 	if err != nil {
 		log.Error("[filterBaseChainEventNewInference] startBlock: ", startBlock, " ,endBlock: ", endBlock, " ,err: ", err)
 		return nil, err
@@ -1022,7 +1022,8 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 }
 
 func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
-	client *ethclient.Client) error {
+	client *ethclient.Client,
+) error {
 	var err error
 	tasks := make([]types.TaskInfo, 0)
 	requestId := event.InferenceId
@@ -1050,7 +1051,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
 		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
 		if err == nil {
-			var batchFullPrompts = []*model_structures.BatchInferHistory{}
+			batchFullPrompts := []*model_structures.BatchInferHistory{}
 			err = json.Unmarshal(inputBytes, &batchFullPrompts)
 			if err == nil && len(batchFullPrompts) > 0 {
 				batchInfers = batchFullPrompts
@@ -1080,22 +1081,24 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 		}
 
 		if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
+
 			task := types.TaskInfo{
 				TaskID:         assignment.InferenceId.String(),
 				AssignmentID:   assignment.AssignmentId.String(),
 				ModelContract:  strings.ToLower(event.Model.Hex()),
-				Params:         string(requestInfo.Input),
+				Params:         string(requestInfo.Input), // here
 				Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
 				Value:          assignment.Value.String(),
 				ZKSync:         true,
 				InferenceID:    event.InferenceId.String(),
 				AssignmentRole: libs.MODE_VALIDATOR,
 				IsBatch:        isBatch,
-				BatchInfers:    batchInfers,
+				BatchInfers:    batchInfers, // here
 				ExternalData:   externalData,
 			}
+			// spew.Dump(task)
 
-			transact, err := tskw.seizeMinerRole(assignment.AssignmentId) //ask contract do i have miner role?
+			transact, err := tskw.seizeMinerRole(assignment.AssignmentId) // ask contract do i have miner role?
 			if err == nil && transact != nil {
 				for _, txLog := range transact.Receipt.Logs {
 					if txLog == nil {
