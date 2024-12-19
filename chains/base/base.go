@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"errors"
 	"eternal-infer-worker/chains/base/contract"
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
@@ -43,7 +44,7 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	}
 
 	b.StakingHub = sthub
-
+	errors.Join(err, errors.New("Error while BaseWhAbiTransactor JoinForMinting"))
 	b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
 	erc20, err := contract.NewAbi(common.HexToAddress(b.Erc20contractAddress), b.Client)
 	if err != nil {
@@ -136,6 +137,18 @@ func (b *Base) StakeForWorker() error {
 	return nil
 }
 
-func (b *Base) JoinForMinting() (bool, error) {
-	return false, nil
+func (b *Base) JoinForMinting() error {
+	ctx := context.Background()
+	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, b.GasLimit)
+	if err != nil {
+		return err
+	}
+
+	tx, err := b.StakingHub.BaseWhAbiTransactor.JoinForMinting(auth)
+	if err != nil {
+		return err
+	}
+
+	_ = tx
+	return nil
 }
