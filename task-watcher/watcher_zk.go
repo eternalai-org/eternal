@@ -1014,10 +1014,12 @@ func (tskw *TaskWatcher) filterBaseChainEventNewInference(whContract *base_wh_ab
 
 	models := tskw.modelManager.GetLoadeModels()
 	for iter.Next() {
-		err := tskw.ProcessBaseChainEventNewInference(ctx, iter.Event, tskw.chainCfg, common.HexToAddress(tskw.taskContract), whContract, ethClient)
+		tsk, err := tskw.ProcessBaseChainEventNewInference(ctx, iter.Event, tskw.chainCfg, common.HexToAddress(tskw.taskContract), whContract, ethClient)
 		if err != nil {
 			return nil, err
 		}
+
+		tasks = append(tasks, tsk...)
 	}
 
 	if len(tasks) > 0 {
@@ -1058,7 +1060,7 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 
 func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
 	client *ethclient.Client,
-) error {
+) ([]types.TaskInfo, error) {
 	var err error
 	tasks := make([]types.TaskInfo, 0)
 	requestId := event.InferenceId
@@ -1066,7 +1068,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 	_ = requestIdStr
 	requestInfo, err := whContract.GetInferenceInfo(nil, requestId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var batchInfers []*model_structures.BatchInferHistory
@@ -1105,7 +1107,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 
 	assignmentIds, err := whContract.GetAssignmentsByInference(nil, requestId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// here
 	for _, assignmentId := range assignmentIds {
@@ -1160,6 +1162,8 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 			logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
 				zap.String("inferenceId", event.InferenceId.String()),
 				zap.String("task", task.TaskID),
+				zap.String("worker_address", strings.ToLower(assignmentInfo.Worker.String())),
+				zap.String("role", task.AssignmentRole),
 				zap.Bool("is_batch", isBatch),
 			)
 			tasks = append(tasks, task)
@@ -1167,5 +1171,5 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 		}
 	}
 
-	return nil
+	return tasks, nil
 }

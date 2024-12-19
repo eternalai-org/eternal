@@ -1,21 +1,22 @@
 package runner
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"math"
-	"math/big"
-	"os"
-
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/pkg/logger"
 	"eternal-infer-worker/types"
-
+	"fmt"
 	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
+	"math"
+	"math/big"
+	"os"
 )
 
 type RunnerInstance struct {
@@ -80,6 +81,8 @@ func fileExists(filename string) bool {
 }
 
 func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
+	ctx := context.Background()
+
 	defer func() {
 		if setDone {
 			r.isDone = true
@@ -92,6 +95,16 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 
 	temp := manager.MountDir + r.task.ModelContract + "/" + outputFile
 	output := temp
+
+	logger.GetLoggerInstanceFromContext(ctx).Info("Run-task",
+		zap.String("inferenceId", r.task.InferenceID),
+		zap.String("task", r.task.TaskID),
+		zap.String("role", r.task.AssignmentRole),
+		zap.Bool("modelInst.LLM", modelInst.LLM),
+		zap.String("temp", temp),
+		zap.Bool("r.task.IsBatch", r.task.IsBatch),
+	)
+
 	if !modelInst.LLM {
 		// image -> file in docker -> mount disk
 		output = fmt.Sprintf("%s/%v", dockercmd.OUTPUT_RESULT_DIR, outputFile)
@@ -113,6 +126,7 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 			r.result = outputPath
 			return nil
 		} else {
+
 			if r.task.IsBatch && len(r.task.BatchInfers) > 0 {
 
 				// TODO - HERE

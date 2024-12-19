@@ -1,15 +1,17 @@
 package watcher
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/manager"
+	"eternal-infer-worker/pkg/logger"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
+	"fmt"
+	"go.uber.org/zap"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -38,23 +40,39 @@ func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 }
 
 func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, task *types.TaskInfo, ext string, newRunner *runner.RunnerInstance, setDone bool) (*eaimodel.TaskResult, error) {
+	var err error
+	logs := new([]zap.Field)
+	*logs = []zap.Field{
+		zap.String("inferenceId", task.InferenceID),
+		zap.String("task", task.TaskID),
+		zap.String("role", task.AssignmentRole),
+		zap.Bool("modelInst.LLM", modelInst.LLM),
+		zap.Bool("r.task.IsBatch", task.IsBatch),
+	}
+
+	defer func() {
+		if err != nil {
+			*logs = append(*logs, zap.Error(err))
+			logger.GetLoggerInstanceFromContext(context.Background()).Error("runDockerToGetValue", *logs...)
+		} else {
+			logger.GetLoggerInstanceFromContext(context.Background()).Info("runDockerToGetValue", *logs...)
+		}
+	}()
+
 	outputFile := fmt.Sprintf("%v.%v", task.TaskID, ext)
-	err := newRunner.Run(outputFile, setDone)
+	err = newRunner.Run(outputFile, setDone)
 	if err != nil {
-		log.Error("run task error: ", err)
 		return nil, err
 	}
+
 	resultData, err := readResultFile(fmt.Sprintf("%v/%v.%v", modelInst.ResultDir, task.TaskID, ext))
 	if err != nil {
-		log.Error("read result file error: ", err)
 		return nil, err
 	}
-	log.Info("uploading result: ", fmt.Sprintf("%v_result.%v", task.TaskID, ext))
 
 	// TODO - HERE
 	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), resultData)
 	if err != nil {
-		log.Error("upload data error: ", err)
 		return nil, err
 	}
 	resultLink := fmt.Sprintf("ipfs://%v", cid)
@@ -64,6 +82,8 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 		Storage:   eaimodel.LightHouseStorageType,
 		Data:      nil,
 	}
+
+	*logs = append(*logs, zap.Any("taskResult", taskResult))
 	return &taskResult, nil
 }
 
