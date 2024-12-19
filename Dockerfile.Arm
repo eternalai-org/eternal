@@ -13,7 +13,7 @@ RUN GOOS=linux GOARCH=arm64 go build -ldflags "-linkmode external -extldflags -s
 
 RUN chmod +x /app/workersv
 
-FROM  alpine3.21 AS export-stage
+FROM  alpine:3.21 AS export-stage
 
 RUN  apk update && apk add --no-cache ca-certificates && update-ca-certificates
 

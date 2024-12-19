@@ -1958,9 +1958,9 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 		tasks = append(tasks, _tasks...)
 	}
 
-	if len(tasks) > 0 {
-		log.Info("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
-	}
+	//if len(tasks) > 0 {
+	log.Info("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
+	//}
 	return tasks, nil
 }
 
