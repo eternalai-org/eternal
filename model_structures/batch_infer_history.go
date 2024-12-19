@@ -21,7 +21,7 @@ const (
 )
 
 type BatchInferHistory struct {
-	ID          int    `json:"id"`
+	ID          string `json:"id"`
 	UserID      string `json:"user_id" bson:"user_id"`
 	UserAddress string `json:"user_address" bson:"user_address"`
 	Toolset     string `json:"toolset" bson:"toolset"`
