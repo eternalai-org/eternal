@@ -657,13 +657,16 @@ func (tskw *TaskWatcher) executeTasks() {
 						return
 					}
 
+					logger.GetLoggerInstanceFromContext(ctx).Info("executeWorkerTask", zap.Any("task", task), zap.Any("isCompleted", isCompleted))
 					if isCompleted {
 						newRunner.SetDone()
 
 						// log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
 						return
 					}
+
 					// assign task to worker
+					logger.GetLoggerInstanceFromContext(ctx).Info("executeWorkerTask", zap.Any("task", task))
 					err = tskw.executeWorkerTask(task)
 					if err != nil {
 						logger.AtLog.Error(err)

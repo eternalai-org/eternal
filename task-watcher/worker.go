@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/pkg/logger"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	"go.uber.org/zap"
 
 	log "github.com/sirupsen/logrus"
@@ -18,6 +20,7 @@ import (
 
 func (tskw *TaskWatcher) executeWorkerTask(task *types.TaskInfo) error {
 	runnerInst := tskw.GetRunner(task.TaskID)
+	logger.GetLoggerInstanceFromContext(context.Background()).Info("executeWorkerTask", zap.Any("runnerInst", runnerInst))
 	if runnerInst == nil {
 		log.Error("runner not found", task.TaskID)
 		return errors.New("runner not found")
