@@ -534,7 +534,6 @@ func (tskw *TaskWatcher) GetCurrentPendingTasks() []types.TaskRunnerInfo {
 }
 
 func (tskw *TaskWatcher) assigningTask(task *types.TaskInfo) {
-	log.Println("[TaskWatcher].assigningTask - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 	tskw.taskQueue <- task
 }
 
@@ -589,124 +588,139 @@ func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, er
 
 func (tskw *TaskWatcher) executeTasks() {
 	// log.Println("[TaskWatcher].executeTasks")
+	ctx := context.Background()
 	for {
 		task := <-tskw.taskQueue
-		// log.Println("[TaskWatcher].executeTasks - received task")
-		newRunner := tskw.GetRunner(task.TaskID)
-		if newRunner == nil {
-			log.Println("[TaskWatcher].executeTasks - runner not found, TaskID:", task.TaskID)
-			continue
-		}
 
-		if newRunner.IsDone() {
-			log.Println("[TaskWatcher].executeTasks - runner is done, TaskID:", task.TaskID)
-			continue
-		}
-
-		log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
-		if err := tskw.modelManager.MakeReady(task.ModelContract); err != nil {
-			log.Println("make ready error: ", err)
-			newRunner.SetDone()
-			time.Sleep(1 * time.Second)
-			continue
-		}
-
-		mode := tskw.mode
-		if task.ZKSync {
-			mode = task.AssignmentRole
-		}
-
-		log.Info(fmt.Sprintf("[TaskWatcher].executeTasks ------ Process task %s with mode %s", task.TaskID, mode))
-		if task.ModelContract == "0x0000000000000000000000000000000000000000" {
-			log.Warnf("Node is unregistering")
-			continue
-		}
-
-		switch mode {
-		case libs.MODE_MINER:
-			{
-				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
-				if err != nil {
-					log.Println("[TaskWatcher].executeTasks check task completed error: ", err)
-					newRunner.SetDone()
-					time.Sleep(1 * time.Second)
-					continue
-				}
-
-				if isCompleted {
-					newRunner.SetDone()
-
-					// log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
-					log.Println("[TaskWatcher].executeTasks - task done: ", task.TaskID)
-					continue
-				}
-				// assign task to worker
-				err = tskw.executeWorkerTask(task)
-				if err != nil {
-					log.Println("[TaskWatcher].executeTasks - execute worker task error: ", err)
-					time.Sleep(10 * time.Second)
-					newRunner.SetDone()
-					continue
-				}
+		go func(ctx context.Context, task *types.TaskInfo) {
+			var err error
+			logs := new([]zap.Field)
+			*logs = []zap.Field{
+				zap.String("inferenceId", task.InferenceID),
+				zap.String("task_ID", task.TaskID),
+				zap.String("task_AssignmentRole", task.AssignmentRole),
+				zap.String("task_AssignmentID", task.AssignmentID),
+				zap.Bool("task_IsBatch", task.IsBatch),
+				zap.String("tskw_mode", tskw.mode),
 			}
-		case libs.MODE_VALIDATOR:
-			{
-				isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
+
+			defer func() {
 				if err != nil {
-					log.Error(fmt.Sprintf("validator [TaskWatcher].executeTasks check task %s completed error: %v", task.TaskID, err))
-					newRunner.SetDone()
-					time.Sleep(1 * time.Second)
-					continue
-				}
-
-				if isCompleted {
-					newRunner.SetDone()
-					log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks - task done: %s", task.TaskID))
-					continue
-				}
-
-				// assign task to validator
-				err = tskw.executeVerifierTask(task)
-				if !task.ZKSync {
-					if err != nil {
-						log.Error("validator [TaskWatcher].executeTasks - execute validator task error: ", err)
-						time.Sleep(10 * time.Second)
-					}
-					newRunner.SetDone()
-					log.Println("validator [TaskWatcher].executeTasks - task done: ", task.TaskID)
+					*logs = append(*logs, zap.Error(err))
+					logger.GetLoggerInstanceFromContext(ctx).Error("executeTasks",
+						*logs...,
+					)
 				} else {
-					switch task.Status {
-					case ContractInferenceStatusReveal:
-						{
-							if err == nil {
-								newRunner.SetDone()
-								log.Info("validator [TaskWatcher].executeTasks - task send reveal done: ", task.TaskID)
-							} else {
-								log.Info("validator [TaskWatcher].executeTasks - task send reveal error: ", task.TaskID, err)
-							}
-						}
-					case ContractInferenceStatusCommit:
-						{
-							if err == nil {
-								log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks - task send commit done: %s, newRunner.IsDone=%v", task.TaskID, newRunner.IsDone()))
-								newRunner.SetNotDone()
-								task.Retry = 0
-							} else {
-								log.Info("validator [TaskWatcher].executeTasks - task send commit error: ", task.TaskID, err)
-							}
-						}
+					logger.GetLoggerInstanceFromContext(ctx).Info("executeTasks",
+						*logs...,
+					)
+				}
+			}()
+
+			newRunner := tskw.GetRunner(task.TaskID)
+			if newRunner == nil {
+				return
+			}
+
+			*logs = append(*logs, zap.Bool("runner_is_done", newRunner.IsDone()))
+			if newRunner.IsDone() {
+				return
+			}
+
+			//log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
+			if err = tskw.modelManager.MakeReady(task.ModelContract); err != nil {
+				newRunner.SetDone()
+				time.Sleep(1 * time.Second)
+				return
+			}
+
+			mode := tskw.mode
+			if task.ZKSync {
+				mode = task.AssignmentRole
+			}
+
+			if task.ModelContract == "0x0000000000000000000000000000000000000000" {
+				log.Warnf("Node is unregistering")
+				return
+			}
+
+			switch mode {
+			case libs.MODE_MINER:
+				{
+					isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
+					if err != nil {
+						newRunner.SetDone()
+						time.Sleep(1 * time.Second)
+						return
 					}
-					if !newRunner.IsDone() {
-						if task.Retry <= 500 {
-							task.Retry++
-							log.Info(fmt.Sprintf("validator [TaskWatcher].executeTasks set task %s status %d into queue again retry %d", task.TaskID, task.Status, task.Retry))
-							// tskw.taskQueue <- task // set again
-							go tskw.AssignTask(*task)
+
+					if isCompleted {
+						newRunner.SetDone()
+
+						// log.Println("[TaskWatcher].executeTasks - task already completed: ", task.TaskID)
+						return
+					}
+					// assign task to worker
+					err = tskw.executeWorkerTask(task)
+					if err != nil {
+						time.Sleep(10 * time.Second)
+						newRunner.SetDone()
+						return
+					}
+				}
+			case libs.MODE_VALIDATOR:
+				{
+					isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
+					if err != nil {
+						newRunner.SetDone()
+						time.Sleep(1 * time.Second)
+						return
+					}
+
+					if isCompleted {
+						newRunner.SetDone()
+						return
+					}
+
+					// assign task to validator
+					err = tskw.executeVerifierTask(task)
+					if !task.ZKSync {
+						if err != nil {
+							time.Sleep(10 * time.Second)
+						}
+						newRunner.SetDone()
+					} else {
+						switch task.Status {
+						case ContractInferenceStatusReveal:
+							{
+								if err == nil {
+									newRunner.SetDone()
+								} else {
+								}
+							}
+						case ContractInferenceStatusCommit:
+							{
+								if err == nil {
+									newRunner.SetNotDone()
+									task.Retry = 0
+								} else {
+									log.Info("validator [TaskWatcher].executeTasks - task send commit error: ", task.TaskID, err)
+								}
+							}
+						}
+						if !newRunner.IsDone() {
+							if task.Retry <= 500 {
+								task.Retry++
+								// tskw.taskQueue <- task // set again
+								go tskw.AssignTask(*task)
+							}
 						}
 					}
 				}
 			}
-		}
+
+		}(ctx, task)
+
 	}
 }
 
