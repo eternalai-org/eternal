@@ -20,7 +20,7 @@ lint-prepare:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s latest
 
 docker:
-	docker-compose up
+	docker-compose down	&& docker-compose up
 
 lint: vendor
 	./bin/golangci-lint run ./... --timeout 10m0s
