@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 golang:1.21-alpine3.17 AS build
+FROM --platform=linux/arm64 golang:1.22-alpine3.17 AS build
 
 RUN apk update && apk add gcc musl-dev gcompat libc-dev linux-headers
 WORKDIR /app
