@@ -8,6 +8,7 @@ import (
 	"eternal-infer-worker/libs/eth"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type Base struct {
@@ -15,7 +16,9 @@ type Base struct {
 	StakingHub           *contract.BaseWhAbi
 	StakingHubAddress    string
 	Erc20contractAddress string
+	ModelAddress         string
 	Erc20contract        *contract.Abi
+	GasLimit             uint64
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
@@ -48,6 +51,7 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	}
 
 	b.Erc20contract = erc20
+	b.GasLimit = 200_000
 	return b, nil
 }
 
@@ -96,7 +100,7 @@ func (b *Base) StakeForWorker() error {
 		return err
 	}
 
-	err = eth.ApproveERC20(ctx, b.Client, b.PrivateKey, common.HexToAddress(b.StakingHubAddress), common.HexToAddress(b.Erc20contractAddress))
+	err = eth.ApproveERC20(ctx, b.Client, b.PrivateKey, common.HexToAddress(b.StakingHubAddress), common.HexToAddress(b.Erc20contractAddress), b.GasLimit)
 	if err != nil {
 		return err
 	}
@@ -106,6 +110,27 @@ func (b *Base) StakeForWorker() error {
 		return err
 	}
 
+	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, b.GasLimit)
+	if err != nil {
+		return err
+	}
+
+	auth.Value = minStake
+	tx := new(types.Transaction)
+	if b.ModelAddress != "" {
+		tx, err = b.StakingHub.RegisterMiner0(auth, 1, common.HexToAddress(b.ModelAddress))
+		if err != nil {
+			return err
+		}
+	} else {
+		tx, err = b.StakingHub.RegisterMiner(auth, 1)
+		if err != nil {
+			return err
+		}
+	}
+
+	//TODO - here
+	_ = tx
 	_ = balance
 	_ = minStake
 	return nil
