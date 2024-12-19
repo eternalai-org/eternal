@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 golang:1.22-alpine3.17 AS build
+FROM --platform=linux/arm64 golang:1.23-alpine3.21 AS build
 
 RUN apk update && apk add gcc musl-dev gcompat libc-dev linux-headers
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN GOOS=linux GOARCH=arm64 go build -ldflags "-linkmode external -extldflags -s
 
 RUN chmod +x /app/workersv
 
-FROM  alpine:3.17 AS export-stage
+FROM  alpine3.21 AS export-stage
 
 RUN  apk update && apk add --no-cache ca-certificates && update-ca-certificates
 
