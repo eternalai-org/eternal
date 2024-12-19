@@ -1,0 +1,6 @@
+# -*- restclient -*-
+#
+:host = http://localhost:8888
+:header = <<
+Content-Type: application/json
+#
