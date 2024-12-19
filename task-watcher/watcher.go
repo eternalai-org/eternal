@@ -39,8 +39,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-const DEFAULT_GAS_LIMIT = 200_000_000
-const DEFAULT_BASE_GAS_LIMIT = 200_000
+const (
+	DEFAULT_GAS_LIMIT      = 200_000_000
+	DEFAULT_BASE_GAS_LIMIT = 200_000
+)
 
 type NetworkConfig struct {
 	RPC string
@@ -557,6 +559,7 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 }
 
 func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, error) {
+	logger.AtLog.Infof("CheckAssignmentCompleted: %s", assignmentID)
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return false, err
@@ -627,7 +630,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				return
 			}
 
-			//log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
+			// log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 			if err = tskw.modelManager.MakeReady(task.ModelContract); err != nil {
 				newRunner.SetDone()
 				time.Sleep(1 * time.Second)
@@ -718,7 +721,6 @@ func (tskw *TaskWatcher) executeTasks() {
 					}
 				}
 			}
-
 		}(ctx, task)
 
 	}
