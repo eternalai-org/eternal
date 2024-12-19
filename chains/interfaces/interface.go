@@ -5,7 +5,8 @@ import "github.com/ethereum/go-ethereum/ethclient"
 type Tasks struct{}
 
 type Chain struct {
-	Client *ethclient.Client
+	Client  *ethclient.Client
+	Account string
 }
 
 func (c *Chain) Connect(rpc string) error {
@@ -27,18 +28,4 @@ type IStaking interface {
 	IsStaked() (bool, error)
 	StakeForWorker() error
 	JoinForMinting() error
-}
-
-type Staking struct{}
-
-func (t *Staking) IsStaked() (bool, error) {
-	return false, nil
-}
-
-func (t *Staking) StakeForWorker() error {
-	return nil
-}
-
-func (t *Staking) JoinForMinting() error {
-	return nil
 }
