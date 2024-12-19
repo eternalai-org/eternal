@@ -2,12 +2,17 @@ package base
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"eternal-infer-worker/chains/base/contract"
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eth"
+	"eternal-infer-worker/libs/lighthouse"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -20,6 +25,9 @@ type Base struct {
 	ModelAddress         string
 	Erc20contract        *contract.Abi
 	GasLimit             uint64
+
+	WorkerHubAddress string
+	WorkerHub        *contract.WorkerHub
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
@@ -51,13 +59,157 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 		return nil, err
 	}
 
+	b.WorkerHubAddress = cnf.WorkerHubAddress
+	wkHub, err := contract.NewWorkerHub(common.HexToAddress(b.StakingHubAddress), b.Client)
+	if err != nil {
+		return nil, err
+	}
+
+	b.WorkerHub = wkHub
 	b.Erc20contract = erc20
 	b.GasLimit = 200_000
 	return b, nil
 }
 
-func (b *Base) GetPendingTasks(fromblock, toBlock int64) ([]*interfaces.Tasks, error) {
+func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks, error) {
+	ctx := context.Background()
+	tasks := []*interfaces.Tasks{}
+
+	iter, err := b.WorkerHub.FilterRawSubmitted(&bind.FilterOpts{
+		Start:   startBlock,
+		End:     &endBlock,
+		Context: ctx,
+	}, nil, nil, nil)
+	if err != nil {
+		return nil, err
+
+	}
+
+	for iter.Next() {
+		tsk, err := b.ProcessBaseChainEventNewInference(ctx, iter.Event)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks = append(tasks, tsk...)
+	}
+
 	return nil, nil
+
+}
+
+func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *contract.WorkerHubRawSubmitted) ([]*interfaces.Tasks, error) {
+	var err error
+	tasks := make([]*interfaces.Tasks, 0)
+	requestId := event.InferenceId
+	requestIdStr := requestId.String()
+	_ = requestIdStr
+	requestInfo, err := b.WorkerHub.GetInferenceInfo(nil, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	var batchInfers []*interfaces.BatchInferHistory
+	var externalData *interfaces.AgentInferExternalData
+
+	/*
+		TODO - chainConfig.AgentContractAddress ???
+		if chainConfig.AgentContractAddress != "" {
+			isAgentInfer, batchInfers, externalData, err = s.handleNewInferIsAgentInfer(ctx, modelInfo.ModelID.String(), chainConfig, ethClient, event.Raw.TxHash, aiZKClient)
+			if err != nil {
+				return err
+			}
+		}*/
+
+	// Detect if  is batch
+	isBatch := false
+	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
+		// TODO - HERE
+		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
+		if err == nil {
+			batchFullPrompts := []*interfaces.BatchInferHistory{}
+			err = json.Unmarshal(inputBytes, &batchFullPrompts)
+			if err != nil {
+				//logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+			} else if len(batchFullPrompts) > 0 {
+				batchInfers = batchFullPrompts
+				isBatch = true
+			}
+		} else {
+			//logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+		}
+
+	}
+
+	var assignments []contract.IWorkerHubAssignmentInfo
+	assignmentIds, err := b.WorkerHub.GetAssignmentsByInference(nil, requestId)
+	if err != nil {
+		return nil, err
+	}
+	// here
+	for _, assignmentId := range assignmentIds {
+		assignments = append(assignments, zkabi.IWorkerHubAssignmentInfo{
+			AssignmentId: assignmentId,
+			InferenceId:  requestId,
+		})
+	}
+
+	for _, assignment := range assignments {
+		assignmentInfo, err := b.WorkerHub.Assignments(nil, assignment.AssignmentId)
+		if err != nil {
+			continue
+		}
+
+		//fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
+		if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(string(b.Address.Hex())) {
+
+			task := &interfaces.Tasks{
+				TaskID:         assignment.InferenceId.String(),
+				AssignmentID:   assignment.AssignmentId.String(),
+				ModelContract:  strings.ToLower(event.Model.Hex()),
+				Params:         string(requestInfo.Input), // here
+				Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
+				Value:          assignment.Value.String(),
+				ZKSync:         true,
+				InferenceID:    event.InferenceId.String(),
+				AssignmentRole: libs.MODE_VALIDATOR,
+				IsBatch:        isBatch,
+				BatchInfers:    batchInfers, // here
+				ExternalData:   externalData,
+			}
+			// spew.Dump(task)
+
+			transact, err := tskw.seizeMinerRole(assignment.AssignmentId) // ask contract do i have miner role?
+			if err == nil && transact != nil {
+				for _, txLog := range transact.Receipt.Logs {
+					if txLog == nil {
+						continue
+					}
+
+					minerRoleSeized, err := b.WorkerHub.ParseMinerRoleSeized(*txLog)
+					if err != nil {
+						continue
+					}
+					if strings.EqualFold(b.Address.Hex(), minerRoleSeized.Miner.Hex()) {
+						task.AssignmentRole = libs.MODE_MINER
+					}
+				}
+			}
+
+			/*
+				logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
+					zap.String("inferenceId", event.InferenceId.String()),
+					zap.String("task", task.TaskID),
+					zap.String("worker_address", strings.ToLower(assignmentInfo.Worker.String())),
+					zap.String("role", task.AssignmentRole),
+					zap.Bool("is_batch", isBatch),
+				)*/
+			tasks = append(tasks, task)
+			continue
+		}
+	}
+
+	return tasks, nil
 }
 
 func (b *Base) SubmitTask() {

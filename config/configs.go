@@ -6,10 +6,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	IPFSPrefix = "ipfs://"
+)
+
 type Config struct {
 	Rpc               string
 	Account           string
 	StakingHubAddress string
+	WorkerHubAddress  string
 }
 
 func ReadConfig() (*Config, error) {
@@ -23,5 +28,6 @@ func ReadConfig() (*Config, error) {
 	cfg.Rpc = os.Getenv("CHAIN_RPC")
 	cfg.Account = os.Getenv("ACCOUNT_PRIV")
 	cfg.StakingHubAddress = os.Getenv("STAKING_HUB_ADDRESS")
+	cfg.WorkerHubAddress = os.Getenv("WOEKER_HUB_ADDRESS")
 	return cfg, nil
 }
