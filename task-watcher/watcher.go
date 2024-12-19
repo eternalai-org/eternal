@@ -674,6 +674,12 @@ func (tskw *TaskWatcher) executeTasks() {
 				}
 			case libs.MODE_VALIDATOR:
 				{
+					if tskw.chainCfg.ChainId == config.BASE_CHAIN {
+						newRunner.SetDone()
+						time.Sleep(1 * time.Second)
+						return
+					}
+
 					isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 					if err != nil {
 						logger.AtLog.Error(err)
