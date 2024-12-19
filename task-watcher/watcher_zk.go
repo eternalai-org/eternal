@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"eternal-infer-worker/pkg/logger"
 	"fmt"
-	"go.uber.org/zap"
 	"math/big"
 	"strings"
 	"time"
+
+	"eternal-infer-worker/pkg/logger"
+
+	"go.uber.org/zap"
 
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
@@ -511,15 +513,16 @@ func (tskw *TaskWatcher) getInferenceInfo(inferenceID *big.Int) (*zkabi.IWorkerH
 }
 
 func (tskw *TaskWatcher) reJoinMinting(modelAddr string) error {
-	//log.Info("Node is not join model address ", modelAddr)
-	//check is_join_for_minting
+	// log.Info("Node is not join model address ", modelAddr)
+	// check is_join_for_minting
 	tx := ""
 	res := []*model_structures.Conf{}
 	err := db.Read(model_structures.Conf{}.CollectionName(), &res)
 	if err != nil || len(res) == 0 {
 		res = append(res, &model_structures.Conf{
 			Key:   model_structures.JOIN_FOR_MINTINT_KEY,
-			Value: ""},
+			Value: "",
+		},
 		)
 		err = db.Write(model_structures.Conf{}.CollectionName(), &res)
 	} else {
@@ -538,13 +541,14 @@ func (tskw *TaskWatcher) reJoinMinting(modelAddr string) error {
 		}
 
 		db.Update(model_structures.Conf{}.CollectionName(), []*model_structures.Conf{
-			&model_structures.Conf{
+			{
 				Key:   model_structures.JOIN_FOR_MINTINT_KEY,
-				Value: "joined"},
+				Value: "joined",
+			},
 		})
 	}
 
-	//log.Info("Node re-join model address ", modelAddr)
+	// log.Info("Node re-join model address ", modelAddr)
 	return nil
 }
 
@@ -672,6 +676,7 @@ func (tskw *TaskWatcher) Commit(task *types.TaskInfo, data []byte) error {
 	return nil
 }
 
+// here
 func (tskw *TaskWatcher) seizeMinerRole(_assignmentId *big.Int) (*zktypes.Receipt, error) {
 	client := zkclient.NewZkClient(tskw.networkCfg.RPC,
 		tskw.paymasterFeeZero,
@@ -1043,6 +1048,7 @@ func (tskw *TaskWatcher) GetContractSyncState(contractAddress string, jobName st
 }
 
 func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_structures.ContractSyncState) error {
+	// here
 	err := db.Update(model_structures.ContractSyncState{}.CollectionName(), state)
 	if err != nil {
 		return err
@@ -1053,7 +1059,6 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
 	client *ethclient.Client,
 ) error {
-
 	var err error
 	tasks := make([]types.TaskInfo, 0)
 	requestId := event.InferenceId
@@ -1079,16 +1084,21 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 	// Detect if  is batch
 	isBatch := false
 	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
-		//TODO - HERE
+		// TODO - HERE
 		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
 		if err == nil {
 			batchFullPrompts := []*model_structures.BatchInferHistory{}
 			err = json.Unmarshal(inputBytes, &batchFullPrompts)
-			if err == nil && len(batchFullPrompts) > 0 {
+			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+			} else if len(batchFullPrompts) > 0 {
 				batchInfers = batchFullPrompts
 				isBatch = true
 			}
+		} else {
+			logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
 		}
+
 	}
 
 	var assignments []zkabi.IWorkerHubAssignmentInfo
@@ -1097,7 +1107,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 	if err != nil {
 		return err
 	}
-
+	// here
 	for _, assignmentId := range assignmentIds {
 		assignments = append(assignments, zkabi.IWorkerHubAssignmentInfo{
 			AssignmentId: assignmentId,
@@ -1144,7 +1154,6 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 						task.AssignmentRole = libs.MODE_MINER
 					}
 				}
-
 			}
 
 			logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",

@@ -3,12 +3,14 @@ package watcher
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/runner"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -49,7 +51,7 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 	}
 	log.Info("uploading result: ", fmt.Sprintf("%v_result.%v", task.TaskID, ext))
 
-	//TODO - HERE
+	// TODO - HERE
 	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), resultData)
 	if err != nil {
 		log.Error("upload data error: ", err)

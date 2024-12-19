@@ -5,15 +5,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math"
+	"math/big"
+	"os"
+
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/eaimodel"
 	"eternal-infer-worker/manager"
 	"eternal-infer-worker/types"
-	"fmt"
+
 	log "github.com/sirupsen/logrus"
-	"math"
-	"math/big"
-	"os"
 )
 
 type RunnerInstance struct {
@@ -113,7 +115,7 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 		} else {
 			if r.task.IsBatch && len(r.task.BatchInfers) > 0 {
 
-				//TODO - HERE
+				// TODO - HERE
 				for _, b := range r.task.BatchInfers {
 					obj, err := modelInst.InferChatCompletions(b.PromptInput, output, seed)
 					if err != nil {
@@ -183,7 +185,6 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 				r.result = output
 				return nil
 			}
-
 		}
 	}
 }

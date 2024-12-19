@@ -13,6 +13,8 @@ import (
 	"eternal-infer-worker/libs/dockercmd"
 	"eternal-infer-worker/libs/file"
 	"eternal-infer-worker/libs/github"
+	googlecloud "eternal-infer-worker/libs/googleclound"
+	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/libs/logger"
 	"eternal-infer-worker/manager"
 	watcher "eternal-infer-worker/task-watcher"
@@ -53,6 +55,26 @@ func main() {
 		log.Error("Error reading config file: ", err)
 		panic(err)
 	}
+
+	gcsCfg := googlecloud.GCS{
+		ProjectId: os.Getenv("GCS_PROJECT_ID"),
+		Bucket:    os.Getenv("GCS_BUCKET"),
+		Auth:      os.Getenv("GCS_AUTH"),
+		Endpoint:  os.Getenv("GCS_ENDPOINT"),
+		Region:    os.Getenv("GCS_REGION"),
+		AccessKey: os.Getenv("GCS_ACCESS_KEY"),
+		SecretKey: os.Getenv("GCS_SECRET_KEY"),
+	}
+
+	lighthouse.NewDataGCStorage(lighthouse.GCS{
+		ProjectId: gcsCfg.ProjectId,
+		Bucket:    gcsCfg.Bucket,
+		Auth:      gcsCfg.Auth,
+		Endpoint:  gcsCfg.Endpoint,
+		Region:    gcsCfg.Region,
+		AccessKey: gcsCfg.AccessKey,
+		SecretKey: gcsCfg.SecretKey,
+	})
 
 	// the 1st starting to check
 	AutomaticallyCheckNewVersion(cfg)
