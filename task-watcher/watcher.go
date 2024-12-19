@@ -559,14 +559,12 @@ func (tskw *TaskWatcher) AssignTask(task types.TaskInfo) error {
 }
 
 func (tskw *TaskWatcher) CheckAssignmentCompleted(assignmentID string) (bool, error) {
-	logger.AtLog.Infof("CheckAssignmentCompleted: %s", assignmentID)
 	ethClient, err := eth.NewEthClient(tskw.networkCfg.RPC)
 	if err != nil {
 		return false, err
 	}
 
 	hubAddress := common.HexToAddress(tskw.taskContract)
-
 	workerHub, err := abi.NewWorkerHub(hubAddress, ethClient)
 	if err != nil {
 		return false, err
@@ -632,6 +630,7 @@ func (tskw *TaskWatcher) executeTasks() {
 
 			// log.Println("[TaskWatcher].executeTasks - received task ,ModelContract: ", task.ModelContract, " ,TaskID: ", task.TaskID)
 			if err = tskw.modelManager.MakeReady(task.ModelContract); err != nil {
+				logger.AtLog.Error(err)
 				newRunner.SetDone()
 				time.Sleep(1 * time.Second)
 				return
@@ -652,6 +651,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				{
 					isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 					if err != nil {
+						logger.AtLog.Error(err)
 						newRunner.SetDone()
 						time.Sleep(1 * time.Second)
 						return
@@ -666,6 +666,7 @@ func (tskw *TaskWatcher) executeTasks() {
 					// assign task to worker
 					err = tskw.executeWorkerTask(task)
 					if err != nil {
+						logger.AtLog.Error(err)
 						time.Sleep(10 * time.Second)
 						newRunner.SetDone()
 						return
@@ -675,6 +676,7 @@ func (tskw *TaskWatcher) executeTasks() {
 				{
 					isCompleted, err := tskw.CheckAssignmentCompleted(task.AssignmentID)
 					if err != nil {
+						logger.AtLog.Error(err)
 						newRunner.SetDone()
 						time.Sleep(1 * time.Second)
 						return
@@ -689,6 +691,7 @@ func (tskw *TaskWatcher) executeTasks() {
 					err = tskw.executeVerifierTask(task)
 					if !task.ZKSync {
 						if err != nil {
+							logger.AtLog.Error(err)
 							time.Sleep(10 * time.Second)
 						}
 						newRunner.SetDone()
@@ -698,7 +701,6 @@ func (tskw *TaskWatcher) executeTasks() {
 							{
 								if err == nil {
 									newRunner.SetDone()
-								} else {
 								}
 							}
 						case ContractInferenceStatusCommit:
@@ -756,9 +758,7 @@ func (tskw *TaskWatcher) AddRunner(taskID string, runnerInst *runner.RunnerInsta
 	}
 
 	if _, ok := tskw.currentRunner[taskID]; ok {
-		log.Warn(fmt.Sprintf("task %s already exists", taskID))
 		return nil
-		// return errors.New(fmt.Sprintf("task %s already exists", taskID))
 	}
 
 	tskw.currentRunner[taskID] = runnerInst
