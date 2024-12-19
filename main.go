@@ -31,6 +31,7 @@ goto_here:
 			//only log
 		}
 
+		time.Sleep(time.Second * 5)
 		goto goto_here
 	}
 

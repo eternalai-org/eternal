@@ -28,6 +28,6 @@ func ReadConfig() (*Config, error) {
 	cfg.Rpc = os.Getenv("CHAIN_RPC")
 	cfg.Account = os.Getenv("ACCOUNT_PRIV")
 	cfg.StakingHubAddress = os.Getenv("STAKING_HUB_ADDRESS")
-	cfg.WorkerHubAddress = os.Getenv("WOEKER_HUB_ADDRESS")
+	cfg.WorkerHubAddress = os.Getenv("WORKER_HUB_ADDRESS")
 	return cfg, nil
 }
