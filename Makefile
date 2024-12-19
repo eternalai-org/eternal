@@ -20,7 +20,10 @@ lint-prepare:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s latest
 
 docker:
-	docker-compose down	service_miner && docker-compose build service_miner && docker-compose up -d service_miner
+	docker-compose down	service_miner && docker-compose build service_miner && docker-compose up -d service_miner &
+
+docker-ollama:
+	docker-compose down	 ollama && docker-compose build   ollama && docker-compose up -d   ollama &
 
 lint: vendor
 	./bin/golangci-lint run ./... --timeout 10m0s
