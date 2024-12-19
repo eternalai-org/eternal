@@ -56,8 +56,12 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	return b, nil
 }
 
-func (b *Base) GetPendingTasks(fromblock, toBlock int64) (*interfaces.Tasks, error) {
+func (b *Base) GetPendingTasks(fromblock, toBlock int64) ([]*interfaces.Tasks, error) {
 	return nil, nil
+}
+
+func (b *Base) SubmitTask() {
+
 }
 
 func (b *Base) IsStaked() (bool, error) {

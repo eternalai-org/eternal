@@ -24,8 +24,14 @@ func (c *Chain) Connect(rpc string) error {
 }
 
 type IChain interface {
+	IStaking
+	ITasks
+}
+
+type ITasks interface {
 	Connect(rpc string) error
-	GetPendingTasks(fromblock, toBlock int64) (*Tasks, error)
+	GetPendingTasks(fromblock, toBlock int64) ([]*Tasks, error)
+	SubmitTask()
 }
 
 type IStaking interface {
