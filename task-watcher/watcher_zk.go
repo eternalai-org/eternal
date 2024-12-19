@@ -1121,6 +1121,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 			continue
 		}
 
+		//fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
 		if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(tskw.address) {
 
 			task := types.TaskInfo{
@@ -1157,8 +1158,9 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 			}
 
 			logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
-				zap.Any("event", event),
-				zap.Any("task", task),
+				zap.String("inferenceId", event.InferenceId.String()),
+				zap.String("task", task.TaskID),
+				zap.Bool("is_batch", isBatch),
 			)
 			tasks = append(tasks, task)
 			continue
