@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"eternal-infer-worker/pkg/logger"
 	"fmt"
+	"go.uber.org/zap"
 	"math/big"
 	"strings"
 	"time"
@@ -1051,6 +1053,7 @@ func (tskw *TaskWatcher) UpdateContractSyncStateByAddressAndJob(state []model_st
 func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, event *base_wh_abi.WorkerHubRawSubmitted, chainConfig *config.ChainConfig, contractAddress common.Address, whContract *base_wh_abi.WorkerHub,
 	client *ethclient.Client,
 ) error {
+
 	var err error
 	tasks := make([]types.TaskInfo, 0)
 	requestId := event.InferenceId
@@ -1143,6 +1146,10 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 
 			}
 
+			logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
+				zap.Any("event", event),
+				zap.Any("task", task),
+			)
 			tasks = append(tasks, task)
 			continue
 		}
