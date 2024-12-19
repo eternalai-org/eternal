@@ -10,6 +10,7 @@ import (
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
+	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -81,6 +82,7 @@ func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks
 		Context: ctx,
 	}, nil, nil, nil)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 
 	}
@@ -141,35 +143,26 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 
 	}
 
-	var assignments []contract.IWorkerHubAssignmentInfo
 	assignmentIds, err := b.WorkerHub.GetAssignmentsByInference(nil, requestId)
 	if err != nil {
 		return nil, err
 	}
 	// here
 	for _, assignmentId := range assignmentIds {
-		assignments = append(assignments, zkabi.IWorkerHubAssignmentInfo{
-			AssignmentId: assignmentId,
-			InferenceId:  requestId,
-		})
-	}
 
-	for _, assignment := range assignments {
-		assignmentInfo, err := b.WorkerHub.Assignments(nil, assignment.AssignmentId)
+		assignment, err := b.WorkerHub.Assignments(nil, assignmentId)
 		if err != nil {
 			continue
 		}
 
 		//fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
-		if strings.ToLower(assignmentInfo.Worker.String()) == strings.ToLower(string(b.Address.Hex())) {
-
+		if strings.EqualFold(assignment.Worker.String(), b.Address.Hex()) {
 			task := &interfaces.Tasks{
 				TaskID:         assignment.InferenceId.String(),
-				AssignmentID:   assignment.AssignmentId.String(),
+				AssignmentID:   assignmentId.String(),
 				ModelContract:  strings.ToLower(event.Model.Hex()),
 				Params:         string(requestInfo.Input), // here
 				Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
-				Value:          assignment.Value.String(),
 				ZKSync:         true,
 				InferenceID:    event.InferenceId.String(),
 				AssignmentRole: libs.MODE_VALIDATOR,
@@ -179,8 +172,18 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 			}
 			// spew.Dump(task)
 
-			transact, err := tskw.seizeMinerRole(assignment.AssignmentId) // ask contract do i have miner role?
-			if err == nil && transact != nil {
+			auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, 200_000)
+			if err != nil {
+				continue
+			}
+
+			transact, err := b.WorkerHub.SeizeMinerRole(auth, assignmentId)
+			if err != nil {
+				continue
+			}
+
+			//TODO - transact.Receipt.Logs ???
+			/*if err == nil && transact != nil {
 				for _, txLog := range transact.Receipt.Logs {
 					if txLog == nil {
 						continue
@@ -194,7 +197,7 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 						task.AssignmentRole = libs.MODE_MINER
 					}
 				}
-			}
+			}*/
 
 			/*
 				logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
@@ -204,6 +207,9 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 					zap.String("role", task.AssignmentRole),
 					zap.Bool("is_batch", isBatch),
 				)*/
+			_ = transact
+
+			task.AssignmentRole = libs.MODE_MINER
 			tasks = append(tasks, task)
 			continue
 		}

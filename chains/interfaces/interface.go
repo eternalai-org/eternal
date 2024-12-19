@@ -51,7 +51,7 @@ type IChain interface {
 
 type ITasks interface {
 	Connect(rpc string) error
-	GetPendingTasks(fromblock, toBlock int64) ([]*Tasks, error)
+	GetPendingTasks(fromblock, toBlock uint64) ([]*Tasks, error)
 	SubmitTask()
 }
 

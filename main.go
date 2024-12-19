@@ -5,6 +5,8 @@ import (
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
 	_ "net/http/pprof"
+	"sync"
+	"time"
 )
 
 func main() {
@@ -33,10 +35,17 @@ goto_here:
 	}
 
 	//get and process tasks
-	for {
-		go taskWatcher.GetPendingTasks()
+	var wg sync.WaitGroup
 
-		go taskWatcher.ExecueteTasks()
+	for {
+		wg.Add(2)
+
+		go taskWatcher.GetPendingTasks(&wg)
+
+		go taskWatcher.ExecueteTasks(&wg)
+
+		wg.Wait()
+		time.Sleep(5 * time.Second)
 	}
 
 }
