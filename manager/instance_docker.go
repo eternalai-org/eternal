@@ -84,7 +84,7 @@ func folderExists(path string) bool {
 }
 
 func (m *ModelInstance) SetupDocker() error {
-	log.Info("LLM:", m.LLM)
+	//log.Info("LLM:", m.LLM)
 	/*
 		t := time.Now()
 		defer func() {
@@ -99,10 +99,10 @@ func (m *ModelInstance) SetupDocker() error {
 	//use api flo instead of Docker
 	apiURL, ok := config.IsUsedAPI(m.ChainCfg)
 	if ok {
-		log.Info(fmt.Sprintf("[SetupDocker][INFO][USE API] - url: %s", apiURL))
+		//log.Info(fmt.Sprintf("[SetupDocker][INFO][USE API] - url: %s", apiURL))
 		return nil
 	}
-
+	_ = apiURL
 	if !m.ZKSync {
 		filePath := ""
 		var err error
