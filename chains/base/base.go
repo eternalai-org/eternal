@@ -1,6 +1,7 @@
 package base
 
 import (
+	"context"
 	"eternal-infer-worker/chains/base/contract"
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
@@ -11,8 +12,10 @@ import (
 
 type Base struct {
 	interfaces.Chain
-	StakingHub        *contract.BaseWhAbi
-	StakingHubAddress string
+	StakingHub           *contract.BaseWhAbi
+	StakingHubAddress    string
+	Erc20contractAddress string
+	Erc20contract        *contract.Abi
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
@@ -22,15 +25,29 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 		return nil, err
 	}
 
-	b.Account = cnf.Account
+	b.PrivateKey = cnf.Account
 	b.StakingHubAddress = cnf.StakingHubAddress
 
+	_, address, err := eth.GetAccountInfo(b.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	b.Address = address
 	sthub, err := contract.NewBaseWhAbi(common.HexToAddress(b.StakingHubAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	b.StakingHub = sthub
+
+	b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
+	erc20, err := contract.NewAbi(common.HexToAddress(b.Erc20contractAddress), b.Client)
+	if err != nil {
+		return nil, err
+	}
+
+	b.Erc20contract = erc20
 	return b, nil
 }
 
@@ -39,12 +56,7 @@ func (b *Base) GetPendingTasks(fromblock, toBlock int64) (*interfaces.Tasks, err
 }
 
 func (b *Base) IsStaked() (bool, error) {
-	_, address, err := eth.GetAccountInfo(b.Account)
-	if err != nil {
-		return false, err
-	}
-
-	workerInfo, err := b.StakingHub.Miners(nil, *address)
+	workerInfo, err := b.StakingHub.Miners(nil, *b.Address)
 	if err != nil {
 		return false, err
 	}
@@ -58,7 +70,7 @@ func (b *Base) IsStaked() (bool, error) {
 		return false, nil
 	}
 
-	pendingUnstake, err := b.StakingHub.MinerUnstakeRequests(nil, *address)
+	pendingUnstake, err := b.StakingHub.MinerUnstakeRequests(nil, *b.Address)
 	if err != nil {
 		return false, err
 	}
@@ -76,8 +88,27 @@ func (b *Base) IsStaked() (bool, error) {
 	return true, nil
 }
 
-func (b *Base) StakeForWorker() (bool, error) {
-	return false, nil
+func (b *Base) StakeForWorker() error {
+	ctx := context.Background()
+
+	balance, err := b.Erc20contract.BalanceOf(nil, *b.Address)
+	if err != nil {
+		return err
+	}
+
+	err = eth.ApproveERC20(ctx, b.Client, b.PrivateKey, common.HexToAddress(b.StakingHubAddress), common.HexToAddress(b.Erc20contractAddress))
+	if err != nil {
+		return err
+	}
+
+	minStake, err := b.StakingHub.MinerMinimumStake(nil)
+	if err != nil {
+		return err
+	}
+
+	_ = balance
+	_ = minStake
+	return nil
 }
 
 func (b *Base) JoinForMinting() (bool, error) {

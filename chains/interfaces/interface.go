@@ -1,12 +1,16 @@
 package interfaces
 
-import "github.com/ethereum/go-ethereum/ethclient"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+)
 
 type Tasks struct{}
 
 type Chain struct {
-	Client  *ethclient.Client
-	Account string
+	Client     *ethclient.Client
+	PrivateKey string
+	Address    *common.Address
 }
 
 func (c *Chain) Connect(rpc string) error {
