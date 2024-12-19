@@ -1920,10 +1920,11 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 	startBlock := state.LastSyncedBlock
 	var endBlock uint64
 	tasks := []types.TaskInfo{}
-
+	finished := false
 	for {
 		//(currentBlock - 50) to pass this condition
 		if endBlock >= currentBlock || startBlock >= currentBlock {
+			finished = true
 			break
 		}
 
@@ -1958,9 +1959,11 @@ func (tskw *TaskWatcher) getPendingTaskFromContractBase() ([]types.TaskInfo, err
 		tasks = append(tasks, _tasks...)
 	}
 
-	//if len(tasks) > 0 {
-	log.Info("[getPendingTaskFromContractBase] - currentBlock: ", currentBlock, " ,endBlock: ", endBlock, " startBlock: ", startBlock, " ,tasks: ", len(tasks))
-	//}
+	if !finished {
+		logStr := fmt.Sprintf("PendingTaskFromBase [start - end: [%d - %d], currentBlock: %d, tasks: %d", startBlock, endBlock, currentBlock, len(tasks))
+		log.Info(logStr)
+	}
+
 	return tasks, nil
 }
 

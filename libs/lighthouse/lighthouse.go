@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -40,17 +41,58 @@ const (
 )
 
 func DownloadDataSimple(hash string) ([]byte, string, error) {
+	if strings.Contains(hash, "ipfs://") {
+		hash = strings.Replace(hash, "ipfs://", "", 1)
+	}
+	// https://gateway.lighthouse.storage/ipfs/QmXPGcEHCi1ZmbHFwScuP4ZJ2iv9YjTJMUroUTJUnFXxxj
+	//urlLink := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hash)
+
+	urlLink := fmt.Sprintf("https://cdn.eternalai.org/upload/%s", hash)
+
+	resp, err := http.Get(urlLink)
+	if err != nil {
+		return nil, "", fmt.Errorf("error when try get reponse :%v", err)
+	}
+	if resp == nil {
+		return nil, "", fmt.Errorf("error when try get reponse ==nil")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return DownloadDataSimpleFromLighthouse(hash)
+		}
+		return nil, "", fmt.Errorf("error when try get data url :%v => reponse code :%v", urlLink, resp.StatusCode)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", fmt.Errorf("error when read body from  reponse :%v", err)
+	}
+
+	mtype := mimetype.Detect(body)
+
+	return body, mtype.String(), nil
+}
+
+func DownloadDataSimpleFromLighthouse(hash string) ([]byte, string, error) {
+	if strings.Contains(hash, "ipfs://") {
+		hash = strings.Replace(hash, "ipfs://", "", 1)
+	}
 	// https://gateway.lighthouse.storage/ipfs/QmXPGcEHCi1ZmbHFwScuP4ZJ2iv9YjTJMUroUTJUnFXxxj
 	urlLink := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hash)
 
 	resp, err := http.Get(urlLink)
 	if err != nil {
-		return nil, "", errors.WithStack(err)
+		return nil, "", fmt.Errorf("error when try get reponse :%v", err)
 	}
-
+	if resp == nil {
+		return nil, "", fmt.Errorf("error when try get reponse ==nil")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("error when try get data url :%v => reponse code :%v", urlLink, resp.StatusCode)
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", errors.WithStack(err)
+		return nil, "", fmt.Errorf("error when read body from  reponse :%v", err)
 	}
 
 	mtype := mimetype.Detect(body)

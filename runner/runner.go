@@ -113,6 +113,7 @@ func (r *RunnerInstance) Run(outputFile string, setDone bool) error {
 		} else {
 			if r.task.IsBatch && len(r.task.BatchInfers) > 0 {
 
+				//TODO - HERE
 				for _, b := range r.task.BatchInfers {
 					obj, err := modelInst.InferChatCompletions(b.PromptInput, output, seed)
 					if err != nil {

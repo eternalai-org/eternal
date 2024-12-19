@@ -48,6 +48,8 @@ func (tskw *TaskWatcher) runDockerToGetValue(modelInst *manager.ModelInstance, t
 		return nil, err
 	}
 	log.Info("uploading result: ", fmt.Sprintf("%v_result.%v", task.TaskID, ext))
+
+	//TODO - HERE
 	cid, err := lighthouse.UploadData(tskw.lighthouseAPI, fmt.Sprintf("%v_result.%v", task.TaskID, ext), resultData)
 	if err != nil {
 		log.Error("upload data error: ", err)

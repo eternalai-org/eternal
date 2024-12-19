@@ -1079,6 +1079,7 @@ func (tskw *TaskWatcher) ProcessBaseChainEventNewInference(ctx context.Context, 
 	// Detect if  is batch
 	isBatch := false
 	if strings.HasPrefix(string(requestInfo.Input), config.IPFSPrefix) {
+		//TODO - HERE
 		inputBytes, _, err := lighthouse.DownloadDataSimpleWithRetry(string(requestInfo.Input))
 		if err == nil {
 			batchFullPrompts := []*model_structures.BatchInferHistory{}
