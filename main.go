@@ -66,7 +66,7 @@ func main() {
 		SecretKey: os.Getenv("GCS_SECRET_KEY"),
 	}
 
-	lighthouse.NewDataGCStorage(lighthouse.GCS{
+	_, err = lighthouse.NewDataGCStorage(lighthouse.GCS{
 		ProjectId: gcsCfg.ProjectId,
 		Bucket:    gcsCfg.Bucket,
 		Auth:      gcsCfg.Auth,
@@ -75,6 +75,9 @@ func main() {
 		AccessKey: gcsCfg.AccessKey,
 		SecretKey: gcsCfg.SecretKey,
 	})
+	if err != nil {
+		log.Error(err)
+	}
 
 	// the 1st starting to check
 	AutomaticallyCheckNewVersion(cfg)
