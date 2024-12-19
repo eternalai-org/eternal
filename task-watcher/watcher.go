@@ -886,30 +886,42 @@ func (tskw *TaskWatcher) GetWorkerInfo() (*types.WorkerInfo, error) {
 		}
 
 		//TODO - check task contract again.
-		miningReward, err := abi.NewMiningReward(common.HexToAddress(tskw.taskContract), ethClient)
+		/*miningReward, err := abi.NewMiningReward(common.HexToAddress(tskw.taskContract), ethClient)
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("NewMiningReward",
 				zap.String("tskw.taskContract", tskw.taskContract),
 				zap.Error(err),
 			)
 			return nil, err
-		}
+		}*/
 
 		//TODO - check execution reverted
-		rewardToClaim, err := miningReward.MiningRewardCaller.RewardToClaim(nil, *address)
+		/*rewardToClaim, err := workerHub.Re
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("RewardToClaim",
 				zap.String("tskw.taskContract", tskw.taskContract),
 				zap.Error(err),
 			)
 			return nil, err
-		}
+		}*/
+		rewardToClaim := big.NewInt(0)
 
 		//TODO - use erc20 instead
-		bal, err := ethClient.BalanceAt(context.Background(), common.HexToAddress(tskw.address), nil)
+		/*bal, err := ethClient.BalanceAt(context.Background(), common.HexToAddress(tskw.address), nil)
 		if err != nil {
 			log.Println("get balance error: ", err)
 			return nil, err
+		}*/
+
+		erc20contract, err := abi.NewAbi(common.HexToAddress(tskw.chainCfg.EaiErc20), ethClient)
+		if err != nil {
+			return nil, err
+		}
+
+		bal, err := erc20contract.BalanceOf(nil, *address)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("GetWorkerInfo", zap.Any("address", address.Hex()), zap.Any("balance", bal.String()), zap.Error(err))
+			bal = big.NewInt(0)
 		}
 
 		balFloat := new(big.Float).SetInt(bal)

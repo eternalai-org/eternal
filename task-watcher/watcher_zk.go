@@ -509,13 +509,40 @@ func (tskw *TaskWatcher) getInferenceInfo(inferenceID *big.Int) (*zkabi.IWorkerH
 }
 
 func (tskw *TaskWatcher) reJoinMinting(modelAddr string) error {
-	log.Info("Node is not join model address ", modelAddr)
-	err := tskw.joinForMinting()
-	if err != nil {
-		log.Error("validator retry join for minting error: ", err)
-		return err
+	//log.Info("Node is not join model address ", modelAddr)
+	//check is_join_for_minting
+	tx := ""
+	res := []*model_structures.Conf{}
+	err := db.Read(model_structures.Conf{}.CollectionName(), &res)
+	if err != nil || len(res) == 0 {
+		res = append(res, &model_structures.Conf{
+			Key:   model_structures.JOIN_FOR_MINTINT_KEY,
+			Value: ""},
+		)
+		err = db.Write(model_structures.Conf{}.CollectionName(), &res)
+	} else {
+		for _, r := range res {
+			if strings.EqualFold(r.Key, model_structures.JOIN_FOR_MINTINT_KEY) {
+				tx = r.Value
+			}
+		}
 	}
-	log.Info("Node re-join model address ", modelAddr)
+
+	if tx == "" {
+		err = tskw.joinForMinting()
+		if err != nil {
+			log.Error("validator retry join for minting error: ", err)
+			return err
+		}
+
+		db.Update(model_structures.Conf{}.CollectionName(), []*model_structures.Conf{
+			&model_structures.Conf{
+				Key:   model_structures.JOIN_FOR_MINTINT_KEY,
+				Value: "joined"},
+		})
+	}
+
+	//log.Info("Node re-join model address ", modelAddr)
 	return nil
 }
 
