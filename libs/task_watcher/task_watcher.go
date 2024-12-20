@@ -22,10 +22,11 @@ import (
 var TaskChecker = make(map[string]bool)
 
 type TaskWatcher struct {
-	runnerLock sync.RWMutex
-	chain      interfaces.IChain
-	cnf        *config.Config
-	IsStaked   *bool
+	runnerLock   sync.RWMutex
+	chain        interfaces.IChain
+	cnf          *config.Config
+	IsStaked     *bool
+	currentBlock uint64
 }
 
 func NewTasksWatcher(base interfaces.IChain, cnf *config.Config) *TaskWatcher {
@@ -42,8 +43,7 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) c
 		logger.AtLog.Info("Waiting task...")
 		defer wg.Done()
 		defer close(taskQueue)
-
-		fBlock := t.chain.FromBlock()
+		fBlock := t.chain.FromBlock(t.currentBlock)
 		tBlock := t.chain.ToBlock()
 		// fBlock = 23945180 - 1
 		// tBlock = fBlock + 2
@@ -80,6 +80,7 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) c
 			TaskChecker[v.TaskID] = true
 			taskQueue <- v
 		}
+		t.currentBlock = tBlock
 		return
 	}()
 	return taskQueue

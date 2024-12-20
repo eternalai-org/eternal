@@ -49,7 +49,6 @@ type Chain struct {
 	Client     *ethclient.Client
 	PrivateKey string
 	Address    *common.Address
-	CBlock     uint64
 }
 
 type LLMInferRequest struct {
@@ -106,14 +105,12 @@ func (c *Chain) CurrentBlock() uint64 {
 	return bln
 }
 
-func (c *Chain) FromBlock() uint64 {
-	if c.CBlock != 0 {
-		return c.CBlock
+func (c *Chain) FromBlock(block uint64) uint64 {
+	if block != 0 {
+		return block
 	}
 
 	cblock := c.CurrentBlock()
-	c.CBlock = cblock
-
 	cblock = cblock - 1000
 	return cblock
 }
@@ -131,7 +128,7 @@ type IChain interface {
 type ITasks interface {
 	Connect(rpc string) error
 	CurrentBlock() uint64
-	FromBlock() uint64
+	FromBlock(uint64) uint64
 	ToBlock() uint64
 	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Task, error)
 	SubmitTask(ctx context.Context, assigmentID *big.Int, result []byte) (*types.Transaction, error)

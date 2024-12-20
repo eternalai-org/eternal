@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const TimeToWating time.Duration = 5
+const TimeToWating time.Duration = 10
 const (
 	MODE_MINER     = "miner"
 	MODE_VALIDATOR = "validator"
