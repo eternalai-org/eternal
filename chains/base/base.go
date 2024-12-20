@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
+
 	"eternal-infer-worker/chains/base/contract/erc20"
 	"eternal-infer-worker/chains/base/contract/staking_hub"
 	"eternal-infer-worker/chains/base/contract/worker_hub"
@@ -12,8 +15,6 @@ import (
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
-	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -25,7 +26,6 @@ type Base struct {
 	StakingHubAddress    string
 	Erc20contractAddress string
 	ModelAddress         string
-	Erc20contract        *contract.Abi
 	GasLimit             uint64
 
 	StakingHub    *staking_hub.StakingHub
@@ -265,7 +265,7 @@ func (b *Base) StakeForWorker() error {
 		return err
 	}
 
-	err = eth.ApproveERC20(ctx, b.Client, b.PrivateKey, common.HexToAddress(b.StakingHubAddress), common.HexToAddress(b.Erc20contractAddress), b.GasLimit)
+	err = eth.ApproveERC20(ctx, b.Client, b.PrivateKey, common.HexToAddress(b.StakingHubAddress), common.HexToAddress(b.Erc20contractAddress), int64(b.GasLimit))
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ func (b *Base) StakeForWorker() error {
 		return err
 	}
 
-	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, b.GasLimit)
+	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, int64(b.GasLimit))
 	if err != nil {
 		return err
 	}
@@ -303,7 +303,7 @@ func (b *Base) StakeForWorker() error {
 
 func (b *Base) JoinForMinting() error {
 	ctx := context.Background()
-	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, b.GasLimit)
+	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, int64(b.GasLimit))
 	if err != nil {
 		return err
 	}

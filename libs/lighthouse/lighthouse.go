@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"eternal-infer-worker/libs/eth"
+
 	"cloud.google.com/go/storage"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/option"

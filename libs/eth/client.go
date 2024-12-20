@@ -6,11 +6,14 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"errors"
-	"eternal-infer-worker/libs/contract/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
+
+	"eternal-infer-worker/libs/contract/abi"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -238,4 +241,15 @@ func ApproveERC20(ctx context.Context, client *ethclient.Client, privateKey stri
 	}
 
 	return err
+}
+
+func SignMessage(message string, privateKey *ecdsa.PrivateKey) (string, error) {
+	fullMessage := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(message), message)
+	hash := crypto.Keccak256Hash([]byte(fullMessage))
+	signatureBytes, err := crypto.Sign(hash.Bytes(), privateKey)
+	if err != nil {
+		return "", err
+	}
+	signatureBytes[64] += 27
+	return hexutil.Encode(signatureBytes), nil
 }
