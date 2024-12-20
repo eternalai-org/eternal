@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile.Arm
     container_name:  service_miner
-    entrypoint: ["/workersv", "-silent",  "-no-update-on-start", "true", "-config-file", "./env/config.env" ]
+    entrypoint: ["/workersv",  "-config-file", "./env/config.env" ]
     ports:
       - "8000:8000"
     tty: true
