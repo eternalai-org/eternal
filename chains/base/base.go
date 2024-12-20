@@ -154,73 +154,60 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 	}
 	// here
 	for _, assignmentId := range assignmentIds {
-
 		assignment, err := b.WorkerHub.Assignments(nil, assignmentId)
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("WorkerHub.Assignments", zap.Error(err))
 			continue
 		}
 
-		// fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
-		if strings.EqualFold(assignment.Worker.String(), b.Address.Hex()) {
-			task := &interfaces.Task{
-				TaskID:         assignment.InferenceId.String(),
-				AssignmentID:   assignmentId.String(),
-				ModelContract:  strings.ToLower(event.Model.Hex()),
-				Params:         string(requestInfo.Input), // here
-				Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
-				ZKSync:         true,
-				InferenceID:    event.InferenceId.String(),
-				AssignmentRole: libs.MODE_VALIDATOR,
-				IsBatch:        isBatch,
-				BatchInfers:    batchInfers, // here
-				ExternalData:   externalData,
-			}
-
-			auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, 200_000)
-			if err != nil {
-				logger.GetLoggerInstanceFromContext(ctx).Error("CreateBindTransactionOpts", zap.Error(err))
-				continue
-			}
-
-			transact, err := b.WorkerHub.SeizeMinerRole(auth, assignmentId)
-			_ = transact
-			if err != nil {
-				logger.GetLoggerInstanceFromContext(ctx).Error("SeizeMinerRole", zap.Error(err))
-				// continue
-			}
-
-			//TODO - transact.Receipt.Logs ???
-			/*if err == nil && transact != nil {
-				for _, txLog := range transact.Receipt.Logs {
-					if txLog == nil {
-						continue
-					}
-
-					minerRoleSeized, err := b.WorkerHub.ParseMinerRoleSeized(*txLog)
-					if err != nil {
-						continue
-					}
-					if strings.EqualFold(b.Address.Hex(), minerRoleSeized.Miner.Hex()) {
-						task.AssignmentRole = libs.MODE_MINER
-					}
-				}
-			}*/
-
-			/*
-				logger.GetLoggerInstanceFromContext(ctx).Info("ProcessBaseChainEventNewInference",
-					zap.String("inferenceId", event.InferenceId.String()),
-					zap.String("task", task.TaskID),
-					zap.String("worker_address", strings.ToLower(assignmentInfo.Worker.String())),
-					zap.String("role", task.AssignmentRole),
-					zap.Bool("is_batch", isBatch),
-				)*/
-
-			logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("id", task.TaskID), zap.Any("assignment_id", task.AssignmentID))
-			task.AssignmentRole = libs.MODE_MINER
-			tasks = append(tasks, task)
+		if !strings.EqualFold(assignment.Worker.String(), b.Address.Hex()) {
 			continue
 		}
+
+		task := &interfaces.Task{
+			TaskID:         assignment.InferenceId.String(),
+			AssignmentID:   assignmentId.String(),
+			ModelContract:  strings.ToLower(event.Model.Hex()),
+			Params:         string(requestInfo.Input), // here
+			Requestor:      strings.ToLower(requestInfo.Creator.Hex()),
+			ZKSync:         true,
+			InferenceID:    event.InferenceId.String(),
+			AssignmentRole: libs.MODE_VALIDATOR,
+			IsBatch:        isBatch,
+			BatchInfers:    batchInfers, // here
+			ExternalData:   externalData,
+		}
+
+		auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, 200_000)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("CreateBindTransactionOpts", zap.Error(err))
+			continue
+		}
+
+		transact, err := b.WorkerHub.SeizeMinerRole(auth, assignmentId)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("SeizeMinerRole", zap.Error(err))
+			continue
+		}
+		_ = transact
+
+		// for _, txLog := range transact {
+		// 	if txLog == nil {
+		// 		continue
+		// 	}
+
+		// 	minerRoleSeized, err := b.WorkerHub.ParseMinerRoleSeized(*txLog)
+		// 	if err != nil {
+		// 		continue
+		// 	}
+
+		// 	if strings.EqualFold(b.Address.Hex(), minerRoleSeized.Miner.Hex()) {
+		// 		task.AssignmentRole = libs.MODE_MINER
+		// 	}
+		// }
+		task.AssignmentRole = libs.MODE_MINER
+		logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("id", task.TaskID), zap.Any("assignment_id", task.AssignmentID))
+		tasks = append(tasks, task)
 	}
 
 	return tasks, nil
