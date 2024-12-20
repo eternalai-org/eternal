@@ -87,8 +87,17 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 
 		// TODO - execute and get this taskResult
 		// 1. batch -> promt output
-		// 1. no batch -> goi
-		taskResult := interfaces.TaskResult{}
+		// 1. no batch
+		//TODO - execute and get this taskResult
+		taskResult, err := t.execueteTasks(task)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
+				zap.Any("assigment_id", task.AssignmentID),
+				zap.String("inference_id", task.AssignmentID),
+				zap.Error(err),
+			)
+			continue
+		}
 
 		resultData, err := json.Marshal(taskResult)
 		if err != nil {
@@ -111,6 +120,12 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 			zap.String("tx", tx.Hash().Hex()),
 		)
 	}
+}
+
+func (t *TaskWatcher) execueteTasks(task *interfaces.Task) (*interfaces.TaskResult, error) {
+	res := &interfaces.TaskResult{}
+
+	return res, nil
 }
 
 func (t *TaskWatcher) Verify() bool {
