@@ -50,18 +50,17 @@ goto_here:
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 	ctx := context.Background()
-	go func(ctx context.Context) {
-		logger.AtLog.Info("START GetPendingTasks")
 
+	logger.AtLog.Info("START GetPendingTasks")
+	go func(ctx context.Context) {
 		for {
 			taskWatcher.GetPendingTasks(ctx, wg)
 			time.Sleep(TimeToWating * time.Second)
 		}
 	}(ctx)
 
+	logger.AtLog.Info("START ExecueteTasks")
 	for {
-
-		logger.AtLog.Info("START ExecueteTasks")
 		go taskWatcher.ExecueteTasks(ctx, wg)
 	}
 	wg.Wait()
