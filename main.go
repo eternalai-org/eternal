@@ -18,7 +18,7 @@ func main() {
 
 	b, err := base.NewBaseChain(cnf)
 	if err != nil {
-		panic(err)
+		panic("NewBaseChain")
 	}
 
 	taskWatcher := task_watcher.NewTasksWatcher(b)

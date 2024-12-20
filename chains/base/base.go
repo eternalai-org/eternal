@@ -17,6 +17,7 @@ import (
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -72,6 +73,7 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	}
 
 	b.WorkerHub = wkHub
+	spew.Dump(wkHub)
 	b.Erc20contract = erc20
 	b.GasLimit = 200_000
 	return b, nil
@@ -86,6 +88,8 @@ func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks
 		End:     &endBlock,
 		Context: ctx,
 	}, nil, nil, nil)
+
+	spew.Dump("xxxxxxx")
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

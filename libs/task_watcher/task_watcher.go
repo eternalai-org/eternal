@@ -21,6 +21,7 @@ func NewTasksWatcher(base interfaces.IChain) *TasksWatcher {
 }
 
 func (t *TasksWatcher) GetPendingTasks(wg *sync.WaitGroup) {
+	defer wg.Done()
 	tasks, err := t.base.GetPendingTasks(23909302, 23909467)
 	if err != nil {
 		return
@@ -32,6 +33,7 @@ func (t *TasksWatcher) GetPendingTasks(wg *sync.WaitGroup) {
 }
 
 func (t *TasksWatcher) ExecueteTasks(wg *sync.WaitGroup) {
+	defer wg.Done()
 	task := <-t.taskQueue
 	spew.Dump(task)
 }
