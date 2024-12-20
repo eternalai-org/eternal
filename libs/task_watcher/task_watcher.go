@@ -3,34 +3,38 @@ package task_watcher
 import (
 	"context"
 	"encoding/json"
-	"github.com/opencontainers/runc/libcontainer/configs"
 	"math/big"
 	"sync"
+	"time"
 
 	"eternal-infer-worker/chains/interfaces"
+	"eternal-infer-worker/config"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/pkg/logger"
 
 	"go.uber.org/zap"
 )
 
-type TasksWatcher struct {
-	taskQueue  chan *interfaces.Tasks
+type TaskWatcher struct {
+	taskQueue  chan *interfaces.Task
 	runnerLock sync.RWMutex
 	chain      interfaces.IChain
-	cnf        *configs.Config
+	cnf        *config.Config
 }
 
-func NewTasksWatcher(base interfaces.IChain, cnf *configs.Config) *TasksWatcher {
-	return &TasksWatcher{
+func NewTasksWatcher(base interfaces.IChain, cnf *config.Config) *TaskWatcher {
+	return &TaskWatcher{
 		chain: base,
 		cnf:   cnf,
 	}
 }
 
-func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
+func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
+	logger.AtLog.Info("Waiting task...")
 
 	for {
+		time.Sleep(time.Second * libs.TimeToWating)
 		fBlock := t.chain.FromBlock()
 		tBlock := t.chain.ToBlock()
 
@@ -53,7 +57,7 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 			continue
 		}
 
-		t.taskQueue = make(chan *interfaces.Tasks, len(tasks))
+		t.taskQueue = make(chan *interfaces.Task, len(tasks))
 		for _, v := range tasks {
 			logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks.item",
 				zap.Uint64("from_block", fBlock),
@@ -71,15 +75,19 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 	}
 }
 
-func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
+func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	logger.AtLog.Info("Execuete task...")
 	for task := range t.taskQueue {
 		assigmentID, ok := big.NewInt(0).SetString(task.AssignmentID, 10)
 		if !ok {
 			continue
 		}
 
-		//TODO - execute and get this taskResult
+		// TODO - execute and get this taskResult
+		// 1. batch -> promt output
+		// 1. no batch -> goi
 		taskResult := interfaces.TaskResult{}
 
 		resultData, err := json.Marshal(taskResult)
@@ -105,13 +113,13 @@ func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
-func (t *TasksWatcher) Verify() bool {
+func (t *TaskWatcher) Verify() bool {
 	isStake, _ := t.chain.IsStaked()
 	isStake = true //
 	return isStake
 }
 
-func (t *TasksWatcher) MakeVerify() error {
+func (t *TaskWatcher) MakeVerify() error {
 	err := t.chain.StakeForWorker()
 	if err != nil {
 		return err

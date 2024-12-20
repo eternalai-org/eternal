@@ -39,7 +39,7 @@ type Base struct {
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
-	b := new(Base)
+	b := &Base{}
 	err := b.Connect(cnf.Rpc)
 	if err != nil {
 		return nil, err
@@ -79,8 +79,8 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	return b, nil
 }
 
-func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64) ([]*interfaces.Tasks, error) {
-	tasks := []*interfaces.Tasks{}
+func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64) ([]*interfaces.Task, error) {
+	tasks := []*interfaces.Task{}
 	iter, err := b.WorkerHub.FilterRawSubmitted(&bind.FilterOpts{
 		Start:   startBlock,
 		End:     &endBlock,
@@ -104,9 +104,9 @@ func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64)
 	return nil, nil
 }
 
-func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *worker_hub.WorkerHubRawSubmitted) ([]*interfaces.Tasks, error) {
+func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *worker_hub.WorkerHubRawSubmitted) ([]*interfaces.Task, error) {
 	var err error
-	tasks := make([]*interfaces.Tasks, 0)
+	tasks := make([]*interfaces.Task, 0)
 	requestId := event.InferenceId
 	requestIdStr := requestId.String()
 	_ = requestIdStr
@@ -161,7 +161,7 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 
 		// fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
 		if strings.EqualFold(assignment.Worker.String(), b.Address.Hex()) {
-			task := &interfaces.Tasks{
+			task := &interfaces.Task{
 				TaskID:         assignment.InferenceId.String(),
 				AssignmentID:   assignmentId.String(),
 				ModelContract:  strings.ToLower(event.Model.Hex()),

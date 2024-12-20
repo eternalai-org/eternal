@@ -9,13 +9,12 @@ import (
 
 	"eternal-infer-worker/chains/base"
 	"eternal-infer-worker/config"
+	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/task_watcher"
 	"eternal-infer-worker/pkg/logger"
 )
 
 var configFile string
-
-const TimeToWating time.Duration = 5
 
 func main() {
 	// init flag
@@ -42,7 +41,7 @@ goto_here:
 			logger.AtLog.Error(err)
 		}
 
-		time.Sleep(time.Second * TimeToWating)
+		time.Sleep(time.Second * libs.TimeToWating)
 		goto goto_here
 	}
 
@@ -58,6 +57,6 @@ goto_here:
 		go taskWatcher.ExecueteTasks(ctx, wg)
 
 		wg.Wait()
-		time.Sleep(TimeToWating * time.Second)
+		time.Sleep(time.Second * libs.TimeToWating)
 	}
 }

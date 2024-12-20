@@ -2,9 +2,10 @@ package interfaces
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -23,7 +24,7 @@ type TaskResult struct {
 	Data      []byte      `json:"data"`
 }
 
-type Tasks struct {
+type Task struct {
 	TaskID string `json:"task_id"`
 	// ModelAddress     string `json:"model_name"`
 	// ModelID       string `json:"model_id"`
@@ -89,7 +90,7 @@ type ITasks interface {
 	CurrentBlock() uint64
 	FromBlock() uint64
 	ToBlock() uint64
-	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Tasks, error)
+	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Task, error)
 	SubmitTask(assigmentID *big.Int, result []byte) (*types.Transaction, error)
 }
 
