@@ -101,7 +101,7 @@ func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64)
 		tasks = append(tasks, tsk...)
 	}
 
-	return nil, nil
+	return tasks, nil
 }
 
 func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *worker_hub.WorkerHubRawSubmitted) ([]*interfaces.Task, error) {
