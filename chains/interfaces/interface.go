@@ -49,6 +49,7 @@ type Chain struct {
 	Client     *ethclient.Client
 	PrivateKey string
 	Address    *common.Address
+	CBlock     uint64
 }
 
 type LLMInferRequest struct {
@@ -106,7 +107,13 @@ func (c *Chain) CurrentBlock() uint64 {
 }
 
 func (c *Chain) FromBlock() uint64 {
+	if c.CBlock != 0 {
+		return c.CBlock
+	}
+
 	cblock := c.CurrentBlock()
+	c.CBlock = cblock
+
 	cblock = cblock - 1000
 	return cblock
 }
