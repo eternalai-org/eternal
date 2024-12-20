@@ -11,18 +11,19 @@ import (
 type TasksWatcher struct {
 	taskQueue  chan *interfaces.Tasks
 	runnerLock sync.RWMutex
-	base       interfaces.IChain
+	chain      interfaces.IChain
 }
 
 func NewTasksWatcher(base interfaces.IChain) *TasksWatcher {
 	return &TasksWatcher{
 		taskQueue: make(chan *interfaces.Tasks, 1),
+		chain:     base,
 	}
 }
 
 func (t *TasksWatcher) GetPendingTasks(wg *sync.WaitGroup) {
 	defer wg.Done()
-	tasks, err := t.base.GetPendingTasks(23909302, 23909467)
+	tasks, err := t.chain.GetPendingTasks(23909302, 23909467)
 	if err != nil {
 		return
 	}
