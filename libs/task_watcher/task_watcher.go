@@ -18,52 +18,59 @@ type TasksWatcher struct {
 
 func NewTasksWatcher(base interfaces.IChain) *TasksWatcher {
 	return &TasksWatcher{
-		taskQueue: make(chan *interfaces.Tasks, 1),
-		chain:     base,
+		chain: base,
 	}
 }
 
 func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fBlock := t.chain.FromBlock()
-	tBlock := t.chain.ToBlock()
 
-	tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
-	if err != nil {
-		logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks",
+	for {
+		fBlock := t.chain.FromBlock()
+		tBlock := t.chain.ToBlock()
+
+		tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks",
+				zap.Uint64("from_block", fBlock),
+				zap.Uint64("to_block", tBlock),
+				zap.Error(err),
+			)
+			return
+		}
+		logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks",
 			zap.Uint64("from_block", fBlock),
 			zap.Uint64("to_block", tBlock),
-			zap.Error(err),
+			zap.Int("tasks", len(tasks)),
 		)
+
+		if len(tasks) == 0 {
+			continue
+		}
+
+		t.taskQueue = make(chan *interfaces.Tasks, len(tasks))
+		for _, v := range tasks {
+			logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks.item",
+				zap.Uint64("from_block", fBlock),
+				zap.Uint64("to_block", tBlock),
+				zap.String("task_id", v.TaskID),
+				zap.String("inference_id", v.InferenceID),
+				zap.String("assigment_id", v.AssignmentID),
+				zap.String("assignment_role", v.AssignmentRole),
+				zap.Bool("is_batch", v.IsBatch),
+				zap.Int("batch_len", len(v.BatchInfers)),
+			)
+			t.taskQueue <- v
+		}
 		return
-	}
-
-	logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks",
-		zap.Error(err),
-		zap.Uint64("from_block", fBlock),
-		zap.Uint64("to_block", tBlock),
-		zap.Int("tasks", len(tasks)),
-	)
-
-	for _, v := range tasks {
-		logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks.item",
-			zap.Uint64("from_block", fBlock),
-			zap.Uint64("to_block", tBlock),
-			zap.String("task_id", v.TaskID),
-			zap.String("inference_id", v.InferenceID),
-			zap.String("assigment_id", v.AssignmentID),
-			zap.String("assignment_role", v.AssignmentRole),
-			zap.Bool("is_batch", v.IsBatch),
-			zap.Int("batch_len", len(v.BatchInfers)),
-		)
-		t.taskQueue <- v
 	}
 }
 
 func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	task := <-t.taskQueue
-	logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks", zap.Any("task", task))
+	for task := range t.taskQueue {
+		logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks", zap.Any("task", task))
+	}
 }
 
 func (t *TasksWatcher) Verify() bool {
