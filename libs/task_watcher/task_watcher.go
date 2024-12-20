@@ -16,7 +16,6 @@ import (
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/pkg/logger"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +45,7 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) c
 
 		fBlock := t.chain.FromBlock()
 		tBlock := t.chain.ToBlock()
-		fBlock = 23945180 - 1
+		// fBlock = 23945180 - 1
 		// tBlock = fBlock + 2
 
 		tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
@@ -111,10 +110,11 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup, tas
 				continue
 			}
 
-			tx, err := t.chain.SubmitTask(assigmentID, resultData)
+			tx, err := t.chain.SubmitTask(ctx, assigmentID, resultData)
 			if err != nil {
 				logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
 					zap.Any("assigment_id", task.AssignmentID),
+					zap.Any("resultData", resultData),
 					zap.String("inference_id", task.AssignmentID),
 					zap.Error(err),
 				)
@@ -177,7 +177,8 @@ func (t *TaskWatcher) executeTasks(ctx context.Context, task *interfaces.Task) (
 	if err != nil {
 		return nil, err
 	}
-	res.ResultURI = url
+	res.ResultURI = "ipfs://" + url
+	logger.GetLoggerInstanceFromContext(ctx).Info("executeTasks", zap.Any("res", res))
 
 	return res, nil
 }
@@ -204,8 +205,6 @@ func (t *TaskWatcher) InferChatCompletions(ctx context.Context, prompt string, m
 	if err != nil {
 		return nil, err
 	}
-
-	spew.Dump(string(inferJSON))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
 	for k, v := range headers {

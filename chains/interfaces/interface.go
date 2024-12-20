@@ -127,7 +127,7 @@ type ITasks interface {
 	FromBlock() uint64
 	ToBlock() uint64
 	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Task, error)
-	SubmitTask(assigmentID *big.Int, result []byte) (*types.Transaction, error)
+	SubmitTask(ctx context.Context, assigmentID *big.Int, result []byte) (*types.Transaction, error)
 }
 
 type IStaking interface {

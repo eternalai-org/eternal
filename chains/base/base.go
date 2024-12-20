@@ -226,26 +226,28 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 	return tasks, nil
 }
 
-func (b *Base) SubmitTask(assigmentID *big.Int, result []byte) (*types.Transaction, error) {
-	ctx := context.Background()
-
+func (b *Base) SubmitTask(ctx context.Context, assigmentID *big.Int, result []byte) (*types.Transaction, error) {
 	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, int64(b.GasLimit))
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("SubmitTask#CreateBindTransactionOpts", zap.Error(err))
 		return nil, err
 	}
 
 	tx, err := b.WorkerHub.SubmitSolution(auth, assigmentID, result)
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("SubmitTask#SubmitSolution", zap.Error(err), zap.Any("assigmentID", assigmentID), zap.Any("result", string(result)))
 		return nil, err
 	}
 
 	err = eth.WaitForTx(b.Client, tx.Hash())
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("SubmitTask#WaitForTx", zap.Error(err))
 		return nil, err
 	}
 
 	receipt, err := b.Client.TransactionReceipt(ctx, tx.Hash())
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("SubmitTask#WaitForTxTransactionReceipt", zap.Error(err))
 		return nil, err
 	}
 
