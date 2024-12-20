@@ -155,7 +155,9 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 	for _, assignmentId := range assignmentIds {
 		assignment, err := b.WorkerHub.Assignments(nil, assignmentId)
 		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("WorkerHub.Assignments", zap.Error(err))
+			logger.GetLoggerInstanceFromContext(ctx).Error("WorkerHub.Assignments",
+				zap.String("task.InferenceID", assignment.InferenceId.String()),
+				zap.Error(err))
 			continue
 		}
 
@@ -179,13 +181,23 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 
 		auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, 200_000)
 		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("CreateBindTransactionOpts", zap.Error(err))
+			logger.GetLoggerInstanceFromContext(ctx).Error("CreateBindTransactionOpts",
+				zap.String("task.TaskID", task.TaskID),
+				zap.String("task.InferenceID", task.InferenceID),
+				zap.String("task.AssignmentRole", task.AssignmentRole),
+				zap.String("task.AssignmentID", task.AssignmentID),
+				zap.Error(err))
 			continue
 		}
 
 		transact, err := b.WorkerHub.SeizeMinerRole(auth, assignmentId)
 		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("SeizeMinerRole", zap.Error(err))
+			logger.GetLoggerInstanceFromContext(ctx).Error("SeizeMinerRole",
+				zap.String("task.TaskID", task.TaskID),
+				zap.String("task.InferenceID", task.InferenceID),
+				zap.String("task.AssignmentRole", task.AssignmentRole),
+				zap.String("task.AssignmentID", task.AssignmentID),
+				zap.Error(err))
 			continue
 		}
 		_ = transact
@@ -205,7 +217,13 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 		// 	}
 		// }
 		task.AssignmentRole = libs.MODE_MINER
-		logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("id", task.TaskID), zap.Any("assignment_id", task.AssignmentID))
+		logger.GetLoggerInstanceFromContext(ctx).Info("task",
+			zap.String("task.TaskID", task.TaskID),
+			zap.String("task.InferenceID", task.InferenceID),
+			zap.String("task.AssignmentRole", task.AssignmentRole),
+			zap.String("task.AssignmentID", task.AssignmentID),
+			zap.String("transact", transact.Hash().Hex()),
+		)
 		tasks = append(tasks, task)
 	}
 
