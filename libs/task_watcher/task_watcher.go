@@ -20,6 +20,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var TaskChecker = make(map[string]bool)
+
 type TaskWatcher struct {
 	taskQueue  chan *interfaces.Task
 	runnerLock sync.RWMutex
@@ -75,6 +77,11 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 				zap.Bool("is_batch", v.IsBatch),
 				zap.Int("batch_len", len(v.BatchInfers)),
 			)
+			if v, ok := TaskChecker[v.TaskID]; ok && v {
+				continue
+			}
+
+			TaskChecker[v.TaskID] = true
 			t.taskQueue <- v
 		}
 		return
