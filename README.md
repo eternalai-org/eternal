@@ -7,7 +7,7 @@ Open your terminal or command prompt and follow these steps:
    ```
    
 2. **Update Environment:**
-   Edit config.env with your settings.
+   Edit `env/config.env` with your settings.
 
 3. **Start Service:**
 
@@ -22,7 +22,7 @@ Open your terminal or command prompt and follow these steps:
     
 5. **View Logs:**
     ```bash
-docker logs -f <container-name>
+    docker logs -f <container-name>
     ```
 
 
