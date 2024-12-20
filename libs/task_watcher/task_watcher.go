@@ -40,13 +40,11 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) c
 	taskQueue := make(chan *interfaces.Task, 10)
 
 	go func() {
-		//logger.AtLog.Info("Waiting task...")
+		// logger.AtLog.Info("Waiting task...")
 		defer wg.Done()
 		defer close(taskQueue)
 		fBlock := t.chain.FromBlock(t.currentBlock)
 		tBlock := t.chain.ToBlock()
-		// fBlock = 23945180 - 1
-		// tBlock = fBlock + 2
 
 		tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
 		if err != nil {
@@ -88,7 +86,7 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) c
 
 func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup, taskQueue chan *interfaces.Task) {
 	go func() {
-		//logger.AtLog.Info("Execuete task...")
+		// logger.AtLog.Info("Execuete task...")
 		defer wg.Done()
 		for task := range taskQueue {
 			assigmentID, ok := big.NewInt(0).SetString(task.AssignmentID, 10)

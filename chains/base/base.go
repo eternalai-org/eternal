@@ -61,7 +61,6 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 
 	b.StakingHub = sthub
 	errors.Join(err, errors.New("Error while BaseWhAbiTransactor JoinForMinting"))
-	// b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
 	erc20, err := erc20.NewErc20(common.HexToAddress(b.Erc20contractAddress), b.Client)
 	if err != nil {
 		return nil, err
