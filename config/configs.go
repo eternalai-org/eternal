@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 
+	"eternal-infer-worker/pkg/logger"
+
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +20,7 @@ type Config struct {
 	ApiUrl            string
 	ApiKey            string
 	LighthouseKey     string
+	ModelAddress      string
 }
 
 func ReadConfig(path string) (*Config, error) {
@@ -35,5 +38,7 @@ func ReadConfig(path string) (*Config, error) {
 	cfg.ApiUrl = os.Getenv("API_URL")
 	cfg.ApiKey = os.Getenv("API_KEY")
 	cfg.LighthouseKey = os.Getenv("LIGHT_HOUSE_API_KEY")
+	cfg.ModelAddress = os.Getenv("MODEL_ADDRESS")
+	logger.AtLog.Info(cfg)
 	return cfg, nil
 }

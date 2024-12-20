@@ -4,12 +4,16 @@ import (
 	"context"
 	"flag"
 	_ "net/http/pprof"
+	"os"
 	"sync"
 	"time"
 
 	"eternal-infer-worker/chains/base"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+
+	"eternal-infer-worker/libs/googlecloud"
+	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/libs/task_watcher"
 	"eternal-infer-worker/pkg/logger"
 )
@@ -22,6 +26,29 @@ func main() {
 	flag.Parse()
 
 	cnf, err := config.ReadConfig(configFile)
+	if err != nil {
+		logger.AtLog.Fatal(err)
+	}
+
+	gcsCfg := googlecloud.GCS{
+		ProjectId: os.Getenv("GCS_PROJECT_ID"),
+		Bucket:    os.Getenv("GCS_BUCKET"),
+		Auth:      os.Getenv("GCS_AUTH"),
+		Endpoint:  os.Getenv("GCS_ENDPOINT"),
+		Region:    os.Getenv("GCS_REGION"),
+		AccessKey: os.Getenv("GCS_ACCESS_KEY"),
+		SecretKey: os.Getenv("GCS_SECRET_KEY"),
+	}
+
+	_, err = lighthouse.NewDataGCStorage(lighthouse.GCS{
+		ProjectId: gcsCfg.ProjectId,
+		Bucket:    gcsCfg.Bucket,
+		Auth:      gcsCfg.Auth,
+		Endpoint:  gcsCfg.Endpoint,
+		Region:    gcsCfg.Region,
+		AccessKey: gcsCfg.AccessKey,
+		SecretKey: gcsCfg.SecretKey,
+	})
 	if err != nil {
 		logger.AtLog.Fatal(err)
 	}

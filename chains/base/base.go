@@ -61,14 +61,14 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 
 	b.StakingHub = sthub
 	errors.Join(err, errors.New("Error while BaseWhAbiTransactor JoinForMinting"))
-	b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
+	// b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
 	erc20, err := erc20.NewErc20(common.HexToAddress(b.Erc20contractAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	b.WorkerHubAddress = cnf.WorkerHubAddress
-	wkHub, err := worker_hub.NewWorkerHub(common.HexToAddress(b.StakingHubAddress), b.Client)
+	wkHub, err := worker_hub.NewWorkerHub(common.HexToAddress(b.WorkerHubAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,6 @@ func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64)
 			logger.GetLoggerInstanceFromContext(ctx).Error("ProcessBaseChainEventNewInference#error", zap.Error(err))
 			return nil, err
 		}
-		logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("task", tsk))
 		tasks = append(tasks, tsk...)
 	}
 
@@ -112,6 +111,7 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 	_ = requestIdStr
 	requestInfo, err := b.WorkerHub.GetInferenceInfo(nil, requestId)
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("GetInferenceInfo", zap.Error(err))
 		return nil, err
 	}
 
@@ -136,19 +136,20 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 			batchFullPrompts := []*interfaces.BatchInferHistory{}
 			err = json.Unmarshal(inputBytes, &batchFullPrompts)
 			if err != nil {
-				// logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+				logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
 			} else if len(batchFullPrompts) > 0 {
 				batchInfers = batchFullPrompts
 				isBatch = true
 			}
 		} else {
-			// logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+			logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
 		}
 
 	}
 
 	assignmentIds, err := b.WorkerHub.GetAssignmentsByInference(nil, requestId)
 	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("GetAssignmentsByInference", zap.Error(err))
 		return nil, err
 	}
 	// here
@@ -156,6 +157,7 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 
 		assignment, err := b.WorkerHub.Assignments(nil, assignmentId)
 		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("WorkerHub.Assignments", zap.Error(err))
 			continue
 		}
 
@@ -174,16 +176,18 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 				BatchInfers:    batchInfers, // here
 				ExternalData:   externalData,
 			}
-			// spew.Dump(task)
 
 			auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, 200_000)
 			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("CreateBindTransactionOpts", zap.Error(err))
 				continue
 			}
 
 			transact, err := b.WorkerHub.SeizeMinerRole(auth, assignmentId)
+			_ = transact
 			if err != nil {
-				continue
+				logger.GetLoggerInstanceFromContext(ctx).Error("SeizeMinerRole", zap.Error(err))
+				// continue
 			}
 
 			//TODO - transact.Receipt.Logs ???
@@ -211,8 +215,8 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 					zap.String("role", task.AssignmentRole),
 					zap.Bool("is_batch", isBatch),
 				)*/
-			_ = transact
 
+			logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("id", task.TaskID), zap.Any("assignment_id", task.AssignmentID))
 			task.AssignmentRole = libs.MODE_MINER
 			tasks = append(tasks, task)
 			continue
