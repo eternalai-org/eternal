@@ -2,17 +2,24 @@ package lighthouse
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
-	"eternal-infer-worker/libs/eth"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
+
+	"eternal-infer-worker/libs/eth"
+
+	"cloud.google.com/go/storage"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/api/option"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/ipfs/boxo/blockservice"
@@ -34,22 +41,109 @@ type Response struct {
 	Size string `json:"Size"`
 }
 
+type gcstorage struct {
+	client     *storage.Client
+	bucketName string
+	bucket     *storage.BucketHandle
+	projectId  string
+	ctx        context.Context
+	formatType string
+}
+
+type GCS struct {
+	ProjectId string
+	Bucket    string
+	Auth      string
+	Endpoint  string
+	Region    string
+	AccessKey string
+	SecretKey string
+}
+
+var GCSStorage *gcstorage
+
 const (
 	IPFSGateway = "https://gateway.lighthouse.storage/ipfs/"
 )
 
+func NewDataGCStorage(config GCS) (*gcstorage, error) {
+	// Creates a Google Cloud client from config GC Auth key
+	jsonKey, _ := base64.StdEncoding.DecodeString(config.Auth)
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx, option.WithCredentialsJSON([]byte(jsonKey)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Creates a Bucket instance.
+	bucket := client.Bucket(config.Bucket)
+
+	// Init our GCStorage object
+	gcStorage := gcstorage{
+		bucketName: config.Bucket,    // get bucket name from config
+		bucket:     bucket,           // assign bucket object
+		client:     client,           // assign client object
+		ctx:        ctx,              // assign context object
+		projectId:  config.ProjectId, // assign project id, not required
+	}
+
+	GCSStorage = &gcStorage
+	return &gcStorage, nil
+}
+
 func DownloadDataSimple(hash string) ([]byte, string, error) {
+	if strings.Contains(hash, "ipfs://") {
+		hash = strings.Replace(hash, "ipfs://", "", 1)
+	}
+	// https://gateway.lighthouse.storage/ipfs/QmXPGcEHCi1ZmbHFwScuP4ZJ2iv9YjTJMUroUTJUnFXxxj
+	// urlLink := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hash)
+
+	urlLink := fmt.Sprintf("https://cdn.eternalai.org/upload/%s", hash)
+
+	resp, err := http.Get(urlLink)
+	if err != nil {
+		return nil, "", fmt.Errorf("error when try get reponse :%v", err)
+	}
+	if resp == nil {
+		return nil, "", fmt.Errorf("error when try get reponse ==nil")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return DownloadDataSimpleFromLighthouse(hash)
+		}
+		return nil, "", fmt.Errorf("error when try get data url :%v => reponse code :%v", urlLink, resp.StatusCode)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", fmt.Errorf("error when read body from  reponse :%v", err)
+	}
+
+	mtype := mimetype.Detect(body)
+
+	return body, mtype.String(), nil
+}
+
+func DownloadDataSimpleFromLighthouse(hash string) ([]byte, string, error) {
+	if strings.Contains(hash, "ipfs://") {
+		hash = strings.Replace(hash, "ipfs://", "", 1)
+	}
 	// https://gateway.lighthouse.storage/ipfs/QmXPGcEHCi1ZmbHFwScuP4ZJ2iv9YjTJMUroUTJUnFXxxj
 	urlLink := fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", hash)
 
 	resp, err := http.Get(urlLink)
 	if err != nil {
-		return nil, "", errors.WithStack(err)
+		return nil, "", fmt.Errorf("error when try get reponse :%v", err)
 	}
-
+	if resp == nil {
+		return nil, "", fmt.Errorf("error when try get reponse ==nil")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("error when try get data url :%v => reponse code :%v", urlLink, resp.StatusCode)
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, "", errors.WithStack(err)
+		return nil, "", fmt.Errorf("error when read body from  reponse :%v", err)
 	}
 
 	mtype := mimetype.Detect(body)
@@ -191,70 +285,33 @@ func GetFileInfo(hash string) (*FileInfo, error) {
 }
 
 func UploadData(apikey, fileName string, data []byte) (string, error) {
+	cidHash := Cid(data)
 
-	cid, exist, err := fileExistOnNetwork(data)
-	if err != nil {
-		return "", err
+	bucket := "eternal-ai"
+	object := "upload/" + cidHash
+	ctx := context.Background()
+
+	buf := bytes.NewBuffer(data)
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+
+	// Upload an object with storage.Writer.
+	wc := GCSStorage.client.Bucket(bucket).Object(object).NewWriter(ctx)
+	wc.ChunkSize = 0 // note retries are not supported for chunk size 0.
+
+	if _, err := io.Copy(wc, buf); err != nil {
+		return "", fmt.Errorf("io.Copy: %w", err)
+	}
+	// Data can continue to be added to the file until the writer is closed.
+	if err := wc.Close(); err != nil {
+		return "", fmt.Errorf("Writer.Close: %w", err)
 	}
 
-	if exist {
-		return cid, nil
-	}
-
-	urlLink := "https://node.lighthouse.storage/api/v0/add"
-
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-
-	fw, err := w.CreateFormFile("file", fileName)
-	if err != nil {
-		return "", err
-	}
-	if _, err = fw.Write(data); err != nil {
-		return "", err
-	}
-
-	w.Close()
-
-	req, err := http.NewRequest(
-		"POST",
-		urlLink,
-		&b,
-	)
-
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	client := &http.Client{}
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("content-type", w.FormDataContentType())
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apikey))
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	log.Println("body", string(body))
-
-	var respBody Response
-
-	err = json.Unmarshal(body, &respBody)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	return respBody.Hash, nil
+	return cidHash, nil
 }
 
 func GenAPIkey(privkey string) (string, error) {
-
 	priv, address, err := eth.GetAccountInfo(privkey)
 	if err != nil {
 		return "", err
@@ -278,7 +335,6 @@ func GenAPIkey(privkey string) (string, error) {
 }
 
 func getMsgToSign(address string) (string, error) {
-
 	urlLink := fmt.Sprintf("https://api.lighthouse.storage/api/auth/get_message?publicKey=%s", address)
 
 	req, err := http.NewRequest(
@@ -286,7 +342,6 @@ func getMsgToSign(address string) (string, error) {
 		urlLink,
 		nil,
 	)
-
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -309,7 +364,6 @@ func getMsgToSign(address string) (string, error) {
 }
 
 func getAPIKey(address, sig string) (string, error) {
-
 	urlLink := "https://api.lighthouse.storage/api/auth/create_api_key"
 
 	reqBody := map[string]string{
@@ -328,7 +382,6 @@ func getAPIKey(address, sig string) (string, error) {
 		urlLink,
 		bytes.NewBuffer(reqBodyJSON),
 	)
-
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -460,4 +513,20 @@ func DownloadToFile(hash string, filePath string) error {
 		os.Remove(filePath)
 	}
 	return nil
+}
+
+func DownloadDataSimpleWithRetry(hash string) ([]byte, string, error) {
+	var err error
+	var byteResp []byte
+	var mimeType string
+	for i := 0; i < 3; i++ {
+		byteResp, mimeType, err = DownloadDataSimple(hash)
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return byteResp, mimeType, nil
+	}
+
+	return byteResp, mimeType, nil
 }

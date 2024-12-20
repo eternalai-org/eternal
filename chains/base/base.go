@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"eternal-infer-worker/chains/base/contract"
+	"eternal-infer-worker/chains/base/contract/erc20"
+	"eternal-infer-worker/chains/base/contract/staking_hub"
+	"eternal-infer-worker/chains/base/contract/worker_hub"
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
@@ -27,9 +29,9 @@ type Base struct {
 	GasLimit             uint64
 	WorkerHubAddress     string
 
-	StakingHub    *contract.BaseWhAbi
-	WorkerHub     *contract.WorkerHub
-	Erc20contract *contract.Abi
+	StakingHub    *staking_hub.StakingHub
+	WorkerHub     *worker_hub.WorkerHub
+	Erc20contract *erc20.Erc20
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
@@ -48,7 +50,7 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	}
 
 	b.Address = address
-	sthub, err := contract.NewBaseWhAbi(common.HexToAddress(b.StakingHubAddress), b.Client)
+	sthub, err := staking_hub.NewStakingHub(common.HexToAddress(b.StakingHubAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -56,13 +58,13 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	b.StakingHub = sthub
 	errors.Join(err, errors.New("Error while BaseWhAbiTransactor JoinForMinting"))
 	b.Erc20contractAddress = "0x4b6bf1d365ea1a8d916da37fafd4ae8c86d061d7"
-	erc20, err := contract.NewAbi(common.HexToAddress(b.Erc20contractAddress), b.Client)
+	erc20, err := erc20.NewErc20(common.HexToAddress(b.Erc20contractAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	b.WorkerHubAddress = cnf.WorkerHubAddress
-	wkHub, err := contract.NewWorkerHub(common.HexToAddress(b.StakingHubAddress), b.Client)
+	wkHub, err := worker_hub.NewWorkerHub(common.HexToAddress(b.StakingHubAddress), b.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +102,7 @@ func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks
 	return nil, nil
 }
 
-func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *contract.WorkerHubRawSubmitted) ([]*interfaces.Tasks, error) {
+func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *worker_hub.WorkerHubRawSubmitted) ([]*interfaces.Tasks, error) {
 	var err error
 	tasks := make([]*interfaces.Tasks, 0)
 	requestId := event.InferenceId
@@ -305,7 +307,7 @@ func (b *Base) JoinForMinting() error {
 		return err
 	}
 
-	tx, err := b.StakingHub.BaseWhAbiTransactor.JoinForMinting(auth)
+	tx, err := b.StakingHub.StakingHubTransactor.JoinForMinting(auth)
 	if err != nil {
 		return err
 	}

@@ -96,7 +96,7 @@ func GenerateKeyFromSeedOld(seed string) (string, string, string, error) {
 	if err != nil {
 		return "", "", "", err
 	}
-	var privateKey = secp256k1.GenPrivKeyFromSecret(priv)
+	privateKey := secp256k1.GenPrivKeyFromSecret(priv)
 
 	publicKey := privateKey.PubKey()
 
