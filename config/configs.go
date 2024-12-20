@@ -15,6 +15,9 @@ type Config struct {
 	Account           string
 	StakingHubAddress string
 	WorkerHubAddress  string
+	ApiUrl            string
+	ApiKey            string
+	LighthouseKey     string
 }
 
 func ReadConfig(path string) (*Config, error) {
@@ -29,5 +32,8 @@ func ReadConfig(path string) (*Config, error) {
 	cfg.Account = os.Getenv("ACCOUNT_PRIV")
 	cfg.StakingHubAddress = os.Getenv("STAKING_HUB_ADDRESS")
 	cfg.WorkerHubAddress = os.Getenv("WORKER_HUB_ADDRESS")
+	cfg.ApiUrl = os.Getenv("API_URL")
+	cfg.ApiKey = os.Getenv("API_KEY")
+	cfg.LighthouseKey = os.Getenv("LIGHT_HOUSE_API_KEY")
 	return cfg, nil
 }

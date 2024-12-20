@@ -1,15 +1,20 @@
 package task_watcher
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"math/big"
+	"net/http"
 	"sync"
 	"time"
 
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/pkg/logger"
 
 	"go.uber.org/zap"
@@ -20,6 +25,7 @@ type TaskWatcher struct {
 	runnerLock sync.RWMutex
 	chain      interfaces.IChain
 	cnf        *config.Config
+	IsStaked   *bool
 }
 
 func NewTasksWatcher(base interfaces.IChain, cnf *config.Config) *TaskWatcher {
@@ -88,8 +94,8 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 		// TODO - execute and get this taskResult
 		// 1. batch -> promt output
 		// 1. no batch
-		//TODO - execute and get this taskResult
-		taskResult, err := t.executeTasks(task)
+		// TODO - execute and get this taskResult
+		taskResult, err := t.executeTasks(ctx, task)
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
 				zap.Any("assigment_id", task.AssignmentID),
@@ -122,13 +128,13 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
-func (t *TaskWatcher) executeTasks(task *interfaces.Task) (*interfaces.TaskResult, error) {
+func (t *TaskWatcher) executeTasks(ctx context.Context, task *interfaces.Task) (*interfaces.TaskResult, error) {
 	res := &interfaces.TaskResult{}
 	result := []byte{}
 	if len(task.BatchInfers) == 0 {
 		for _, b := range task.BatchInfers {
 			seed := libs.CreateSeed(b.PromptInput, task.TaskID)
-			obj, err := t.InferChatCompletions(b.PromptInput, "", seed)
+			obj, err := t.InferChatCompletions(ctx, b.PromptInput, "", seed)
 			if err != nil {
 				return nil, err
 			}
@@ -148,7 +154,7 @@ func (t *TaskWatcher) executeTasks(task *interfaces.Task) (*interfaces.TaskResul
 
 	} else {
 		seed := libs.CreateSeed(task.Params, task.TaskID)
-		obj, err := t.InferChatCompletions(task.Params, "", seed)
+		obj, err := t.InferChatCompletions(ctx, task.Params, "", seed)
 		if err != nil {
 			return nil, err
 		}
@@ -164,23 +170,80 @@ func (t *TaskWatcher) executeTasks(task *interfaces.Task) (*interfaces.TaskResul
 
 	res.Storage = interfaces.LightHouseStorageType
 	res.Data = result
-	res.ResultURI = "" //TODO - upload and get the returned link
+	ext := "txt"
+	url, err := lighthouse.UploadData(t.cnf.LighthouseKey, fmt.Sprintf("%v_result.%v", task.TaskID, ext), res.Data)
+	if err != nil {
+		return nil, err
+	}
+	res.ResultURI = url
 
 	return res, nil
 }
 
-func (t *TaskWatcher) InferChatCompletions(prompt string, model string, seed uint64) (*interfaces.LLMInferResponse, error) {
+func (t *TaskWatcher) InferChatCompletions(ctx context.Context, prompt string, model string, seed uint64) (*interfaces.LLMInferResponse, error) {
 	res := &interfaces.LLMInferResponse{}
+	infer := interfaces.LLMInferRequest{
+		Model: model,
+		Seed:  seed,
+	}
+	infer.Messages = []interfaces.LLMInferMessage{
+		{
+			Role:    "user",
+			Content: prompt,
+		},
+	}
 
-	//TODO here.
+	url := t.cnf.ApiUrl
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
+	headers["Authorization"] = fmt.Sprintf("Bearer %s", t.cnf.ApiKey)
+
+	inferJSON, err := json.Marshal(infer)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.GetLoggerInstanceFromContext(ctx).Error("call api err", zap.Error(err))
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(body, res); err != nil {
+		return nil, err
+	}
 
 	return res, nil
 }
 
 func (t *TaskWatcher) Verify() bool {
-	isStake, _ := t.chain.IsStaked()
-	isStake = true //
-	return isStake
+	if t.IsStaked != nil && *t.IsStaked {
+		return true
+	}
+
+	isStake, err := t.chain.IsStaked()
+	if err != nil {
+		isStake = false
+		t.IsStaked = &isStake
+		logger.AtLog.Error(err)
+	}
+	t.IsStaked = &isStake
+
+	return *t.IsStaked
 }
 
 func (t *TaskWatcher) MakeVerify() error {
