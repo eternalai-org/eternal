@@ -13,6 +13,7 @@ import (
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
 

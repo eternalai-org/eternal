@@ -7,7 +7,7 @@ import (
 
 	"eternal-infer-worker/chains/base"
 	"eternal-infer-worker/config"
-	"eternal-infer-worker/libs"
+	"eternal-infer-worker/libs/task_watcher"
 )
 
 func main() {
@@ -21,30 +21,30 @@ func main() {
 		panic(err)
 	}
 
-	taskWatcher := libs.NewTasksWatcher(b)
+	taskWatcher := task_watcher.NewTasksWatcher(b)
 
 goto_here:
 	verifed := taskWatcher.Verify()
 	if !verifed {
 
-		err := taskWatcher.MakeVerify()
-		if err != nil {
-			// only log
-		}
+		// err := taskWatcher.MakeVerify()
+		// if err != nil {
+		// 	// only log
+		// }
 
 		time.Sleep(time.Second * 5)
 		goto goto_here
 	}
 
 	// get and process tasks
-	var wg sync.WaitGroup
+	wg := &sync.WaitGroup{}
 
 	for {
-		wg.Add(2)
+		wg.Add(1)
+		go taskWatcher.GetPendingTasks(wg)
 
-		go taskWatcher.GetPendingTasks(&wg)
-
-		go taskWatcher.ExecueteTasks(&wg)
+		wg.Add(1)
+		go taskWatcher.ExecueteTasks(wg)
 
 		wg.Wait()
 		time.Sleep(5 * time.Second)

@@ -7,6 +7,7 @@ toolchain go1.23.4
 require (
 	cloud.google.com/go/storage v1.48.0
 	github.com/cosmos/cosmos-sdk v0.50.11
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gabriel-vasile/mimetype v1.4.7
 	github.com/ipfs/boxo v0.26.0
@@ -61,7 +62,6 @@ require (
 	github.com/crackcomm/go-gitignore v0.0.0-20241020182519-7843d2ba8fdf // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.13.0 // indirect
