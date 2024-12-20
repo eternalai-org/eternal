@@ -15,14 +15,13 @@ services:
       context: .
       dockerfile: Dockerfile.Arm
     container_name:  service_miner
-    entrypoint: ["/workersv", "-silent",  "-no-update-on-start", "true", ]
+    entrypoint: ["/workersv", "-silent",  "-no-update-on-start", "true", "-config-file", "config.env" ]
     ports:
       - "8000:8000"
-    env_file:
-      - config.env
     tty: true
     stdin_open: true
     restart: always
     volumes:
       - ./docker-volumes/eternal_ai/infer-results:/home/eternal_ai/infer-results/
       - ./docker-volumes/eternal_ai/database:/database
+      - ./config.env:./config.env
