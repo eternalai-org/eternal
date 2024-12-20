@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"net/http"
 	"sync"
-	"time"
 
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
@@ -17,13 +16,13 @@ import (
 	"eternal-infer-worker/libs/lighthouse"
 	"eternal-infer-worker/pkg/logger"
 
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
 var TaskChecker = make(map[string]bool)
 
 type TaskWatcher struct {
-	taskQueue  chan *interfaces.Task
 	runnerLock sync.RWMutex
 	chain      interfaces.IChain
 	cnf        *config.Config
@@ -37,14 +36,18 @@ func NewTasksWatcher(base interfaces.IChain, cnf *config.Config) *TaskWatcher {
 	}
 }
 
-func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
-	logger.AtLog.Info("Waiting task...")
+func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) chan *interfaces.Task {
+	taskQueue := make(chan *interfaces.Task, 10)
 
-	for {
-		time.Sleep(time.Second * libs.TimeToWating)
+	go func() {
+		logger.AtLog.Info("Waiting task...")
+		defer wg.Done()
+		defer close(taskQueue)
+
 		fBlock := t.chain.FromBlock()
 		tBlock := t.chain.ToBlock()
+		fBlock = 23945180 - 1
+		// tBlock = fBlock + 2
 
 		tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
 		if err != nil {
@@ -53,7 +56,6 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 				zap.Uint64("to_block", tBlock),
 				zap.Error(err),
 			)
-			return
 		}
 		logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks",
 			zap.Uint64("from_block", fBlock),
@@ -61,11 +63,6 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 			zap.Int("tasks", len(tasks)),
 		)
 
-		if len(tasks) == 0 {
-			continue
-		}
-
-		t.taskQueue = make(chan *interfaces.Task, len(tasks))
 		for _, v := range tasks {
 			logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks.item",
 				zap.Uint64("from_block", fBlock),
@@ -82,57 +79,55 @@ func (t *TaskWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 			}
 
 			TaskChecker[v.TaskID] = true
-			t.taskQueue <- v
+			taskQueue <- v
 		}
 		return
-	}
+	}()
+	return taskQueue
 }
 
-func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup, taskQueue chan *interfaces.Task) {
+	go func() {
+		logger.AtLog.Info("Execuete task...")
+		defer wg.Done()
+		for task := range taskQueue {
+			assigmentID, ok := big.NewInt(0).SetString(task.AssignmentID, 10)
+			if !ok {
+				continue
+			}
 
-	logger.AtLog.Info("Execuete task...")
-	for task := range t.taskQueue {
-		assigmentID, ok := big.NewInt(0).SetString(task.AssignmentID, 10)
-		if !ok {
-			continue
-		}
+			taskResult, err := t.executeTasks(ctx, task)
+			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
+					zap.Any("assigment_id", task.AssignmentID),
+					zap.String("inference_id", task.AssignmentID),
+					zap.Error(err),
+				)
+				continue
+			}
 
-		// TODO - execute and get this taskResult
-		// 1. batch -> promt output
-		// 1. no batch
-		// TODO - execute and get this taskResult
-		taskResult, err := t.executeTasks(ctx, task)
-		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
+			resultData, err := json.Marshal(taskResult)
+			if err != nil {
+				continue
+			}
+
+			tx, err := t.chain.SubmitTask(assigmentID, resultData)
+			if err != nil {
+				logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
+					zap.Any("assigment_id", task.AssignmentID),
+					zap.String("inference_id", task.AssignmentID),
+					zap.Error(err),
+				)
+				continue
+			}
+
+			logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks",
 				zap.Any("assigment_id", task.AssignmentID),
 				zap.String("inference_id", task.AssignmentID),
-				zap.Error(err),
+				zap.String("tx", tx.Hash().Hex()),
 			)
-			continue
 		}
-
-		resultData, err := json.Marshal(taskResult)
-		if err != nil {
-			continue
-		}
-
-		tx, err := t.chain.SubmitTask(assigmentID, resultData)
-		if err != nil {
-			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
-				zap.Any("assigment_id", task.AssignmentID),
-				zap.String("inference_id", task.AssignmentID),
-				zap.Error(err),
-			)
-			continue
-		}
-
-		logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks",
-			zap.Any("assigment_id", task.AssignmentID),
-			zap.String("inference_id", task.AssignmentID),
-			zap.String("tx", tx.Hash().Hex()),
-		)
-	}
+	}()
 }
 
 func (t *TaskWatcher) executeTasks(ctx context.Context, task *interfaces.Task) (*interfaces.TaskResult, error) {
@@ -210,8 +205,9 @@ func (t *TaskWatcher) InferChatCompletions(ctx context.Context, prompt string, m
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
+	spew.Dump(string(inferJSON))
 
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(inferJSON))
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}

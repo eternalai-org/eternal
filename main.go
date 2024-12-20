@@ -77,10 +77,10 @@ goto_here:
 	ctx := context.Background()
 	for {
 		wg.Add(1)
-		taskWatcher.GetPendingTasks(ctx, wg)
+		taskQueue := taskWatcher.GetPendingTasks(ctx, wg)
 
 		wg.Add(1)
-		go taskWatcher.ExecueteTasks(ctx, wg)
+		taskWatcher.ExecueteTasks(ctx, wg, taskQueue)
 
 		wg.Wait()
 		time.Sleep(time.Second * libs.TimeToWating)
