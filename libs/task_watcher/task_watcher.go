@@ -1,6 +1,7 @@
 package task_watcher
 
 import (
+	"context"
 	"sync"
 
 	"eternal-infer-worker/chains/interfaces"
@@ -21,13 +22,13 @@ func NewTasksWatcher(base interfaces.IChain) *TasksWatcher {
 	}
 }
 
-func (t *TasksWatcher) GetPendingTasks(wg *sync.WaitGroup) {
+func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	tasks, err := t.chain.GetPendingTasks(23909302, 23909467)
+
+	tasks, err := t.chain.GetPendingTasks(ctx, 23909302, 23909467)
 	if err != nil {
 		return
 	}
-
 	for _, v := range tasks {
 		t.taskQueue <- v
 	}
@@ -37,6 +38,10 @@ func (t *TasksWatcher) ExecueteTasks(wg *sync.WaitGroup) {
 	defer wg.Done()
 	task := <-t.taskQueue
 	spew.Dump(task)
+}
+
+func (t *TasksWatcher) MakeVerify() error {
+	return nil
 }
 
 func (t *TasksWatcher) Verify() bool {

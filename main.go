@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"flag"
 	_ "net/http/pprof"
 	"sync"
 	"time"
@@ -8,17 +10,26 @@ import (
 	"eternal-infer-worker/chains/base"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs/task_watcher"
+	"eternal-infer-worker/pkg/logger"
 )
 
+var configFile string
+
+const TimeToWating time.Duration = 5
+
 func main() {
-	cnf, err := config.ReadConfig()
+	// init flag
+	flag.StringVar(&configFile, "config-file", "env/development.yml", "Config file path")
+	flag.Parse()
+
+	cnf, err := config.ReadConfig(configFile)
 	if err != nil {
-		panic(err)
+		logger.AtLog.Fatal(err)
 	}
 
 	b, err := base.NewBaseChain(cnf)
 	if err != nil {
-		panic("NewBaseChain")
+		logger.AtLog.Fatal(err)
 	}
 
 	taskWatcher := task_watcher.NewTasksWatcher(b)
@@ -26,13 +37,12 @@ func main() {
 goto_here:
 	verifed := taskWatcher.Verify()
 	if !verifed {
+		err := taskWatcher.MakeVerify()
+		if err != nil {
+			logger.AtLog.Error(err)
+		}
 
-		// err := taskWatcher.MakeVerify()
-		// if err != nil {
-		// 	// only log
-		// }
-
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * TimeToWating)
 		goto goto_here
 	}
 
@@ -40,13 +50,17 @@ goto_here:
 	wg := &sync.WaitGroup{}
 
 	for {
+		ctx := context.Background()
+		logger.AtLog.Info("START GetPendingTasks")
 		wg.Add(1)
-		go taskWatcher.GetPendingTasks(wg)
+
+		go taskWatcher.GetPendingTasks(ctx, wg)
 
 		wg.Add(1)
+		logger.AtLog.Info("START ExecueteTasks")
 		go taskWatcher.ExecueteTasks(wg)
 
 		wg.Wait()
-		time.Sleep(5 * time.Second)
+		time.Sleep(TimeToWating * time.Second)
 	}
 }

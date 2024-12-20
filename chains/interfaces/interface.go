@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"context"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,7 +21,7 @@ type Tasks struct {
 	ZKSync      bool   `json:"zk_sync"`
 	Requestor   string `json:"requestor"`
 	InferenceID string `json:"inference_id"`
-	//TaskResult   *eaimodel.TaskResult `json:"task_result"`
+	// TaskResult   *eaimodel.TaskResult `json:"task_result"`
 	Status       uint8 `json:"status"`
 	Retry        int
 	BatchInfers  []*BatchInferHistory
@@ -51,7 +52,7 @@ type IChain interface {
 
 type ITasks interface {
 	Connect(rpc string) error
-	GetPendingTasks(fromblock, toBlock uint64) ([]*Tasks, error)
+	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Tasks, error)
 	SubmitTask()
 }
 

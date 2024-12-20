@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	"eternal-infer-worker/chains/base/contract/erc20"
@@ -13,6 +12,7 @@ import (
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+	"eternal-infer-worker/pkg/logger"
 
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"go.uber.org/zap"
 )
 
 type Base struct {
@@ -77,8 +78,7 @@ func NewBaseChain(cnf *config.Config) (*Base, error) {
 	return b, nil
 }
 
-func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks, error) {
-	ctx := context.Background()
+func (b *Base) GetPendingTasks(ctx context.Context, startBlock, endBlock uint64) ([]*interfaces.Tasks, error) {
 	tasks := []*interfaces.Tasks{}
 	iter, err := b.WorkerHub.FilterRawSubmitted(&bind.FilterOpts{
 		Start:   startBlock,
@@ -86,17 +86,17 @@ func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks
 		Context: ctx,
 	}, nil, nil, nil)
 	if err != nil {
-		fmt.Println(err)
+		logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks#error", zap.Error(err))
 		return nil, err
-
 	}
 
 	for iter.Next() {
 		tsk, err := b.ProcessBaseChainEventNewInference(ctx, iter.Event)
 		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("ProcessBaseChainEventNewInference#error", zap.Error(err))
 			return nil, err
 		}
-
+		logger.GetLoggerInstanceFromContext(ctx).Info("task", zap.Any("task", tsk))
 		tasks = append(tasks, tsk...)
 	}
 

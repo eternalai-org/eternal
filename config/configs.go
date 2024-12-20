@@ -3,7 +3,6 @@ package config
 import (
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
@@ -18,10 +17,10 @@ type Config struct {
 	WorkerHubAddress  string
 }
 
-func ReadConfig() (*Config, error) {
+func ReadConfig(path string) (*Config, error) {
 	cfg := new(Config)
 
-	err := godotenv.Load("/Users/macbook_autonomous/projects/new-bitcoin-city/eternal/config.env")
+	err := godotenv.Load(path)
 	if err != nil {
 		return nil, err
 	}
@@ -30,6 +29,5 @@ func ReadConfig() (*Config, error) {
 	cfg.Account = os.Getenv("ACCOUNT_PRIV")
 	cfg.StakingHubAddress = os.Getenv("STAKING_HUB_ADDRESS")
 	cfg.WorkerHubAddress = os.Getenv("WORKER_HUB_ADDRESS")
-	spew.Dump(cfg)
 	return cfg, nil
 }
