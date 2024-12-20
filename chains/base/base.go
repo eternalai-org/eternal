@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
+
 	"eternal-infer-worker/chains/base/contract"
 	"eternal-infer-worker/chains/interfaces"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
-	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,15 +21,15 @@ import (
 
 type Base struct {
 	interfaces.Chain
-	StakingHub           *contract.BaseWhAbi
 	StakingHubAddress    string
 	Erc20contractAddress string
 	ModelAddress         string
-	Erc20contract        *contract.Abi
 	GasLimit             uint64
+	WorkerHubAddress     string
 
-	WorkerHubAddress string
-	WorkerHub        *contract.WorkerHub
+	StakingHub    *contract.BaseWhAbi
+	WorkerHub     *contract.WorkerHub
+	Erc20contract *contract.Abi
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {
@@ -97,7 +98,6 @@ func (b *Base) GetPendingTasks(startBlock, endBlock uint64) ([]*interfaces.Tasks
 	}
 
 	return nil, nil
-
 }
 
 func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *contract.WorkerHubRawSubmitted) ([]*interfaces.Tasks, error) {
@@ -132,13 +132,13 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 			batchFullPrompts := []*interfaces.BatchInferHistory{}
 			err = json.Unmarshal(inputBytes, &batchFullPrompts)
 			if err != nil {
-				//logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+				// logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
 			} else if len(batchFullPrompts) > 0 {
 				batchInfers = batchFullPrompts
 				isBatch = true
 			}
 		} else {
-			//logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
+			// logger.GetLoggerInstanceFromContext(ctx).Error("DownloadDataSimpleWithRetry", zap.Error(err))
 		}
 
 	}
@@ -155,7 +155,7 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 			continue
 		}
 
-		//fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
+		// fmt.Println("--->", strings.ToLower(assignmentInfo.Worker.String()), "------", strings.ToLower(tskw.address))
 		if strings.EqualFold(assignment.Worker.String(), b.Address.Hex()) {
 			task := &interfaces.Tasks{
 				TaskID:         assignment.InferenceId.String(),
@@ -219,7 +219,6 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *con
 }
 
 func (b *Base) SubmitTask() {
-
 }
 
 func (b *Base) IsStaked() (bool, error) {
@@ -292,7 +291,7 @@ func (b *Base) StakeForWorker() error {
 		}
 	}
 
-	//TODO - here
+	// TODO - here
 	_ = tx
 	_ = balance
 	_ = minStake
