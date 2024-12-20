@@ -5,8 +5,9 @@ import (
 	"sync"
 
 	"eternal-infer-worker/chains/interfaces"
+	"eternal-infer-worker/pkg/logger"
 
-	"github.com/davecgh/go-spew/spew"
+	"go.uber.org/zap"
 )
 
 type TasksWatcher struct {
@@ -34,10 +35,10 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 	}
 }
 
-func (t *TasksWatcher) ExecueteTasks(wg *sync.WaitGroup) {
+func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	task := <-t.taskQueue
-	spew.Dump(task)
+	logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks", zap.Any("task", task))
 }
 
 func (t *TasksWatcher) MakeVerify() error {

@@ -50,15 +50,14 @@ goto_here:
 	wg := &sync.WaitGroup{}
 
 	for {
+		logger.AtLog.Info("Waiting new task...")
 		ctx := context.Background()
-		logger.AtLog.Info("START GetPendingTasks")
-		wg.Add(1)
 
+		wg.Add(1)
 		go taskWatcher.GetPendingTasks(ctx, wg)
 
 		wg.Add(1)
-		logger.AtLog.Info("START ExecueteTasks")
-		go taskWatcher.ExecueteTasks(wg)
+		go taskWatcher.ExecueteTasks(ctx, wg)
 
 		wg.Wait()
 		time.Sleep(TimeToWating * time.Second)
