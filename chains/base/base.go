@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strings"
-
 	"eternal-infer-worker/chains/base/contract/erc20"
 	"eternal-infer-worker/chains/base/contract/staking_hub"
 	"eternal-infer-worker/chains/base/contract/worker_hub"
@@ -15,6 +12,8 @@ import (
 	"eternal-infer-worker/libs"
 	"eternal-infer-worker/libs/eth"
 	"eternal-infer-worker/libs/lighthouse"
+	"fmt"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -26,12 +25,14 @@ type Base struct {
 	StakingHubAddress    string
 	Erc20contractAddress string
 	ModelAddress         string
+	Erc20contract        *contract.Abi
 	GasLimit             uint64
-	WorkerHubAddress     string
 
 	StakingHub    *staking_hub.StakingHub
 	WorkerHub     *worker_hub.WorkerHub
 	Erc20contract *erc20.Erc20
+
+	WorkerHubAddress string
 }
 
 func NewBaseChain(cnf *config.Config) (*Base, error) {

@@ -6,7 +6,8 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"errors"
-	"fmt"
+	"eternal-infer-worker/libs/contract/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"math/big"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	ethsecp "github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -180,90 +180,62 @@ func GenerateAddressFromPrivKey(privKey string) (pubKey, address string, err err
 	return
 }
 
-type Client struct {
-	eth *ethclient.Client
-}
-
-func NewClient(eth *ethclient.Client) *Client {
-	return &Client{eth}
-}
-
-func (c *Client) PendingNonceAt(ctx context.Context, address common.Address) (uint64, error) {
-	return c.eth.PendingNonceAt(ctx, address)
-}
-
-func (c *Client) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
-	return c.eth.SuggestGasPrice(ctx)
-}
-
-func (c *Client) NetworkID(ctx context.Context) (*big.Int, error) {
-	return c.eth.NetworkID(ctx)
-}
-
-func (c *Client) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	return c.eth.SendTransaction(ctx, tx)
-}
-
-// transfer:
-func (c *Client) Transfer(senderPrivKey, receiverAddress string, amount, gasPrice *big.Int, gasLimit, nonce uint64) (string, error) {
-	privateKey, err := crypto.HexToECDSA(senderPrivKey)
+func CreateBindTransactionOpts(ctx context.Context, client *ethclient.Client, privateKey string, gasLimit int64) (*bind.TransactOpts, error) {
+	priv, address, err := GetAccountInfo(privateKey)
 	if err != nil {
-		return "", err
-	}
-	publicKey := privateKey.Public()
-	publicKeyECDSA, _ := publicKey.(*ecdsa.PublicKey)
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	if nonce <= 0 {
-		nonce, err = c.PendingNonceAt(context.Background(), fromAddress)
-		if err != nil {
-			return "", err
-		}
+		return nil, err
 	}
 
-	if gasLimit == 0 {
-		gasLimit = uint64(21000)
-	}
-
-	if gasPrice == nil {
-		gasPrice, err = c.SuggestGasPrice(context.Background())
-		if err != nil {
-			return "", err
-		}
-		// gasPrice = big.NewInt(0).Mul(gasPrice, big.NewInt(2))
-		gasPrice = new(big.Int).Add(gasPrice, big.NewInt(2000000000))
-	}
-
-	fee := new(big.Int)
-	fee.Mul(big.NewInt(int64(gasLimit)), gasPrice)
-
-	toAddress := common.HexToAddress(receiverAddress)
-	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, nil)
-
-	chainID, err := c.NetworkID(context.Background())
+	nonce, err := client.NonceAt(ctx, *address, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	err = c.SendTransaction(context.Background(), signedTx)
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return signedTx.Hash().Hex(), nil
+
+	auth, err := bind.NewKeyedTransactorWithChainID(priv, chainID)
+	if err != nil {
+		return nil, err
+	}
+
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(gasLimit) // in wei
+	auth.GasLimit = uint64(0)         // in units
+	auth.GasPrice = gasPrice
+
+	return auth, nil
 }
 
-func SignMessage(message string, privateKey *ecdsa.PrivateKey) (string, error) {
-	fullMessage := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(message), message)
-	hash := crypto.Keccak256Hash([]byte(fullMessage))
-	signatureBytes, err := crypto.Sign(hash.Bytes(), privateKey)
+func ApproveERC20(ctx context.Context, client *ethclient.Client, privateKey string, contractAddress common.Address, erc20Address common.Address, gasLimit int64) error {
+	auth, err := CreateBindTransactionOpts(ctx, client, privateKey, gasLimit)
 	if err != nil {
-		return "", err
+		return err
 	}
-	signatureBytes[64] += 27
-	return hexutil.Encode(signatureBytes), nil
+
+	maxBigInt := new(big.Int)
+	maxBigInt.SetString("30000000000000000000000", 10)
+
+	erc20Contract, err := abi.NewAbi(erc20Address, client)
+	if err != nil {
+		return err
+	}
+
+	tx, err := erc20Contract.AbiTransactor.Approve(auth, contractAddress, maxBigInt)
+	if err != nil {
+		return err
+	}
+
+	if err = WaitForTx(client, tx.Hash()); err != nil {
+		return err
+	}
+
+	return err
 }
