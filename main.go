@@ -48,18 +48,21 @@ goto_here:
 
 	// get and process tasks
 	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	ctx := context.Background()
+	go func(ctx context.Context) {
+		logger.AtLog.Info("START GetPendingTasks")
+
+		for {
+			taskWatcher.GetPendingTasks(ctx, wg)
+			time.Sleep(TimeToWating * time.Second)
+		}
+	}(ctx)
 
 	for {
-		logger.AtLog.Info("Waiting new task...")
-		ctx := context.Background()
 
-		wg.Add(1)
-		go taskWatcher.GetPendingTasks(ctx, wg)
-
-		wg.Add(1)
+		logger.AtLog.Info("START ExecueteTasks")
 		go taskWatcher.ExecueteTasks(ctx, wg)
-
-		wg.Wait()
-		time.Sleep(TimeToWating * time.Second)
 	}
+	wg.Wait()
 }

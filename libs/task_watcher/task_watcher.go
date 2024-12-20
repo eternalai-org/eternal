@@ -2,8 +2,7 @@ package task_watcher
 
 import (
 	"context"
-	"eternal-infer-worker/pkg/logger"
-	"go.uber.org/zap"
+
 	"sync"
 
 	"eternal-infer-worker/chains/interfaces"
