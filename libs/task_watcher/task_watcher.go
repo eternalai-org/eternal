@@ -2,6 +2,8 @@ package task_watcher
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/opencontainers/runc/libcontainer/configs"
 	"math/big"
 	"sync"
 
@@ -15,11 +17,13 @@ type TasksWatcher struct {
 	taskQueue  chan *interfaces.Tasks
 	runnerLock sync.RWMutex
 	chain      interfaces.IChain
+	cnf        *configs.Config
 }
 
-func NewTasksWatcher(base interfaces.IChain) *TasksWatcher {
+func NewTasksWatcher(base interfaces.IChain, cnf *configs.Config) *TasksWatcher {
 	return &TasksWatcher{
 		chain: base,
+		cnf:   cnf,
 	}
 }
 
@@ -70,13 +74,20 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for task := range t.taskQueue {
-		//TODO - execute task
+		assigmentID, ok := big.NewInt(0).SetString(task.AssignmentID, 10)
+		if !ok {
+			continue
+		}
 
-		//TODO - submit task done
-		result := []byte{}
-		assigmentID := big.NewInt(1)
+		//TODO - execute and get this taskResult
+		taskResult := interfaces.TaskResult{}
 
-		tx, err := t.chain.SubmitTask(assigmentID, result)
+		resultData, err := json.Marshal(taskResult)
+		if err != nil {
+			continue
+		}
+
+		tx, err := t.chain.SubmitTask(assigmentID, resultData)
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
 				zap.Any("assigment_id", task.AssignmentID),

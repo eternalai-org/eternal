@@ -10,6 +10,19 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+type StorageType string
+
+const (
+	LightHouseStorageType StorageType = "lighthouse-filecoin"
+	EaiChainStorageType   StorageType = "eai-chain"
+)
+
+type TaskResult struct {
+	ResultURI string      `json:"result_uri"`
+	Storage   StorageType `json:"storage"`
+	Data      []byte      `json:"data"`
+}
+
 type Tasks struct {
 	TaskID string `json:"task_id"`
 	// ModelAddress     string `json:"model_name"`

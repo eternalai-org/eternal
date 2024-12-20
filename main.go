@@ -32,7 +32,7 @@ func main() {
 		logger.AtLog.Fatal(err)
 	}
 
-	taskWatcher := task_watcher.NewTasksWatcher(b)
+	taskWatcher := task_watcher.NewTasksWatcher(b, cnf)
 
 goto_here:
 	verifed := taskWatcher.Verify()
