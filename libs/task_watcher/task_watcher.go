@@ -2,8 +2,6 @@ package task_watcher
 
 import (
 	"context"
-	"eternal-infer-worker/pkg/logger"
-	"go.uber.org/zap"
 	"sync"
 
 	"eternal-infer-worker/chains/interfaces"
@@ -32,7 +30,7 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 
 	tasks, err := t.chain.GetPendingTasks(ctx, fBlock, tBlock)
 	if err != nil {
-		logger.AtLog.Error("GetPendingTasks",
+		logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks",
 			zap.Uint64("from_block", fBlock),
 			zap.Uint64("to_block", tBlock),
 			zap.Error(err),
@@ -40,13 +38,15 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 		return
 	}
 
-	logger.AtLog.Error("GetPendingTasks",
+	logger.GetLoggerInstanceFromContext(ctx).Error("GetPendingTasks",
+		zap.Error(err),
 		zap.Uint64("from_block", fBlock),
 		zap.Uint64("to_block", tBlock),
 		zap.Int("tasks", len(tasks)),
 	)
+
 	for _, v := range tasks {
-		logger.AtLog.Info("GetPendingTasks.item",
+		logger.GetLoggerInstanceFromContext(ctx).Info("GetPendingTasks.item",
 			zap.Uint64("from_block", fBlock),
 			zap.Uint64("to_block", tBlock),
 			zap.String("task_id", v.TaskID),
