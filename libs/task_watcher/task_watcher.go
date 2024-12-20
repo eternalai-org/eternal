@@ -2,6 +2,7 @@ package task_watcher
 
 import (
 	"context"
+	"math/big"
 	"sync"
 
 	"eternal-infer-worker/chains/interfaces"
@@ -69,7 +70,27 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 func (t *TasksWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for task := range t.taskQueue {
-		logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks", zap.Any("task", task))
+		//TODO - execute task
+
+		//TODO - submit task done
+		result := []byte{}
+		assigmentID := big.NewInt(1)
+
+		tx, err := t.chain.SubmitTask(assigmentID, result)
+		if err != nil {
+			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
+				zap.Any("assigment_id", task.AssignmentID),
+				zap.String("inference_id", task.AssignmentID),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		logger.GetLoggerInstanceFromContext(ctx).Info("ExecueteTasks",
+			zap.Any("assigment_id", task.AssignmentID),
+			zap.String("inference_id", task.AssignmentID),
+			zap.String("tx", tx.Hash().Hex()),
+		)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math/big"
 	"strings"
 
 	"eternal-infer-worker/chains/base/contract/erc20"
@@ -221,7 +222,48 @@ func (b *Base) ProcessBaseChainEventNewInference(ctx context.Context, event *wor
 	return tasks, nil
 }
 
-func (b *Base) SubmitTask() {
+func (b *Base) SubmitTask(assigmentID *big.Int, result []byte) (*types.Transaction, error) {
+	ctx := context.Background()
+
+	auth, err := eth.CreateBindTransactionOpts(ctx, b.Client, b.PrivateKey, int64(b.GasLimit))
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := b.WorkerHub.SubmitSolution(auth, assigmentID, result)
+	if err != nil {
+		return nil, err
+	}
+
+	err = eth.WaitForTx(b.Client, tx.Hash())
+	if err != nil {
+		return nil, err
+	}
+
+	receipt, err := b.Client.TransactionReceipt(ctx, tx.Hash())
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO - check this
+	/*if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+		return errors.New("tx failed")
+	}
+
+	for _, txLog := range receipt.Logs {
+		feeLog, err := workerHub.WorkerHubFilterer.ParseTransferFee(*txLog)
+		if err != nil {
+			continue
+		} else {
+			if strings.EqualFold(feeLog.Miner.Hex(), tskw.address) {
+				tskw.status.processedTasks++
+				tskw.status.currentEarning.Add(tskw.status.currentEarning, feeLog.MingingFee)
+			}
+		}
+	}*/
+	_ = receipt
+
+	return tx, nil
 }
 
 func (b *Base) IsStaked() (bool, error) {

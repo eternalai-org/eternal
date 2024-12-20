@@ -2,6 +2,8 @@ package interfaces
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/core/types"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -75,7 +77,7 @@ type ITasks interface {
 	FromBlock() uint64
 	ToBlock() uint64
 	GetPendingTasks(ctx context.Context, fromblock, toBlock uint64) ([]*Tasks, error)
-	SubmitTask()
+	SubmitTask(assigmentID *big.Int, result []byte) (*types.Transaction, error)
 }
 
 type IStaking interface {
