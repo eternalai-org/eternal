@@ -1,13 +1,12 @@
 package main
 
 import (
-	_ "net/http/pprof"
-	"sync"
-	"time"
-
 	"eternal-infer-worker/chains/base"
 	"eternal-infer-worker/config"
 	"eternal-infer-worker/libs"
+	_ "net/http/pprof"
+	"sync"
+	"time"
 )
 
 func main() {
@@ -29,14 +28,14 @@ goto_here:
 
 		err := taskWatcher.MakeVerify()
 		if err != nil {
-			// only log
+			//only log
 		}
 
 		time.Sleep(time.Second * 5)
 		goto goto_here
 	}
 
-	// get and process tasks
+	//get and process tasks
 	var wg sync.WaitGroup
 
 	for {
@@ -49,4 +48,5 @@ goto_here:
 		wg.Wait()
 		time.Sleep(5 * time.Second)
 	}
+
 }

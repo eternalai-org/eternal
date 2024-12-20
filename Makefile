@@ -25,9 +25,6 @@ docker:
 docker-ollama:
 	docker-compose down	 ollama && docker-compose build   ollama && docker-compose up -d   ollama &
 
-abi-gen:
-	abigen --pkg contract --abi ./chains/base/contract/worker_hub.json --out ./chains/base/contract/worker_hub.go
-
 lint: vendor
 	./bin/golangci-lint run ./... --timeout 10m0s
 
