@@ -1,3 +1,28 @@
-# EtenalNode
+**Quick Guide to using the tool**
+Open your terminal or command prompt and follow these steps:
 
-This repository contains the source code for the Eternal Node.
+1. **Pull Code:**
+   ```bash
+   git clone -b feat/miner-base https://github.com/eternalai-org/eternal.git
+   ```
+   
+2. **Update Environment:**
+   Edit config.env with your settings.
+
+3. **Start Service:**
+
+    ```bash
+    docker-compose up -d
+    ```
+    
+4. **Check Status:**
+    ```bash
+    docker ps
+    ```
+    
+5. **View Logs:**
+    ```bash
+docker logs -f <container-name>
+    ```
+
+
