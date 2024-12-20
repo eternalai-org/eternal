@@ -15,12 +15,12 @@ Open your terminal or command prompt and follow these steps:
     docker-compose up -d
     ```
     
-4. **Check Status:**
+4. **Check docker container status:**
     ```bash
     docker ps
     ```
     
-5. **View Logs:**
+5. **View docker container logs:**
     ```bash
     docker logs -f <container-name>
     ```
