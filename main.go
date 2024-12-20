@@ -49,7 +49,6 @@ goto_here:
 	wg := &sync.WaitGroup{}
 	ctx := context.Background()
 	for {
-		logger.AtLog.Info("Waiting task...")
 		wg.Add(1)
 		taskWatcher.GetPendingTasks(ctx, wg)
 
