@@ -54,11 +54,14 @@ func (c *Chain) CurrentBlock() uint64 {
 }
 
 func (c *Chain) FromBlock() uint64 {
-	return uint64(23909302)
+	cblock := c.CurrentBlock()
+	cblock = cblock - 1000
+	return cblock
 }
 
 func (c *Chain) ToBlock() uint64 {
-	return uint64(23909467)
+	cblock := c.CurrentBlock()
+	return cblock
 }
 
 type IChain interface {

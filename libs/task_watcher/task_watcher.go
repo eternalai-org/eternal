@@ -39,8 +39,13 @@ func (t *TasksWatcher) GetPendingTasks(ctx context.Context, wg *sync.WaitGroup) 
 		return
 	}
 
+	logger.AtLog.Error("GetPendingTasks",
+		zap.Uint64("from_block", fBlock),
+		zap.Uint64("to_block", tBlock),
+		zap.Int("tasks", len(tasks)),
+	)
 	for _, v := range tasks {
-		logger.AtLog.Info("GetPendingTasks",
+		logger.AtLog.Info("GetPendingTasks.item",
 			zap.Uint64("from_block", fBlock),
 			zap.Uint64("to_block", tBlock),
 			zap.String("task_id", v.TaskID),
