@@ -51,6 +51,42 @@ type Chain struct {
 	Address    *common.Address
 }
 
+type LLMInferRequest struct {
+	Messages []LLMInferMessage `json:"messages"`
+	Model    string            `json:"model"`
+	Seed     uint64            `json:"seed"`
+}
+
+type LLMInferMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type LLMInferResponse struct {
+	Id      string `json:"id"`
+	Object  string `json:"object"`
+	Created int    `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Index   int `json:"index"`
+		Message struct {
+			Role      string        `json:"role"`
+			Content   string        `json:"content"`
+			ToolCalls []interface{} `json:"tool_calls"`
+		} `json:"message"`
+		Logprobs     interface{} `json:"logprobs"`
+		FinishReason string      `json:"finish_reason"`
+		StopReason   interface{} `json:"stop_reason"`
+	} `json:"choices"`
+	Usage struct {
+		PromptTokens        int         `json:"prompt_tokens"`
+		TotalTokens         int         `json:"total_tokens"`
+		CompletionTokens    int         `json:"completion_tokens"`
+		PromptTokensDetails interface{} `json:"prompt_tokens_details"`
+	} `json:"usage"`
+	PromptLogprobs interface{} `json:"prompt_logprobs"`
+}
+
 func (c *Chain) Connect(rpc string) error {
 	ethClient, err := ethclient.Dial(rpc)
 	if err != nil {

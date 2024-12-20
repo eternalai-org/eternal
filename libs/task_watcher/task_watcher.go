@@ -89,7 +89,7 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 		// 1. batch -> promt output
 		// 1. no batch
 		//TODO - execute and get this taskResult
-		taskResult, err := t.execueteTasks(task)
+		taskResult, err := t.executeTasks(task)
 		if err != nil {
 			logger.GetLoggerInstanceFromContext(ctx).Error("ExecueteTasks",
 				zap.Any("assigment_id", task.AssignmentID),
@@ -122,8 +122,57 @@ func (t *TaskWatcher) ExecueteTasks(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
-func (t *TaskWatcher) execueteTasks(task *interfaces.Task) (*interfaces.TaskResult, error) {
+func (t *TaskWatcher) executeTasks(task *interfaces.Task) (*interfaces.TaskResult, error) {
 	res := &interfaces.TaskResult{}
+	result := []byte{}
+	if len(task.BatchInfers) == 0 {
+		for _, b := range task.BatchInfers {
+			seed := libs.CreateSeed(b.PromptInput, task.TaskID)
+			obj, err := t.InferChatCompletions(b.PromptInput, "", seed)
+			if err != nil {
+				return nil, err
+			}
+			_b, err := json.Marshal(obj)
+			if err != nil {
+				return nil, err
+			}
+			b.PromptOutput = string(_b)
+		}
+
+		objJson, err := json.Marshal(task.BatchInfers)
+		if err != nil {
+			return nil, err
+		}
+
+		result = objJson
+
+	} else {
+		seed := libs.CreateSeed(task.Params, task.TaskID)
+		obj, err := t.InferChatCompletions(task.Params, "", seed)
+		if err != nil {
+			return nil, err
+		}
+
+		objJson, err := json.Marshal(obj)
+		if err != nil {
+			return nil, err
+		}
+
+		result = objJson
+
+	}
+
+	res.Storage = interfaces.LightHouseStorageType
+	res.Data = result
+	res.ResultURI = "" //TODO - upload and get the returned link
+
+	return res, nil
+}
+
+func (t *TaskWatcher) InferChatCompletions(prompt string, model string, seed uint64) (*interfaces.LLMInferResponse, error) {
+	res := &interfaces.LLMInferResponse{}
+
+	//TODO here.
 
 	return res, nil
 }
